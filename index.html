@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0, user-scalable=no">
+  <title>统一启动器</title>
+  <meta name="description" content="统一启动器 - 快速访问各种服务">
+  <meta name="theme-color" content="#667eea">
+  <link rel="manifest" href="manifest.json">
+  <!-- iOS PWA支持 -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="统一启动器">
+  <link rel="apple-touch-icon" href="icons/icon.svg">
+  <!-- Android PWA增强支持 -->
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="application-name" content="统一启动器">
+</head>
+<body>
+<div class="welcome">
+  <h1>你好，欢迎来到我们的统一启动器！<br>Hello, welcome to our universal launcher!</h1>
+  <p>请选择一个服务开始：<br>Choose a service to begin:</p>
+</div>
+
+<div class="button-group main">
+  <a class="btn primary" href="http://192.168.0.197:3010">记账Homemoney</a>
+  <a class="btn primary" href="http://192.168.0.197:3100">金流Chrysorrhoe</a>
+  <a class="btn primary" href="http://192.168.0.197:5000">库存Inventory</a>
+</div>
+
+<div class="extras">
+  <h2>其他临时服务<br>Other temporary services</h2>
+  <div class="button-group secondary">
+    <a class="btn secondary" href="http://192.168.0.197:8200">收入Income Tracker</a>
+    <a class="btn secondary" href="http://192.168.0.197:8100">金流Chrysorrhoe CDK Recharge充值</a>
+  </div>
+</div>
+
+<style>
+  body {
+    font-family: system-ui, sans-serif;
+    background: #f5f7fa;
+    color: #333;
+    margin: 0;
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    text-align: center;
+  }
+
+  .welcome h1 {
+    margin: 0 0 .5rem;
+    font-weight: 600;
+    color: #2c3e50;
+    text-align: center;
+  }
+
+  .welcome p {
+    margin: 0 0 2rem;
+    font-size: 1.1rem;
+    color: #555;
+    text-align: center;
+  }
+
+  .button-group {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-bottom: 2.5rem;
+  }
+
+  .btn {
+    padding: .9rem 1.8rem;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 500;
+    transition: transform .15s ease, box-shadow .15s ease;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, .08);
+  }
+
+  .btn.primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #fff;
+  }
+
+  .btn.secondary {
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    color: #333;
+  }
+
+  .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, .12);
+  }
+
+  .extras h2 {
+    font-size: 1.25rem;
+    margin: 0 0 1rem;
+    color: #2c3e50;
+    text-align: center;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    body {
+      background: #2c3e50;
+      color: #fff;
+    }
+
+    .welcome h1, .extras h2 {
+      color: #fff;
+    }
+
+    .welcome p {
+      color: #aaa;
+    }
+
+    .btn.primary {
+      background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+    }
+
+    .btn.secondary {
+      background: #aaa;
+      color: #fff;
+    }
+  }
+</style>
+
+<!-- PWA安装提示 -->
+<div id="installPrompt" class="install-prompt" style="display: none; position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--install-bg, #2c3e50); color: var(--install-text, #fff); padding: 1.5rem; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.2); z-index: 9999; min-width: 300px; max-width: 90vw; transition: background 0.3s ease, color 0.3s ease;">
+  <h3 style="margin: 0 0 10px 0; font-size: 1.2rem;">安装统一启动器</h3>
+  <p style="margin: 0 0 15px 0; opacity: 0.9;">将此应用安装到您的桌面或移动设备，获得更好的体验</p>
+  <div style="display: flex; gap: 12px; justify-content: flex-end;">
+    <button id="closeInstallBtn" style="background: transparent; color: inherit; border: 1px solid rgba(255,255,255,0.3); padding: 10px 20px; border-radius: 6px; cursor: pointer; transition: all 0.2s;">稍后</button>
+    <button id="installBtn" style="background: #667eea; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.2s;">立即安装</button>
+  </div>
+</div>
+
+<!-- 强制显示的安装按钮 -->
+<div class="install-button-container" style="margin-top: 2rem; text-align: center;">
+  <button id="showInstallGuideBtn" style="background: var(--install-guide-bg, #f0f0f0); color: var(--install-guide-text, #333); border: 1px solid var(--install-guide-border, #ddd); padding: 10px 20px; border-radius: 6px; cursor: pointer; font-size: 0.9rem; transition: all 0.2s;">
+    � 安装到设备指南
+  </button>
+</div>
+
+<!-- 安装指南模态框 -->
+<div id="installGuideModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 10000; justify-content: center; align-items: center;">
+  <div style="background: var(--modal-bg, #fff); color: var(--modal-text, #333); border-radius: 12px; padding: 2rem; max-width: 500px; width: 90%; max-height: 80vh; overflow-y: auto; box-shadow: 0 20px 40px rgba(0,0,0,0.2); transition: background 0.3s ease, color 0.3s ease;">
+    <h3 style="margin-top: 0; color: var(--modal-title, #2c3e50);">如何安装此应用</h3>
+    
+    <div style="margin: 1.5rem 0;">
+      <h4 style="margin-bottom: 0.5rem; color: var(--modal-subtitle, #34495e);">在Chrome/Edge浏览器上:</h4>
+      <ol style="margin-top: 0.5rem; line-height: 1.6;">
+        <li>点击地址栏右侧的 <strong>安装</strong> 图标</li>
+        <li>在弹出的对话框中点击 <strong>安装</strong> 按钮</li>
+      </ol>
+    </div>
+    
+    <div style="margin: 1.5rem 0;">
+      <h4 style="margin-bottom: 0.5rem; color: var(--modal-subtitle, #34495e);">在Safari浏览器上 (iPhone/iPad):</h4>
+      <ol style="margin-top: 0.5rem; line-height: 1.6;">
+        <li>点击底部工具栏中的 <strong>分享</strong> 按钮</li>
+        <li>滑动到底部，点击 <strong>添加到主屏幕</strong></li>
+        <li>点击 <strong>添加</strong> 按钮</li>
+      </ol>
+    </div>
+    
+    <button id="closeGuideBtn" style="background: #667eea; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; width: 100%; margin-top: 1rem;">
+      我知道了
+    </button>
+  </div>
+</div>
+
+<style>
+  /* 定义浅色模式变量 */
+  :root {
+    --install-bg: #2c3e50;
+    --install-text: #fff;
+    --install-guide-bg: #f0f0f0;
+    --install-guide-text: #333;
+    --install-guide-border: #ddd;
+    --modal-bg: #fff;
+    --modal-text: #333;
+    --modal-title: #2c3e50;
+    --modal-subtitle: #34495e;
+  }
+
+  /* 深色模式变量覆盖 */
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --install-bg: #1e2a38;
+      --install-text: #e0e0e0;
+      --install-guide-bg: #3a3a3a;
+      --install-guide-text: #e0e0e0;
+      --install-guide-border: #555;
+      --modal-bg: #2c3e50;
+      --modal-text: #fff;
+      --modal-title: #fff;
+      --modal-subtitle: #ccc;
+    }
+  }
+</style>
+
+<script>
+  // 存储安装事件
+  let deferredPrompt;
+  let installAttempts = 0;
+  const MAX_INSTALL_ATTEMPTS = 3;
+  
+  const installPrompt = document.getElementById('installPrompt');
+  const installBtn = document.getElementById('installBtn');
+  const closeInstallBtn = document.getElementById('closeInstallBtn');
+  const showInstallGuideBtn = document.getElementById('showInstallGuideBtn');
+  const installGuideModal = document.getElementById('installGuideModal');
+  const closeGuideBtn = document.getElementById('closeGuideBtn');
+
+  // 检测是否在PWA模式下运行
+  function isPwaMode() {
+    return window.matchMedia('(display-mode: standalone)').matches || 
+           window.navigator.standalone ||
+           document.referrer.includes('android-app://') ||
+           (window.navigator).standalone === true;
+  }
+
+  // 检查是否已经安装
+  window.addEventListener('DOMContentLoaded', () => {
+    // 如果是在独立模式下运行，隐藏安装提示
+    if (isPwaMode()) {
+      showInstallGuideBtn.style.display = 'none';
+    }
+    
+    // 处理快捷方式URL参数
+    handleShortcuts();
+  });
+
+  // 监听beforeinstallprompt事件
+  window.addEventListener('beforeinstallprompt', (e) => {
+    console.log('捕获到安装提示事件');
+    // 阻止Chrome自动显示安装提示
+    e.preventDefault();
+    // 存储事件以便稍后触发
+    deferredPrompt = e;
+    // 显示自定义安装按钮
+    installPrompt.style.display = 'block';
+  });
+
+  // 点击安装按钮
+  installBtn.addEventListener('click', async () => {
+    if (!deferredPrompt) {
+      console.log('安装提示不可用，请参考安装指南手动安装');
+      // 显示安装指南作为备选方案
+      installGuideModal.style.display = 'flex';
+      return;
+    }
+    
+    console.log('触发安装提示');
+    
+    try {
+      // 显示安装提示
+      deferredPrompt.prompt();
+      // 等待用户响应
+      const { outcome } = await deferredPrompt.userChoice;
+      console.log(`用户${outcome === 'accepted' ? '接受' : '拒绝'}了安装`);
+      
+      // 无论结果如何，重置deferredPrompt变量
+      deferredPrompt = null;
+      // 隐藏提示
+      installPrompt.style.display = 'none';
+      
+      if (outcome === 'accepted') {
+        console.log('PWA已成功安装');
+      } else {
+        // 用户拒绝后增加尝试计数
+        installAttempts++;
+        if (installAttempts < MAX_INSTALL_ATTEMPTS) {
+          // 稍后再次尝试显示安装提示
+          setTimeout(() => {
+            installPrompt.style.display = 'block';
+          }, 10000); // 10秒后重试
+        }
+      }
+    } catch (error) {
+      console.error('安装提示失败:', error);
+      // 显示安装指南作为备选方案
+      installGuideModal.style.display = 'flex';
+    }
+  });
+
+  // 关闭提示
+  closeInstallBtn.addEventListener('click', () => {
+    installPrompt.style.display = 'none';
+    installAttempts++;
+    
+    if (installAttempts < MAX_INSTALL_ATTEMPTS) {
+      setTimeout(() => {
+        installPrompt.style.display = 'block';
+      }, 20000); // 20秒后重试
+    }
+  });
+
+  // 显示安装指南
+  showInstallGuideBtn.addEventListener('click', () => {
+    installGuideModal.style.display = 'flex';
+  });
+
+  // 关闭安装指南
+  closeGuideBtn.addEventListener('click', () => {
+    installGuideModal.style.display = 'none';
+  });
+
+  // 点击模态框外部关闭
+  installGuideModal.addEventListener('click', (e) => {
+    if (e.target === installGuideModal) {
+      installGuideModal.style.display = 'none';
+    }
+  });
+
+  // 检查是否已经安装
+  window.addEventListener('appinstalled', (evt) => {
+    console.log('应用已安装');
+    installPrompt.style.display = 'none';
+    if (installGuideModal) installGuideModal.style.display = 'none';
+  });
+
+  // 检查是否可安装并显示提示
+  function checkInstallability() {
+    // 检查是否在独立模式下运行（已安装）
+    if (isPwaMode()) {
+      console.log('应用已在PWA模式下运行');
+      installPrompt.style.display = 'none';
+      return;
+    }
+    
+    // 延迟显示安装提示，增加用户体验
+    setTimeout(() => {
+      if (!isPwaMode() && installPrompt.style.display === 'none' && !deferredPrompt) {
+        // 如果没有捕获到beforeinstallprompt事件，显示安装指南
+        console.log('没有捕获到beforeinstallprompt事件，显示安装指南');
+        installGuideModal.style.display = 'flex';
+      }
+    }, 5000);
+  }
+  
+  // 监听页面可见性变化
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) {
+      checkInstallability();
+    }
+  });
+  
+  // 处理快捷方式URL参数
+  function handleShortcuts() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const app = urlParams.get('app');
+    
+    if (app === 'homemoney') {
+      window.open('http://192.168.0.197:3010', '_blank');
+    } else if (app === 'chrysorrhoe') {
+      window.open('http://192.168.0.197:3100', '_blank');
+    } else if (app === 'inventory') {
+      window.open('http://192.168.0.197:5000', '_blank');
+    }
+  }
+
+  // 增强的PWA安装检测逻辑
+  function detectInstallState() {
+    // 立即显示安装指南按钮，确保用户总能看到安装选项
+    showInstallGuideBtn.style.display = 'inline-block';
+    
+    // 延迟检查是否可以触发安装提示
+    setTimeout(() => {
+      if (!isPwaMode() && !deferredPrompt) {
+        console.log('Android Chrome可能需要用户交互才能显示安装提示');
+        // 显示安装指南作为备选
+        // 不自动显示，让用户点击按钮查看
+      }
+    }, 2000);
+  }
+  
+  // 立即执行安装状态检测
+  detectInstallState();
+  
+  // 注册Service Worker
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      // 使用相对路径确保兼容性
+      navigator.serviceWorker.register('./service-worker.js')
+        .then(registration => {
+          console.log('Service Worker 注册成功:', registration.scope);
+          
+          // 注册后立即检查安装状态
+          checkInstallability();
+          
+          // 对于Android Chrome，延迟显示安装指南按钮以确保最佳用户体验
+          setTimeout(() => {
+            if (!isPwaMode()) {
+              showInstallGuideBtn.style.display = 'inline-block';
+            }
+          }, 1000);
+        })
+        .catch(error => {
+          console.error('Service Worker 注册失败:', error);
+          // 即使Service Worker注册失败，也显示安装指南
+          showInstallGuideBtn.style.display = 'inline-block';
+        });
+    });
+  } else {
+    console.log('当前浏览器不支持Service Worker');
+    // 不支持Service Worker时也显示安装指南
+    showInstallGuideBtn.style.display = 'inline-block';
+  }
+</script>

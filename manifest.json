@@ -1,0 +1,45 @@
+{
+  "name": "统一启动器",
+  "short_name": "启动器",
+  "description": "统一启动器 - 快速访问各种服务",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f5f7fa",
+  "theme_color": "#667eea",
+  "orientation": "portrait-primary",
+  "categories": ["productivity", "utilities"],
+  "prefer_related_applications": false,
+  "related_applications": [],
+  "lang": "zh-CN",
+  "dir": "ltr",
+  "icons": [
+    {
+      "src": "icons/icon.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "记账",
+      "short_name": "记账",
+      "description": "打开记账应用",
+      "url": "/?app=homemoney",
+      "icons": [{ "src": "icons/icon.svg", "sizes": "96x96" }]
+    },
+    {
+      "name": "金流",
+      "short_name": "金流",
+      "description": "打开金流应用",
+      "url": "/?app=chrysorrhoe",
+      "icons": [{ "src": "icons/icon.svg", "sizes": "96x96" }]
+    }
+  ]
+}
