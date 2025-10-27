@@ -1,4 +1,4 @@
-        /* 添加CSS变量定义 */
+/* 添加CSS变量定义 */
         :root {
             --primary-color: #3498db;
             --success-color: #2ecc71;
@@ -6,6 +6,46 @@
             --danger-color: #e74c3c;
             --text-color: #333;
             --bg-color: #f5f5f5;
+            --border-color: #ddd;
+            --card-bg: #fff;
+            --table-header-bg: #3498db;
+            --table-row-alt: #f2f2f2;
+            --highlight-bg: #f8f9fa;
+            --browser-info-bg: #fff3cd;
+            --browser-info-text: #856404;
+            --error-bg: #ffebee;
+            --error-border: #e74c3c;
+            --error-text: #c62828;
+            --result-bg: #e8f4f8;
+            --h1-color: #2c3e50;
+            --h2-color: #34495e;
+            --stat-label-color: #666;
+        }
+        
+        /* 深色模式适配 */
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --primary-color: #3498db;
+                --success-color: #2ecc71;
+                --warning-color: #f39c12;
+                --danger-color: #e74c3c;
+                --text-color: #e0e0e0;
+                --bg-color: #121212;
+                --border-color: #333;
+                --card-bg: #1e1e1e;
+                --table-header-bg: #2980b9;
+                --table-row-alt: #2d2d2d;
+                --highlight-bg: #2d2d2d;
+                --browser-info-bg: #3a3014;
+                --browser-info-text: #e0c457;
+                --error-bg: #3a1c1c;
+                --error-border: #c62828;
+                --error-text: #ff8a80;
+                --result-bg: #1a2b3c;
+                --h1-color: #ffffff;
+                --h2-color: #e0e0e0;
+                --stat-label-color: #b0b0b0;
+            }
         }
         /* 基本样式 - 使用传统CSS确保兼容性 */
         body {
@@ -16,6 +56,7 @@
             margin: 0 auto;
             padding: 20px;
             background-color: var(--bg-color);
+            transition: background-color 0.3s ease, color 0.3s ease;
         }
         
         p {
@@ -24,48 +65,56 @@
         }
 
         h1 {
-            color: #2c3e50;
+            color: var(--h1-color);
             text-align: center;
-            border-bottom: 2px solid #3498db;
+            border-bottom: 2px solid var(--primary-color);
             padding-bottom: 10px;
+            transition: color 0.3s ease, border-color 0.3s ease;
         }
         
         h2 {
-            color: #34495e;
+            color: var(--h2-color);
             margin-top: 30px;
-            border-left: 4px solid #3498db;
+            border-left: 4px solid var(--primary-color);
             padding-left: 10px;
+            transition: color 0.3s ease, border-color 0.3s ease;
         }
         
         .test-section {
-            background-color: white;
-            border: 1px solid #ddd;
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
             border-radius: 5px;
             padding: 20px;
             margin-bottom: 20px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: background-color 0.3s ease, border-color 0.3s ease;
         }
         
         /* 兼容性测试样式 */
         .feature-item {
             margin: 15px 0;
             padding: 10px;
-            border: 1px solid #eee;
+            border: 1px solid var(--border-color);
+            background-color: var(--card-bg);
+            transition: background-color 0.3s ease, border-color 0.3s ease;
         }
         
         .result {
             margin-top: 10px;
             padding: 10px;
-            background-color: #e8f4f8;
+            background-color: var(--result-bg);
             border-radius: 4px;
             font-family: monospace;
+            transition: background-color 0.3s ease;
         }
         
         .browser-info {
-            background-color: #fff3cd;
+            background-color: var(--browser-info-bg);
             padding: 15px;
             border-radius: 5px;
             margin: 20px 0;
+            color: var(--browser-info-text);
+            transition: background-color 0.3s ease, color 0.3s ease;
         }
         
         .button-test {
@@ -90,18 +139,23 @@
         }
         
         th, td {
-            border: 1px solid #ddd;
+            border: 1px solid var(--border-color);
             padding: 8px 12px;
             text-align: left;
+            transition: background-color 0.3s ease, border-color 0.3s ease;
         }
         
         th {
-            background-color: #3498db;
+            background-color: var(--table-header-bg);
             color: white;
         }
         
         tr:nth-child(even) {
-            background-color: #f2f2f2;
+            background-color: var(--table-row-alt);
+        }
+        
+        tr {
+            background-color: var(--card-bg);
         }
         
         /* 响应式设计 */
@@ -123,10 +177,11 @@
         
         .compatibility-item {
             padding: 10px;
-            border: 1px solid #ddd;
+            border: 1px solid var(--border-color);
             border-radius: 4px;
-            background-color: #f9f9fa;
+            background-color: var(--highlight-bg);
             margin-bottom: 10px;
+            transition: background-color 0.3s ease, border-color 0.3s ease;
         }
         
         /* 在现代浏览器中使用flex布局 */
@@ -179,11 +234,12 @@
         
         /* 报告样式 */
         .compatibility-report {
-            background-color: white;
-            border: 2px solid #3498db;
+            background-color: var(--card-bg);
+            border: 2px solid var(--primary-color);
             border-radius: 8px;
             padding: 20px;
             margin-top: 30px;
+            transition: background-color 0.3s ease, border-color 0.3s ease;
         }
         
         .report-header {
@@ -208,12 +264,13 @@
         .stat-item {
             text-align: center;
             padding: 10px;
-            background-color: #f8f9fa;
+            background-color: var(--highlight-bg);
             border-radius: 6px;
             min-width: 150px;
             margin: 5px;
             /* IE兼容布局 */
             display: inline-block;
+            transition: background-color 0.3s ease;
         }
         
         .stat-number {
@@ -224,7 +281,8 @@
         
         .stat-label {
             font-size: 14px;
-            color: #666;
+            color: var(--stat-label-color);
+            transition: color 0.3s ease;
         }
         
         .report-section {
@@ -266,10 +324,11 @@
         
         .metric-item {
             padding: 10px;
-            background-color: #f0f8ff;
+            background-color: var(--highlight-bg);
             border-radius: 6px;
             margin-bottom: 10px;
             /* IE兼容布局 */
+            transition: background-color 0.3s ease;
         }
         
         /* 在现代浏览器中使用flex布局 */
@@ -324,35 +383,38 @@
         
         /* 主要板块样式 */
         .main-section {
-            background-color: #fff;
-            border: 1px solid #ddd;
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
             border-radius: 8px;
             padding: 20px;
             margin-bottom: 30px;
+            transition: background-color 0.3s ease, border-color 0.3s ease;
         }
         
         /* 错误信息显示区域样式 */
         .error-panel {
-            background-color: #ffebee;
-            border: 2px solid #e74c3c;
+            background-color: var(--error-bg);
+            border: 2px solid var(--error-border);
             border-radius: 8px;
             padding: 15px;
             margin: 20px 0;
             display: none;
+            transition: background-color 0.3s ease, border-color 0.3s ease;
         }
         
         .error-panel-header {
-            color: #c62828;
+            color: var(--error-text);
             font-weight: bold;
             margin-bottom: 10px;
             font-size: 16px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            transition: color 0.3s ease;
         }
         
         .error-close-btn {
-            background: #e74c3c;
+            background: var(--error-border);
             color: white;
             border: none;
             padding: 5px 10px;
@@ -362,17 +424,18 @@
         }
         
         .error-close-btn:hover {
-            background: #c0392b;
+            background: var(--error-text);
         }
         
         .error-list {
             max-height: 300px;
             overflow-y: auto;
             font-family: monospace;
-            background-color: #fff;
-            border: 1px solid #ddd;
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
             border-radius: 4px;
             padding: 10px;
+            transition: background-color 0.3s ease, border-color 0.3s ease;
         }
         
         .error-item {
@@ -388,14 +451,16 @@
         }
         
         .error-message {
-            color: #c62828;
+            color: var(--error-text);
             font-weight: bold;
+            transition: color 0.3s ease;
         }
         
         .error-source {
-            color: #555;
+            color: var(--text-color);
             font-size: 12px;
             margin-top: 5px;
+            opacity: 0.8;
         }
         
         /* IE兼容的清除浮动 */
@@ -425,8 +490,9 @@
         .api-category {
             margin: 20px 0;
             padding: 15px;
-            background-color: #f8f9fa;
+            background-color: var(--highlight-bg);
             border-radius: 6px;
+            transition: background-color 0.3s ease;
         }
         
         .api-category h3 {
