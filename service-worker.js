@@ -1,6 +1,8 @@
 // Service Worker for 统一启动器
 
-const CACHE_NAME = 'universal-launcher-v1';
+// 使用带时间戳的缓存名称，方便更新
+const CACHE_VERSION = 'v2'; // 更新此版本号以强制刷新缓存
+const CACHE_NAME = `universal-launcher-${CACHE_VERSION}`;
 const STATIC_ASSETS = [
   '/',
   '/index.html',
@@ -20,7 +22,7 @@ self.addEventListener('install', (event) => {
   );
 });
 
-// 激活Service Worker，清理旧缓存
+// 激活Service Worker，清理旧缓存并通知客户端刷新
 self.addEventListener('activate', (event) => {
   const cacheWhitelist = [CACHE_NAME];
   event.waitUntil(
@@ -28,16 +30,31 @@ self.addEventListener('activate', (event) => {
       return Promise.all(
         cacheNames.map((cacheName) => {
           if (cacheWhitelist.indexOf(cacheName) === -1) {
+            console.log('删除旧缓存:', cacheName);
             return caches.delete(cacheName);
           }
         })
       );
     })
-    .then(() => self.clients.claim())
+    .then(() => {
+      // 立即接管所有客户端
+      return self.clients.claim();
+    })
+    .then(() => {
+      // 通知所有已打开的客户端刷新页面以使用新版本
+      return self.clients.matchAll().then((clients) => {
+        clients.forEach((client) => {
+          client.postMessage({
+            type: 'CACHE_UPDATED',
+            version: CACHE_VERSION
+          });
+        });
+      });
+    })
   );
 });
 
-// 处理请求，使用缓存优先策略
+// 处理请求，使用网络优先策略，确保获取最新内容
 self.addEventListener('fetch', (event) => {
   // 对于跨域请求，不使用缓存
   if (!event.request.url.startsWith(self.location.origin)) {
@@ -53,39 +70,59 @@ self.addEventListener('fetch', (event) => {
     });
   }
 
+  // 为导航请求（页面访问）使用网络优先策略
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          // 成功获取网络响应后，更新缓存
+          const responseToCache = response.clone();
+          caches.open(CACHE_NAME)
+            .then((cache) => {
+              cache.put(event.request, responseToCache);
+            });
+          return response;
+        })
+        .catch(() => {
+          // 网络请求失败时，回退到缓存
+          return caches.match(event.request) || caches.match('/');
+        })
+    );
+    return;
+  }
+
+  // 对于其他请求，使用缓存优先但有条件刷新的策略
   event.respondWith(
     caches.match(event.request)
-      .then((response) => {
-        // 如果在缓存中找到响应，则返回缓存的响应
-        if (response) {
-          return response;
-        }
-
-        // 否则，发起网络请求
-        return fetch(event.request)
-          .then((response) => {
+      .then((cachedResponse) => {
+        // 发起网络请求尝试获取最新内容
+        const fetchPromise = fetch(event.request)
+          .then((networkResponse) => {
             // 检查响应是否有效
-            if (!response || response.status !== 200 || response.type !== 'basic') {
-              return response;
+            if (!networkResponse || networkResponse.status !== 200 || networkResponse.type !== 'basic') {
+              return networkResponse;
             }
 
-            // 克隆响应（因为响应流只能使用一次）
-            const responseToCache = response.clone();
-
-            // 将响应添加到缓存中
+            // 更新缓存
+            const responseToCache = networkResponse.clone();
             caches.open(CACHE_NAME)
               .then((cache) => {
                 cache.put(event.request, responseToCache);
               });
 
-            return response;
+            return networkResponse;
           })
           .catch(() => {
-            // 如果网络请求失败，对于导航请求，返回缓存的首页
-            if (event.request.mode === 'navigate') {
-              return caches.match('/');
-            }
+            // 网络请求失败且没有缓存时，返回一个基本错误
+            return new Response('网络连接失败', {
+              status: 408,
+              headers: { 'Content-Type': 'text/plain' }
+            });
           });
+
+        // 如果有缓存，立即返回缓存内容，同时在后台更新缓存
+        // 如果没有缓存，等待网络请求完成
+        return cachedResponse || fetchPromise;
       })
   );
 });
