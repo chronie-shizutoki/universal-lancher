@@ -1,0 +1,263 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<HTML>
+  <HEAD>
+    <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=utf-8">
+    <META NAME="viewport" CONTENT="width=device-width, initial-scale=1.0">
+    <TITLE>收入记录器</TITLE>
+  </HEAD>
+  <BODY>
+    <DIV ID="root"></DIV>
+    <SCRIPT LANGUAGE="JavaScript" SRC="./src/app.js"></SCRIPT>
+    <STYLE>
+      /* 像素字体定义 - IE5 兼容写法 */
+      @font-face {
+        font-family: 'font';
+        src: url('./font.ttf');
+        font-weight: normal;
+        font-style: normal;
+      }
+
+      /* 全局样式重置 - 兼容90年代浏览器和IE5 */
+      * {
+        margin: 0;
+        padding: 0;
+        font-family: 'font', Arial, sans-serif; /* 回退字体确保可读性 */
+      }
+
+      /* 90年代风格基础设置 - IE5 兼容 */
+      body {
+        background-color: #008080;
+        color: #000000;
+        letter-spacing: -0.5px;
+        line-height: 1.1;
+        font-size: 16px;
+        /* IE5 兼容属性 */
+        behavior: url(#default#VML);
+        zoom: 1;
+      }
+
+      /* 根容器样式 */
+      #root {
+        width: 100%;
+        margin: 0;
+        padding: 0;
+      }
+
+      /* 容器样式 - 像素块状设计 */
+      .container {
+        width: 90%;
+        margin: 0 auto;
+        padding: 16px;
+        background-color: #c0c0c0;
+        border: 4px outset #ffffff;
+        /* IE5 兼容写法 */
+        border-color: #ffffff #808080 #808080 #ffffff;
+      }
+
+      /* 标题样式 - 90年代粗体大标题 */
+      h1 {
+        text-align: center;
+        margin-bottom: 24px;
+        color: #000080;
+        font-size: 32px;
+        padding: 16px;
+        font-weight: bold;
+        text-transform: uppercase;
+        background-color: #c0c0c0;
+        border: 2px inset #ffffff;
+        /* IE5 兼容写法 */
+        border-color: #808080 #ffffff #ffffff #808080;
+      }
+
+      /* 表单样式 - 90年代经典输入框 */
+      .form {
+        margin-bottom: 24px;
+        padding: 16px;
+        background-color: #c0c0c0;
+        border: 3px inset #ffffff;
+        /* IE5 兼容写法 */
+        border-color: #808080 #ffffff #ffffff #808080;
+      }
+
+      /* 输入框样式 */
+      .input {
+        width: 100%;
+        padding: 12px;
+        margin-bottom: 12px;
+        border: 3px inset #ffffff;
+        font-size: 16px;
+        background-color: #ffffff;
+        color: #000000;
+        /* IE5 兼容设置 */
+        box-sizing: border-box;
+      }
+
+      /* 添加清除浮动以确保表单元素正确排列 */
+      .form:after {
+        content: ".";
+        display: block;
+        height: 0;
+        clear: both;
+        visibility: hidden;
+      }
+      
+      /* 底部信息样式 */
+      .footer {
+        text-align: center;
+        font-size: 16px;
+        margin-top: 20px;
+        padding: 10px 0;
+        color: #666;
+      }
+
+      /* 按钮样式 - IE5 兼容 */
+      .button {
+        width: 100%;
+        padding: 12px;
+        background-color: #c0c0c0;
+        color: #000000;
+        border: 3px outset #ffffff;
+        font-size: 16px;
+        font-weight: bold;
+        cursor: pointer;
+        text-transform: uppercase;
+        /* IE5 兼容写法 */
+        border-color: #ffffff #808080 #808080 #ffffff;
+        box-sizing: border-box;
+      }
+
+      /* 按钮按下效果 */
+      .button:active {
+        border: 3px inset #ffffff;
+        border-color: #808080 #ffffff #ffffff #808080;
+      }
+
+      /* 总收入样式 - 像素霓虹风格 */
+      .total {
+        text-align: center;
+        font-size: 24px;
+        font-weight: bold;
+        color: #0000ff;
+        margin-bottom: 24px;
+        padding: 16px;
+        background-color: #ff00ff;
+      }
+
+      /* 列表样式 - 90年代窗口风格 */
+      .list {
+        margin-top: 16px;
+      }
+
+      /* 项目样式 */
+      .item {
+        background-color: #c0c0c0;
+        padding: 16px;
+        margin-bottom: 12px;
+        border: 3px inset #ffffff;
+        /* IE5 兼容写法 */
+        border-color: #808080 #ffffff #ffffff #808080;
+      }
+
+      /* 项目内容 */
+      .item-content {
+        display: block;
+        margin-bottom: 8px;
+        background-color: #ffffff;
+        padding: 8px;
+        border: 1px solid #000000;
+      }
+
+      /* 来源样式 */
+      .source {
+        font-weight: bold;
+        color: #ff0000;
+        text-transform: uppercase;
+      }
+
+      /* 日期样式 */
+      .date {
+        color: #008000;
+        font-size: 14px;
+        float: right;
+      }
+
+      /* 操作区域 */
+      .item-actions {
+        display: block;
+        margin-top: 8px;
+        text-align: right;
+      }
+
+      /* 金额样式 */
+      .amount {
+        font-weight: bold;
+        color: #0000ff;
+        font-size: 19px;
+        background-color: #ffff00;
+        padding: 3px 8px;
+        border: 2px solid #000000;
+        margin-right: 10px;
+      }
+
+      /* 删除按钮样式 */
+      .delete-button {
+        background-color: #c0c0c0;
+        color: #000000;
+        border: 3px outset #ffffff;
+        padding: 8px 16px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: bold;
+        /* IE5 兼容写法 */
+        border-color: #ffffff #808080 #808080 #ffffff;
+      }
+
+      /* 删除按钮按下效果 */
+      .delete-button:active {
+        border: 3px inset #ffffff;
+        border-color: #808080 #ffffff #ffffff #808080;
+      }
+
+      /* 空状态样式 */
+      .empty {
+        text-align: center;
+        color: #ff0000;
+        padding: 32px;
+        font-weight: bold;
+        font-size: 19px;
+        background-color: #c0c0c0;
+        border: 3px inset #ffffff;
+      }
+
+      /* 链接样式 - IE5 兼容 */
+      a {
+        font-weight: bold;
+        color: #0000ff;
+        text-decoration: underline;
+      }
+
+      /* 链接悬停 - 仅在支持的浏览器 */
+      a:hover {
+        color: #ff0000;
+        text-decoration: underline;
+      }
+
+      /* 确保 IE5 兼容性 - 使用更安全的方式 */
+      /* 为表单元素添加IE5兼容样式 */
+      form, input, button {
+        box-sizing: border-box;
+      }
+      
+      /* 确保内联元素正确显示 */
+      .source, .date, .amount, .delete-button {
+        display: inline;
+        width: auto;
+      }
+      
+      /* 确保操作区域内的元素正确对齐 */
+      .item-actions {
+        text-align: right;
+      }
+    </STYLE>
+  </BODY>
+</HTML>

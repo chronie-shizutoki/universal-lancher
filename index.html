@@ -32,7 +32,7 @@
 <div class="extras">
   <h2>其他临时服务<br>Other temporary services</h2>
   <div class="button-group secondary">
-    <a class="btn secondary" href="http://192.168.0.197:8200">收入Income Tracker</a>
+    <a class="btn secondary" onclick="window.location.href='./component/income-tracker/index.htm'">收入Income Tracker</a>
     <a class="btn secondary" href="http://192.168.0.197:8100">金流Chrysorrhoe CDK Recharge充值</a>
   </div>
 </div>
@@ -41,6 +41,15 @@
   <button class="btn primary" id="check-compatibility" onclick="window.location.href='./component/compatibility-check/browser.html'">检查兼容性<br>Check your browser compatibility</button>
   <button class="btn primary" id="rate" onclick="window.location.href='./component/exchange-rate/rate.html'">汇率计算器<br>Exchange Rate Calculator</button>
 </div>
+
+<div>
+  <br>
+  <small id="user-agent"></small>
+</div>
+
+<script>
+  document.getElementById('user-agent').textContent = navigator.userAgent;
+</script>
 
 <style>
   body {
