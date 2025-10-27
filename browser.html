@@ -1,0 +1,3416 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>浏览器兼容性测试页面</title>
+    <style type="text/css">
+        @import url('./check.css');
+    </style>
+</head>
+<body>
+    <h1>浏览器兼容性测试页面</h1>
+    <!-- 错误信息显示面板 -->
+    <div id="error-panel" class="error-panel">
+        <div class="error-panel-header">
+            <span>浏览器错误信息</span>
+            <button id="error-close-btn" class="error-close-btn">关闭</button>
+        </div>
+        <div id="error-list" class="error-list">
+            <!-- 错误信息将在这里动态显示 -->
+        </div>
+    </div>
+
+    <div class="help-section">
+        <h2>帮助和建议</h2>
+    <p>如果您的Chrome/Edge/Firefox/Opera浏览器过旧，请升级到最新版本以获得最佳体验。</p>
+    <p>当前最新浏览器版本为：Chrome141,Edge141,Firefox144,Opera122</p>
+    <p>如果您的iOS/iPadOS低于16.4，请升级您的系统到新版本或更换新设备以获得最佳体验。</p>
+    <p>当前最新iOS/iPadOS正式版为26.0，Safari 605</p>
+    <p>如果您正在使用Windows7或更低版本，请升级您的Windows系统到10/11或更换新设备</p>
+    <p>当前最新Windows系统版本为Windows11 25H2</p>
+    <p>如果您正在使用MacOS12或更低版本，请升级您的MacOS系统到最新版本或更换新设备</p>
+    <p>当前最新MacOS系统版本为MacOS Tahoe 26.0</p>
+    </div>
+    
+    <div class="test-section">
+        <h2>性能和渲染指标</h2>
+        <div class="performance-metrics">
+            <div class="metric-item">
+                <span class="feature-name">DOM加载时间:</span>
+                <span id="dom-load-time">--</span>
+            </div>
+            <div class="metric-item">
+                <span class="feature-name">资源加载时间:</span>
+                <span id="resource-load-time">--</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 兼容性报告部分 -->
+    <button id="run-auto-test">运行自动兼容性检测</button>
+    <div class="loading" id="loading-indicator"></div>
+    
+    <div class="compatibility-report">
+        <div class="report-header">
+            <h2>浏览器兼容性报告</h2>
+            <p>自动生成的兼容性分析结果</p>
+        </div>
+        
+        <div class="report-stats">
+            <div class="stat-item">
+                <span class="stat-number" id="supported-count">0</span>
+                <span class="stat-label">支持的特性</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number" id="unsupported-count">0</span>
+                <span class="stat-label">不支持的特性</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number" id="partial-count">0</span>
+                <span class="stat-label">部分支持的特性</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number" id="compatibility-score">0%</span>
+                <span class="stat-label">兼容性得分</span>
+            </div>
+        </div>
+        
+        <div class="report-section">
+            <h3>浏览器环境信息</h3>
+            <table class="report-table">
+                <tr>
+                    <th>项目</th>
+                    <th>信息</th>
+                </tr>
+                <tr>
+                    <td>浏览器名称</td>
+                    <td id="report-browser-name">--</td>
+                </tr>
+                <tr>
+                    <td>浏览器版本</td>
+                    <td id="report-browser-version">--</td>
+                </tr>
+                <tr>
+                    <td>操作系统</td>
+                    <td id="report-os">--</td>
+                </tr>
+                <tr>
+                    <td>屏幕分辨率</td>
+                    <td id="report-resolution">--</td>
+                </tr>
+                <tr>
+                    <td>视口大小</td>
+                    <td id="report-viewport">--</td>
+                </tr>
+            </table>
+        </div>
+        
+        <div class="report-section js-report-section">
+            <h3>JavaScript API兼容性</h3>
+            <div class="compatibility-grid" id="js-compatibility-grid"></div>
+        </div>
+        
+        <div class="report-section css-report-section">
+            <h3>CSS特性兼容性</h3>
+            <div class="compatibility-grid" id="css-compatibility-grid"></div>
+        </div>
+        
+        <style>
+            /* 报告部分的JavaScript和CSS板块特定样式 */
+            .js-report-section {
+                border-top: 2px solid #3498db;
+                padding-top: 15px;
+            }
+            
+            .css-report-section {
+                border-top: 2px solid #e74c3c;
+                padding-top: 15px;
+            }
+        </style>
+        
+        <div class="report-section">
+            <h3>兼容性建议</h3>
+            <div id="compatibility-suggestions">
+                <p>运行自动检测以获取建议</p>
+            </div>
+        </div>
+    </div>
+
+    <script type="text/javascript">
+        
+        // 自动检测相关函数
+        var compatibilityResults = {
+            browserInfo: {},
+            jsFeatures: [],
+            cssFeatures: [],
+            performance: {}
+        };
+        
+        function detectJavaScriptFeatures() {
+            var features = [];
+            
+            // 多媒体API
+            features.push({
+                name: "MediaDevices API",
+                supported: typeof navigator.mediaDevices !== "undefined",
+                description: "获取用户媒体设备 (Chrome 47+, Firefox 38+, Safari 11+, Edge 12+)"
+            });
+            
+            features.push({
+                name: "Web Audio API",
+                supported: typeof window.AudioContext !== "undefined" || typeof window.webkitAudioContext !== "undefined",
+                description: "音频处理API (Chrome 14+, Firefox 25+, Safari 6+, Edge 12+)"
+            });
+            
+            features.push({
+                name: "MediaRecorder API",
+                supported: typeof window.MediaRecorder !== "undefined",
+                description: "媒体录制API (Chrome 49+, Firefox 29+, Safari 14.1+, Edge 79+)"
+            });
+            
+            // 网络API
+            features.push({
+                name: "Network Information API",
+                supported: typeof navigator.connection !== "undefined" || typeof navigator.mozConnection !== "undefined" || typeof navigator.webkitConnection !== "undefined",
+                description: "网络连接信息 (Chrome 38+, Firefox 31+, Edge 79+, Safari不支持)"
+            });
+            
+            features.push({
+                name: "Service Worker API",
+                supported: typeof navigator.serviceWorker !== "undefined",
+                description: "离线功能和后台同步 (Chrome 40+, Firefox 44+, Safari 11.1+, Edge 17+)"
+            });
+            
+            features.push({
+                name: "WebRTC API",
+                supported: typeof window.RTCPeerConnection !== "undefined" || typeof window.webkitRTCPeerConnection !== "undefined",
+                description: "实时通信API (Chrome 28+, Firefox 22+, Safari 11+, Edge 12+)"
+            });
+            
+            // 文件系统API
+            features.push({
+                name: "File API",
+                supported: typeof window.File !== "undefined" && typeof window.FileReader !== "undefined",
+                description: "文件处理API (Chrome 6+, Firefox 3.6+, Safari 5+, Edge 7+)"
+            });
+            
+            features.push({
+                name: "FileSystem API",
+                supported: typeof window.requestFileSystem !== "undefined" || typeof window.webkitRequestFileSystem !== "undefined",
+                description: "文件系统访问 (仅Chrome 11+支持，其他浏览器不支持或部分支持)"
+            });
+            
+            // 设备和传感器API
+            features.push({
+                name: "Device Orientation API",
+                supported: typeof window.DeviceOrientationEvent !== "undefined",
+                description: "设备方向感知 (Chrome 7+, Firefox 6+, Safari 5+, Edge 12+)"
+            });
+            
+            features.push({
+                name: "Device Motion API",
+                supported: typeof window.DeviceMotionEvent !== "undefined",
+                description: "设备运动感知 (Chrome 7+, Firefox 6+, Safari 4.2+, Edge 12+)"
+            });
+            
+            features.push({
+                name: "Ambient Light Sensor",
+                supported: typeof window.AmbientLightSensor !== "undefined",
+                description: "环境光传感器 (Chrome 54+, Firefox 62+, Edge 79+, Safari不支持)"
+            });
+            
+            // 安全和权限API
+            features.push({
+                name: "Permissions API",
+                supported: typeof navigator.permissions !== "undefined",
+                description: "权限管理API (Chrome 43+, Firefox 46+, Edge 79+, Safari 16+)"
+            });
+            
+            features.push({
+                name: "Web Crypto API",
+                supported: typeof window.crypto !== "undefined" && typeof window.crypto.subtle !== "undefined",
+                description: "加密API (Chrome 37+, Firefox 34+, Safari 10+, Edge 12+)"
+            });
+            
+            features.push({
+                name: "Subresource Integrity",
+                supported: typeof document.createElement("script").integrity !== "undefined",
+                description: "资源完整性检查 (Chrome 45+, Firefox 43+, Safari 11+, Edge 15+)"
+            });
+            
+            // 高级DOM和布局API
+            features.push({
+                name: "Resize Observer API",
+                supported: typeof window.ResizeObserver !== "undefined",
+                description: "元素大小变化监听 (Chrome 64+, Firefox 69+, Safari 13.1+, Edge 79+)"
+            });
+            
+            features.push({
+                name: "Intersection Observer API",
+                supported: typeof window.IntersectionObserver !== "undefined",
+                description: "元素交叉观察 (Chrome 51+, Firefox 55+, Safari 12.1+, Edge 15+)"
+            });
+            
+            features.push({
+                name: "Mutation Observer API",
+                supported: typeof window.MutationObserver !== "undefined",
+                description: "DOM变化监听 (Chrome 26+, Firefox 14+, Safari 7+, Edge 11+)"
+            });
+            
+            features.push({
+                name: "Resize Observer API",
+                supported: typeof window.ResizeObserver !== "undefined",
+                description: "元素大小变化监听 (Chrome 64+, Firefox 69+, Safari 13.1+, Edge 79+)"
+            });
+            
+            features.push({
+                name: "Web Animations API",
+                supported: typeof Element.prototype.animate !== "undefined",
+                description: "网页动画API (Chrome 36+, Firefox 48+, Safari 13.1+, Edge 79+)"
+            });
+            
+            // 基本DOM功能
+            features.push({
+                name: "DOM API",
+                supported: typeof document !== "undefined" && typeof document.createElement !== "undefined",
+                description: "基本DOM操作能力 (所有现代浏览器)"
+            });
+            
+            // 事件处理
+            features.push({
+                name: "addEventListener",
+                supported: typeof window.addEventListener !== "undefined",
+                description: "现代事件监听API (Chrome 1+, Firefox 1+, Safari 1+, Edge 7+)"
+            });
+            
+            features.push({
+                name: "attachEvent",
+                supported: typeof window.attachEvent !== "undefined",
+                description: "IE传统事件监听 (仅IE浏览器)"
+            });
+            
+            // XMLHttpRequest
+            features.push({
+                name: "XMLHttpRequest",
+                supported: typeof window.XMLHttpRequest !== "undefined",
+                description: "传统AJAX请求 (Chrome 1+, Firefox 1+, Safari 1.2+, Edge 7+)"
+            });
+            
+            // Fetch API
+            features.push({
+                name: "Fetch API",
+                supported: typeof window.fetch !== "undefined",
+                description: "现代网络请求API (Chrome 42+, Firefox 39+, Safari 10.1+, Edge 14+)"
+            });
+            
+            // Promise
+            features.push({
+                name: "Promise",
+                supported: typeof Promise !== "undefined" && Promise.toString().indexOf("[native code]") !== -1,
+                description: "异步编程Promise (Chrome 32+, Firefox 29+, Safari 8+, Edge 12+)"
+            });
+            
+            // 存储API
+            features.push({
+                name: "localStorage",
+                supported: typeof window.localStorage !== "undefined",
+                description: "本地存储API (Chrome 4+, Firefox 3.5+, Safari 4+, Edge 8+)"
+            });
+            
+            features.push({
+                name: "sessionStorage",
+                supported: typeof window.sessionStorage !== "undefined",
+                description: "会话存储API (Chrome 5+, Firefox 2+, Safari 4+, Edge 8+)"
+            });
+            
+            features.push({
+                name: "IndexedDB",
+                supported: typeof window.indexedDB !== "undefined",
+                description: "IndexedDB数据库 (Chrome 23+, Firefox 10+, Safari 7+, Edge 12+)"
+            });
+            
+            features.push({
+                name: "WebSockets",
+                supported: typeof window.WebSocket !== "undefined",
+                description: "WebSocket实时通信 (Chrome 4+, Firefox 4+, Safari 5+, Edge 7+)"
+            });
+            
+            // ES6+特性
+            try {
+                eval("let testLet = 1;");
+                features.push({
+                    name: "let/const",
+                    supported: true,
+                    description: "块级作用域变量 (Chrome 49+, Firefox 44+, Safari 11+, Edge 14+)"
+                });
+            } catch (e) {
+                features.push({
+                    name: "let/const",
+                    supported: false,
+                    description: "块级作用域变量 (Chrome 49+, Firefox 44+, Safari 11+, Edge 14+)"
+                });
+            }
+            
+            try {
+                // 避免直接使用箭头函数语法
+                var arrowFnSupported = false;
+                try {
+                    arrowFnSupported = eval("var testFn = () => { return true; }; testFn();");
+                } catch (e) {}
+                features.push({
+                    name: "箭头函数",
+                    supported: arrowFnSupported,
+                    description: "箭头函数语法 (Chrome 45+, Firefox 22+, Safari 10+, Edge 12+)"
+                });
+            } catch (e) {
+                features.push({
+                    name: "箭头函数",
+                    supported: false,
+                    description: "箭头函数语法 (Chrome 45+, Firefox 22+, Safari 10+, Edge 12+)"
+                });
+            }
+            
+            // Web API支持
+            features.push({
+                name: "Web Workers",
+                supported: typeof window.Worker !== "undefined",
+                description: "后台线程处理 (Chrome 3+, Firefox 3.5+, Safari 4+, Edge 10+)"
+            });
+            
+            features.push({
+                name: "Canvas",
+                supported: typeof window.CanvasRenderingContext2D !== "undefined",
+                description: "Canvas绘图 (Chrome 1+, Firefox 1.5+, Safari 2+, Edge 9+)"
+            });
+            
+            features.push({
+                name: "Geolocation",
+                supported: typeof window.Geolocation !== "undefined",
+                description: "地理位置API (Chrome 5+, Firefox 3.5+, Safari 5+, Edge 7+)"
+            });
+            
+            // Chrome 83-141版本新API和特性检测
+            // JavaScript新特性
+            try {
+                var promiseAnySupported = false;
+                try {
+                    promiseAnySupported = typeof Promise.any === "function";
+                } catch (e) {}
+                features.push({
+                    name: "Promise.any()",
+                    supported: promiseAnySupported,
+                    description: "Promise.any()方法 (Chrome 85+, Firefox 89+, Safari 14.1+, Edge 85+)"
+                });
+            } catch (e) {
+                features.push({
+                    name: "Promise.any()",
+                    supported: false,
+                    description: "Promise.any()方法 (Chrome 85+, Firefox 89+, Safari 14.1+, Edge 85+)"
+                });
+            }
+            
+            try {
+                var aggregateErrorSupported = false;
+                try {
+                    aggregateErrorSupported = typeof AggregateError === "function";
+                } catch (e) {}
+                features.push({
+                    name: "AggregateError",
+                    supported: aggregateErrorSupported,
+                    description: "聚合错误类型 (Chrome 85+, Firefox 89+, Safari 14.1+, Edge 85+)"
+                });
+            } catch (e) {
+                features.push({
+                    name: "AggregateError",
+                    supported: false,
+                    description: "聚合错误类型 (Chrome 85+, Firefox 89+, Safari 14.1+, Edge 85+)"
+                });
+            }
+            
+            try {
+                var bigIntSupported = false;
+                try {
+                    bigIntSupported = typeof BigInt === "function";
+                } catch (e) {}
+                features.push({
+                    name: "BigInt",
+                    supported: bigIntSupported,
+                    description: "大整数类型 (Chrome 67+, Firefox 68+, Safari 14+, Edge 79+)"
+                });
+            } catch (e) {
+                features.push({
+                    name: "BigInt",
+                    supported: false,
+                    description: "大整数类型 (Chrome 67+, Firefox 68+, Safari 14+, Edge 79+)"
+                });
+            }
+            
+            try {
+                var replaceAllSupported = false;
+                try {
+                    replaceAllSupported = typeof String.prototype.replaceAll === "function";
+                } catch (e) {}
+                features.push({
+                    name: "String.prototype.replaceAll()",
+                    supported: replaceAllSupported,
+                    description: "字符串全局替换方法 (Chrome 85+, Firefox 77+, Safari 13.1+, Edge 85+)"
+                });
+            } catch (e) {
+                features.push({
+                    name: "String.prototype.replaceAll()",
+                    supported: false,
+                    description: "字符串全局替换方法 (Chrome 85+, Firefox 77+, Safari 13.1+, Edge 85+)"
+                });
+            }
+            
+            try {
+                var arrayAtSupported = false;
+                try {
+                    arrayAtSupported = typeof Array.prototype.at === "function";
+                } catch (e) {}
+                features.push({
+                    name: "Array.prototype.at()",
+                    supported: arrayAtSupported,
+                    description: "数组索引访问方法 (Chrome 92+, Firefox 90+, Safari 15+, Edge 92+)"
+                });
+            } catch (e) {
+                features.push({
+                    name: "Array.prototype.at()",
+                    supported: false,
+                    description: "数组索引访问方法 (Chrome 92+, Firefox 90+, Safari 15+, Edge 92+)"
+                });
+            }
+            
+            try {
+                var objectHasOwnSupported = false;
+                try {
+                    objectHasOwnSupported = typeof Object.hasOwn === "function";
+                } catch (e) {}
+                features.push({
+                    name: "Object.hasOwn()",
+                    supported: objectHasOwnSupported,
+                    description: "对象属性检查方法 (Chrome 93+, Firefox 92+, Safari 15.4+, Edge 93+)"
+                });
+            } catch (e) {
+                features.push({
+                    name: "Object.hasOwn()",
+                    supported: false,
+                    description: "对象属性检查方法 (Chrome 93+, Firefox 92+, Safari 15.4+, Edge 93+)"
+                });
+            }
+            
+            try {
+                var errorCauseSupported = false;
+                try {
+                    // 测试Error.cause支持
+                    var testError = new Error('test', { cause: 'cause' });
+                    errorCauseSupported = testError.cause === 'cause';
+                } catch (e) {}
+                features.push({
+                    name: "Error.cause",
+                    supported: errorCauseSupported,
+                    description: "错误原因属性 (Chrome 93+, Firefox 91+, Safari 15+, Edge 93+)"
+                });
+            } catch (e) {
+                features.push({
+                    name: "Error.cause",
+                    supported: false,
+                    description: "错误原因属性 (Chrome 93+, Firefox 91+, Safari 15+, Edge 93+)"
+                });
+            }
+            
+            // 新增JavaScript特性测试
+            try {
+                var arrayFindLastSupported = false;
+                try {
+                    arrayFindLastSupported = typeof Array.prototype.findLast === "function";
+                } catch (e) {}
+                features.push({
+                    name: "Array.prototype.findLast()",
+                    supported: arrayFindLastSupported,
+                    description: "数组反向查找方法 (Chrome 97+, Firefox 95+, Safari 15.4+, Edge 97+)"
+                });
+            } catch (e) {
+                features.push({
+                    name: "Array.prototype.findLast()",
+                    supported: false,
+                    description: "数组反向查找方法 (Chrome 97+, Firefox 95+, Safari 15.4+, Edge 97+)"
+                });
+            }
+            
+            try {
+                var arrayFindLastIndexSupported = false;
+                try {
+                    arrayFindLastIndexSupported = typeof Array.prototype.findLastIndex === "function";
+                } catch (e) {}
+                features.push({
+                    name: "Array.prototype.findLastIndex()",
+                    supported: arrayFindLastIndexSupported,
+                    description: "数组反向查找索引方法 (Chrome 97+, Firefox 95+, Safari 15.4+, Edge 97+)"
+                });
+            } catch (e) {
+                features.push({
+                    name: "Array.prototype.findLastIndex()",
+                    supported: false,
+                    description: "数组反向查找索引方法 (Chrome 97+, Firefox 95+, Safari 15.4+, Edge 97+)"
+                });
+            }
+            
+            try {
+                var stringAtSupported = false;
+                try {
+                    stringAtSupported = typeof String.prototype.at === "function";
+                } catch (e) {}
+                features.push({
+                    name: "String.prototype.at()",
+                    supported: stringAtSupported,
+                    description: "字符串索引访问方法 (Chrome 93+, Firefox 90+, Safari 15+, Edge 93+)"
+                });
+            } catch (e) {
+                features.push({
+                    name: "String.prototype.at()",
+                    supported: false,
+                    description: "字符串索引访问方法 (Chrome 93+, Firefox 90+, Safari 15+, Edge 93+)"
+                });
+            }
+            
+            try {
+                var weakRefSupported = false;
+                try {
+                    weakRefSupported = typeof WeakRef === "function";
+                } catch (e) {}
+                features.push({
+                    name: "WeakRef",
+                    supported: weakRefSupported,
+                    description: "弱引用对象 (Chrome 84+, Firefox 79+, Safari 14.1+, Edge 84+)"
+                });
+            } catch (e) {
+                features.push({
+                    name: "WeakRef",
+                    supported: false,
+                    description: "弱引用对象 (Chrome 84+, Firefox 79+, Safari 14.1+, Edge 84+)"
+                });
+            }
+            
+            try {
+                var finalizationRegistrySupported = false;
+                try {
+                    finalizationRegistrySupported = typeof FinalizationRegistry === "function";
+                } catch (e) {}
+                features.push({
+                    name: "FinalizationRegistry",
+                    supported: finalizationRegistrySupported,
+                    description: "对象垃圾回收回调 (Chrome 84+, Firefox 79+, Safari 14.1+, Edge 84+)"
+                });
+            } catch (e) {
+                features.push({
+                    name: "FinalizationRegistry",
+                    supported: false,
+                    description: "对象垃圾回收回调 (Chrome 84+, Firefox 79+, Safari 14.1+, Edge 84+)"
+                });
+            }
+            
+            try {
+                var intlDurationFormatSupported = false;
+                try {
+                    intlDurationFormatSupported = typeof Intl.DurationFormat === "function";
+                } catch (e) {}
+                features.push({
+                    name: "Intl.DurationFormat",
+                    supported: intlDurationFormatSupported,
+                    description: "国际化持续时间格式化 (Chrome 110+, Firefox 115+, Edge 110+, Safari不支持)"
+                });
+            } catch (e) {
+                features.push({
+                    name: "Intl.DurationFormat",
+                    supported: false,
+                    description: "国际化持续时间格式化 (Chrome 110+, Firefox 115+, Edge 110+, Safari不支持)"
+                });
+            }
+            
+            // Web API新特性
+            features.push({
+                name: "Web Share API v2",
+                supported: typeof navigator.share === "function" && typeof navigator.canShare === "function",
+                description: "网页分享API增强 (Chrome 89+, Edge 89+, Safari 16+, Firefox部分支持)"
+            });
+            
+            features.push({
+                name: "Clipboard API改进",
+                supported: typeof navigator.clipboard !== "undefined" && typeof navigator.clipboard.readText === "function" && typeof navigator.clipboard.writeText === "function",
+                description: "剪贴板API增强 (Chrome 83+, Firefox 63+, Safari 13.1+, Edge 79+)"
+            });
+            
+            features.push({
+                name: "FileSystem Access API",
+                supported: typeof window.showOpenFilePicker === "function" || typeof window.chooseFileSystemEntries === "function",
+                description: "文件系统访问API (Chrome 86+, Edge 86+, Safari 15.2+, Firefox不支持)"
+            });
+            
+            features.push({
+                name: "WebHID API",
+                supported: typeof navigator.hid !== "undefined" && typeof navigator.hid.requestDevice === "function",
+                description: "人机接口设备API (Chrome 89+, Edge 89+, Firefox和Safari不支持)"
+            });
+            
+            features.push({
+                name: "Intl.ListFormat",
+                supported: typeof Intl.ListFormat === "function",
+                description: "国际化列表格式化 (Chrome 89+, Firefox 88+, Safari 14+, Edge 89+)"
+            });
+            
+            features.push({
+                name: "IntersectionObserver v2",
+                supported: typeof IntersectionObserver === "function" && typeof IntersectionObserver.prototype.observe === "function",
+                description: "交叉观察器API增强 (Chrome 81+, Firefox 79+, Safari 15.4+, Edge 81+)"
+            });
+            
+            features.push({
+                name: "ResizeObserver",
+                supported: typeof ResizeObserver === "function",
+                description: "尺寸观察器API (Chrome 64+, Firefox 69+, Safari 13.1+, Edge 79+)"
+            });
+            
+            features.push({
+                name: "Screen Capture API",
+                supported: typeof navigator.mediaDevices !== "undefined" && typeof navigator.mediaDevices.getDisplayMedia === "function",
+                description: "屏幕捕获API (Chrome 72+, Firefox 66+, Safari 13+, Edge 79+)"
+            });
+            
+            features.push({
+                name: "Background Fetch API",
+                supported: typeof registration !== "undefined" && typeof registration.backgroundFetch !== "undefined",
+                description: "后台获取API (Chrome 74+, Edge 79+, Firefox和Safari不支持)，不支持时可使用Service Worker的后台同步作为替代"
+            });
+            
+            features.push({
+                name: "Web Locks API",
+                supported: typeof navigator.locks !== "undefined" && typeof navigator.locks.request === "function",
+                description: "网页锁API (Chrome 72+, Firefox 73+, Edge 79+, Safari不支持)，不支持时可使用自定义锁机制作为替代"
+            });
+            
+            features.push({
+                name: "Web Components",
+                supported: typeof customElements !== "undefined" && typeof customElements.define === "function",
+                description: "Web组件标准 (Chrome 54+, Firefox 63+, Safari 10.1+, Edge 79+)"
+            });
+            
+            features.push({
+                name: "BroadcastChannel API",
+                supported: typeof BroadcastChannel === "function",
+                description: "跨上下文通信API (Chrome 54+, Firefox 38+, Safari 15+, Edge 79+)，不支持时可使用localStorage事件作为替代"
+            });
+            
+            features.push({
+                name: "WebGL2",
+                supported: function() {
+                    try {
+                        var canvas = document.createElement('canvas');
+                        return !!(window.WebGL2RenderingContext && (canvas.getContext('webgl2') || canvas.getContext('experimental-webgl2')));
+                    } catch (e) {
+                        return false;
+                    }
+                }(),
+                description: "WebGL 2.0图形API (Chrome 56+, Firefox 51+, Safari 15+, Edge 79+)，不支持时可降级使用WebGL 1.0"
+            });
+            
+            features.push({
+                name: "Web MIDI API",
+                supported: typeof navigator.requestMIDIAccess === "function",
+                description: "MIDI设备访问API (Chrome 43+, Firefox 53+, Edge 79+, Safari不支持)，不支持时可使用第三方库如WebMIDI.js作为替代"
+            });
+            
+            features.push({
+                name: "WebOTP API",
+                supported: typeof navigator.credentials !== "undefined" && typeof navigator.credentials.get === "function" && typeof window.PublicKeyCredential !== "undefined",
+                description: "一次性密码API (Chrome 93+, Edge 93+, Firefox和Safari不支持)，不支持时可使用短信验证码手动输入方案"
+            });
+            
+            features.push({
+                name: "Web Bluetooth API",
+                supported: typeof navigator.bluetooth !== "undefined" && typeof navigator.bluetooth.requestDevice === "function",
+                description: "蓝牙设备访问API (Chrome 56+, Edge 79+, Firefox 79+, Safari不支持)，不支持时可引导用户使用原生应用"
+            });
+            
+            features.push({
+                name: "Web Speech API",
+                supported: typeof window.SpeechRecognition === "function" || typeof window.webkitSpeechRecognition === "function",
+                description: "语音识别API (Chrome 33+, Edge 79+, Safari 14+, Firefox不支持)，不支持时可使用第三方语音识别服务"
+            });
+            
+            features.push({
+                name: "Pointer Lock API",
+                supported: typeof document.pointerLockElement !== "undefined",
+                description: "鼠标指针锁定API (Chrome 45+, Firefox 50+, Safari 13+, Edge 79+)，不支持时可使用自定义鼠标捕获实现"
+            });
+            
+            features.push({
+                name: "Web Vibration API",
+                supported: typeof navigator.vibrate === "function",
+                description: "设备振动API (Chrome 30+, Firefox 16+, Safari不支持, Edge 79+)，不支持时可忽略振动功能"
+            });
+            
+            // 新增JavaScript API测试项目
+            try {
+                var webTransportSupported = false;
+                try {
+                    webTransportSupported = typeof window.WebTransport === "function";
+                } catch (e) {}
+                features.push({
+                    name: "WebTransport API",
+                    supported: webTransportSupported,
+                    description: "低延迟网络传输API (Chrome 97+, Firefox 114+, Edge 97+, Safari不支持)，不支持时可使用WebSocket作为替代"
+                });
+            } catch (e) {
+                features.push({
+                    name: "WebTransport API",
+                    supported: false,
+                    description: "低延迟网络传输API (Chrome 97+, Firefox 114+, Edge 97+, Safari不支持)，不支持时可使用WebSocket作为替代"
+                });
+            }
+            
+            try {
+                var webGPUSupported = false;
+                try {
+                    webGPUSupported = typeof navigator.gpu !== "undefined";
+                } catch (e) {}
+                features.push({
+                    name: "WebGPU API",
+                    supported: webGPUSupported,
+                    description: "图形处理单元API (Chrome 113+, Firefox 121+, Safari 16.4+, Edge 113+)，不支持时可降级使用WebGL 2.0作为替代"
+                });
+            } catch (e) {
+                features.push({
+                    name: "WebGPU API",
+                    supported: false,
+                    description: "图形处理单元API (Chrome 113+, Firefox 121+, Safari 16.4+, Edge 113+)，不支持时可降级使用WebGL 2.0作为替代"
+                });
+            }
+            
+            try {
+                var urlPatternSupported = false;
+                try {
+                    urlPatternSupported = typeof URLPattern === "function";
+                } catch (e) {}
+                features.push({
+                    name: "URLPattern API",
+                    supported: urlPatternSupported,
+                    description: "URL模式匹配API (Chrome 95+, Firefox 103+, Safari 17+, Edge 95+)，不支持时可使用正则表达式作为替代"
+                });
+            } catch (e) {
+                features.push({
+                    name: "URLPattern API",
+                    supported: false,
+                    description: "URL模式匹配API (Chrome 95+, Firefox 103+, Safari 17+, Edge 95+)，不支持时可使用正则表达式作为替代"
+                });
+            }
+            
+            try {
+                var arrayGroupBySupported = false;
+                try {
+                    arrayGroupBySupported = typeof Array.prototype.groupBy === "function";
+                } catch (e) {}
+                features.push({
+                    name: "Array.prototype.groupBy()",
+                    supported: arrayGroupBySupported,
+                    description: "数组分组方法 (Chrome 117+, Firefox 117+, Safari 17+, Edge 117+)，不支持时可使用reduce方法实现类似功能"
+                });
+            } catch (e) {
+                features.push({
+                    name: "Array.prototype.groupBy()",
+                    supported: false,
+                    description: "数组分组方法 (Chrome 117+, Firefox 117+, Safari 17+, Edge 117+)，不支持时可使用reduce方法实现类似功能"
+                });
+            }
+            
+            try {
+                var arrayGroupByToMapSupported = false;
+                try {
+                    arrayGroupByToMapSupported = typeof Array.prototype.groupByToMap === "function";
+                } catch (e) {}
+                features.push({
+                    name: "Array.prototype.groupByToMap()",
+                    supported: arrayGroupByToMapSupported,
+                    description: "数组分组到Map方法 (Chrome 117+, Firefox 117+, Safari 17+, Edge 117+)，不支持时可使用reduce方法结合Map实现类似功能"
+                });
+            } catch (e) {
+                features.push({
+                    name: "Array.prototype.groupByToMap()",
+                    supported: false,
+                    description: "数组分组到Map方法 (Chrome 117+, Firefox 117+, Safari 17+, Edge 117+)，不支持时可使用reduce方法结合Map实现类似功能"
+                });
+            }
+            
+            try {
+                var temporalSupported = false;
+                try {
+                    temporalSupported = typeof Temporal === "object";
+                } catch (e) {}
+                features.push({
+                    name: "Temporal API",
+                    supported: temporalSupported,
+                    description: "现代日期时间API (Chrome 123+, Firefox 127+, Safari 17+, Edge 123+)，不支持时可使用Moment.js或Day.js作为替代"
+                });
+            } catch (e) {
+                features.push({
+                    name: "Temporal API",
+                    supported: false,
+                    description: "现代日期时间API (Chrome 123+, Firefox 127+, Safari 17+, Edge 123+)，不支持时可使用Moment.js或Day.js作为替代"
+                })
+            }
+            
+            try {
+                var intlDisplayNamesSupported = false;
+                try {
+                    intlDisplayNamesSupported = typeof Intl.DisplayNames === "function";
+                } catch (e) {}
+                features.push({
+                    name: "Intl.DisplayNames",
+                    supported: intlDisplayNamesSupported,
+                    description: "国际化显示名称 (Chrome 81+, Firefox 75+, Safari 14+, Edge 81+)"
+                });
+            } catch (e) {
+                features.push({
+                    name: "Intl.DisplayNames",
+                    supported: false,
+                    description: "国际化显示名称 (Chrome 81+, Firefox 75+, Safari 14+, Edge 81+)"
+                });
+            }
+            
+            try {
+                var intlDateTimeFormatFractionalSupported = false;
+                try {
+                    if (typeof Intl.DateTimeFormat === "function") {
+                        var test = new Intl.DateTimeFormat('en-US', { fractionalSecondDigits: 3 });
+                        intlDateTimeFormatFractionalSupported = true;
+                    }
+                } catch (e) {}
+                features.push({
+                    name: "Intl.DateTimeFormat.fractionalSecondDigits",
+                    supported: intlDateTimeFormatFractionalSupported,
+                    description: "日期时间格式化秒的小数部分 (Chrome 73+, Firefox 70+, Safari 14+, Edge 79+)"
+                });
+            } catch (e) {
+                features.push({
+                    name: "Intl.DateTimeFormat.fractionalSecondDigits",
+                    supported: false,
+                    description: "日期时间格式化秒的小数部分 (Chrome 73+, Firefox 70+, Safari 14+, Edge 79+)"
+                });
+            }
+            
+            try {
+                var readablesStreamPipeThroughSupported = false;
+                try {
+                    readablesStreamPipeThroughSupported = typeof ReadableStream.prototype.pipeThrough === "function";
+                } catch (e) {}
+                features.push({
+                    name: "ReadableStream.pipeThrough()",
+                    supported: readablesStreamPipeThroughSupported,
+                    description: "流转换方法 (Chrome 67+, Firefox 65+, Safari 14+, Edge 79+)"
+                });
+            } catch (e) {
+                features.push({
+                    name: "ReadableStream.pipeThrough()",
+                    supported: false,
+                    description: "流转换方法 (Chrome 67+, Firefox 65+, Safari 14+, Edge 79+)"
+                });
+            }
+            
+            try {
+                var weakRefDerefSupported = false;
+                try {
+                    if (typeof WeakRef === "function") {
+                        weakRefDerefSupported = typeof new WeakRef({}).deref === "function";
+                    }
+                } catch (e) {}
+                features.push({
+                    name: "WeakRef.deref()",
+                    supported: weakRefDerefSupported,
+                    description: "弱引用解引用方法 (Chrome 84+, Firefox 79+, Safari 14.1+, Edge 84+)"
+                });
+            } catch (e) {
+                features.push({
+                    name: "WeakRef.deref()",
+                    supported: false,
+                    description: "弱引用解引用方法 (Chrome 84+, Firefox 79+, Safari 14.1+, Edge 84+)"
+                });
+            }
+            
+            // 新增JavaScript特性测试项目
+            try {
+                var arrayFromAsyncSupported = false;
+                try {
+                    arrayFromAsyncSupported = typeof Array.fromAsync === 'function';
+                } catch (e) {}
+                features.push({
+                    name: "Array.fromAsync",
+                    supported: arrayFromAsyncSupported,
+                    description: "从异步可迭代对象创建数组 (Chrome 110+, Firefox 112+, Safari 17+, Edge 110+)，不支持时可使用async/await和Array.from结合实现类似功能"
+                });
+            } catch (e) {
+                features.push({
+                    name: "Array.fromAsync",
+                    supported: false,
+                    description: "从异步可迭代对象创建数组 (Chrome 110+, Firefox 112+, Safari 17+, Edge 110+)，不支持时可使用async/await和Array.from结合实现类似功能"
+                });
+            }
+            
+            try {
+                var arrayMutationMethodsSupported = false;
+                try {
+                    const arr = [3, 2, 1];
+                    arrayMutationMethodsSupported = 
+                        typeof arr.toReversed === 'function' && 
+                        typeof arr.toSorted === 'function' && 
+                        typeof arr.toSpliced === 'function' && 
+                        typeof arr.with === 'function';
+                } catch (e) {}
+                features.push({
+                    name: "Array不可变方法",
+                    supported: arrayMutationMethodsSupported,
+                    description: "toReversed/toSorted/toSpliced/with (Chrome 110+, Firefox 115+, Safari 16.4+, Edge 110+)，不支持时可使用展开运算符结合传统方法实现不可变操作"
+                });
+            } catch (e) {
+                features.push({
+                    name: "Array不可变方法",
+                    supported: false,
+                    description: "toReversed/toSorted/toSpliced/with (Chrome 110+, Firefox 115+, Safari 16.4+, Edge 110+)，不支持时可使用展开运算符结合传统方法实现不可变操作"
+                });
+            }
+            
+            try {
+                var promiseWithResolversSupported = false;
+                try {
+                    promiseWithResolversSupported = typeof Promise.withResolvers === 'function';
+                } catch (e) {}
+                features.push({
+                    name: "Promise.withResolvers()",
+                    supported: promiseWithResolversSupported,
+                    description: "Promise解析器工厂方法 (Chrome 111+, Firefox 115+, Safari 17+, Edge 111+)，不支持时可使用传统Promise构造函数实现"
+                });
+            } catch (e) {
+                features.push({
+                    name: "Promise.withResolvers()",
+                    supported: false,
+                    description: "Promise解析器工厂方法 (Chrome 111+, Firefox 115+, Safari 17+, Edge 111+)，不支持时可使用传统Promise构造函数实现"
+                })
+            }
+            
+            try {
+                var mathTruncSupported = false;
+                try {
+                    mathTruncSupported = typeof Math.trunc === 'function' && Math.trunc(42.123) === 42;
+                } catch (e) {}
+                features.push({
+                    name: "Math.trunc()",
+                    supported: mathTruncSupported,
+                    description: "截断小数部分方法 (Chrome 38+, Firefox 25+, Safari 8+, Edge 12+)"
+                });
+            } catch (e) {
+                features.push({
+                    name: "Math.trunc()",
+                    supported: false,
+                    description: "截断小数部分方法 (Chrome 38+, Firefox 25+, Safari 8+, Edge 12+)"
+                });
+            }
+            
+            try {
+                var mathSignSupported = false;
+                try {
+                    mathSignSupported = typeof Math.sign === 'function' && Math.sign(-42) === -1;
+                } catch (e) {}
+                features.push({
+                    name: "Math.sign()",
+                    supported: mathSignSupported,
+                    description: "判断数字符号方法 (Chrome 38+, Firefox 25+, Safari 9+, Edge 12+)"
+                });
+            } catch (e) {
+                features.push({
+                    name: "Math.sign()",
+                    supported: false,
+                    description: "判断数字符号方法 (Chrome 38+, Firefox 25+, Safari 9+, Edge 12+)"
+                });
+            }
+            
+            try {
+                var stringMatchAllSupported = false;
+                try {
+                    stringMatchAllSupported = typeof String.prototype.matchAll === 'function';
+                } catch (e) {}
+                features.push({
+                    name: "String.prototype.matchAll()",
+                    supported: stringMatchAllSupported,
+                    description: "获取所有匹配结果方法 (Chrome 73+, Firefox 67+, Safari 13.1+, Edge 79+)，不支持时可使用正则表达式循环匹配实现"
+                });
+            } catch (e) {
+                features.push({
+                    name: "String.prototype.matchAll()",
+                    supported: false,
+                    description: "获取所有匹配结果方法 (Chrome 73+, Firefox 67+, Safari 13.1+, Edge 79+)，不支持时可使用正则表达式循环匹配实现"
+                });
+            }
+            
+            try {
+                var globalThisSupported = false;
+                try {
+                    globalThisSupported = typeof globalThis !== 'undefined';
+                } catch (e) {}
+                features.push({
+                    name: "globalThis",
+                    supported: globalThisSupported,
+                    description: "全局对象统一引用 (Chrome 71+, Firefox 65+, Safari 12.1+, Edge 79+)，不支持时可使用自定义全局对象引用实现跨环境兼容"
+                });
+            } catch (e) {
+                features.push({
+                    name: "globalThis",
+                    supported: false,
+                    description: "全局对象统一引用 (Chrome 71+, Firefox 65+, Safari 12.1+, Edge 79+)，不支持时可使用自定义全局对象引用实现跨环境兼容"
+                });
+            }
+            
+            // 新增Web Components和Service Workers检测
+            try {
+                var webComponentsSupported = false;
+                try {
+                    webComponentsSupported = 'customElements' in window && 'ShadowRoot' in window && 'HTMLTemplateElement' in window;
+                } catch (e) {}
+                features.push({
+                    name: "Web Components",
+                    supported: webComponentsSupported,
+                    description: "自定义元素、Shadow DOM和模板 (Chrome 53+, Firefox 63+, Safari 10.1+, Edge 79+)"
+                });
+            } catch (e) {
+                features.push({
+                    name: "Web Components",
+                    supported: false,
+                    description: "自定义元素、Shadow DOM和模板 (Chrome 53+, Firefox 63+, Safari 10.1+, Edge 79+)"
+                });
+            }
+            
+            try {
+                var serviceWorkerSupported = false;
+                try {
+                    serviceWorkerSupported = 'serviceWorker' in navigator;
+                } catch (e) {}
+                features.push({
+                    name: "Service Workers",
+                    supported: serviceWorkerSupported,
+                    description: "离线缓存和后台同步 (Chrome 45+, Firefox 44+, Safari 11.1+, Edge 17+)"
+                });
+            } catch (e) {
+                features.push({
+                    name: "Service Workers",
+                    supported: false,
+                    description: "离线缓存和后台同步 (Chrome 45+, Firefox 44+, Safari 11.1+, Edge 17+)"
+                });
+            }
+            
+            // 新增Web高级API检测
+            try {
+                var webAudioApiSupported = false;
+                try {
+                    webAudioApiSupported = typeof AudioContext !== 'undefined' || typeof webkitAudioContext !== 'undefined';
+                } catch (e) {}
+                features.push({
+                    name: "Web Audio API",
+                    supported: webAudioApiSupported,
+                    description: "高级音频处理API (Chrome 33+, Firefox 25+, Safari 14+, Edge 12+)，不支持时可使用第三方音频库如howler.js作为替代"
+                });
+            } catch (e) {
+                features.push({
+                    name: "Web Audio API",
+                    supported: false,
+                    description: "高级音频处理API (Chrome 33+, Firefox 25+, Safari 14+, Edge 12+)，不支持时可使用第三方音频库如howler.js作为替代"
+                });
+            }
+            
+            try {
+                var webXRAPISupported = false;
+                try {
+                    webXRAPISupported = 'xr' in navigator;
+                } catch (e) {}
+                features.push({
+                    name: "WebXR API",
+                    supported: webXRAPISupported,
+                    description: "虚拟现实/增强现实API (Chrome 79+, Edge 79+, Firefox和Safari部分支持)，不支持时可提供传统3D替代体验"
+                });
+            } catch (e) {
+                features.push({
+                    name: "WebXR API",
+                    supported: false,
+                    description: "虚拟现实/增强现实API (Chrome 79+, Edge 79+, Firefox和Safari部分支持)，不支持时可提供传统3D替代体验"
+                });
+            }
+            
+            try {
+                var webCodecsSupported = false;
+                try {
+                    webCodecsSupported = 'VideoEncoder' in window && 'AudioEncoder' in window;
+                } catch (e) {}
+                features.push({
+                    name: "WebCodecs API",
+                    supported: webCodecsSupported,
+                    description: "低级媒体编解码API (Chrome 94+, Firefox 113+, Safari 16.4+, Edge 94+)，不支持时可使用MediaRecorder API作为替代"
+                });
+            } catch (e) {
+                features.push({
+                    name: "WebCodecs API",
+                    supported: false,
+                    description: "低级媒体编解码API (Chrome 94+, Firefox 113+, Safari 16.4+, Edge 94+)，不支持时可使用MediaRecorder API作为替代"
+                })
+            }
+            
+            try {
+                var sharedArrayBufferSupported = false;
+                try {
+                    sharedArrayBufferSupported = typeof SharedArrayBuffer !== 'undefined';
+                } catch (e) {}
+                features.push({
+                    name: "SharedArrayBuffer",
+                    supported: sharedArrayBufferSupported,
+                    description: "共享内存缓冲区 (Chrome 68+, Firefox 79+, Safari 16.4+, Edge 79+)，需要安全上下文和COOP/COEP头部配置"
+                });
+            } catch (e) {
+                features.push({
+                    name: "SharedArrayBuffer",
+                    supported: false,
+                    description: "共享内存缓冲区 (Chrome 68+, Firefox 79+, Safari 16.4+, Edge 79+)，需要安全上下文和COOP/COEP头部配置"
+                });
+            }
+            
+            try {
+                var webTransportSupported = false;
+                try {
+                    webTransportSupported = 'WebTransport' in window;
+                } catch (e) {}
+                features.push({
+                    name: "WebTransport API",
+                    supported: webTransportSupported,
+                    description: "双向流传输协议 (Chrome 97+, Firefox 114+, Edge 97+, Safari不支持)，不支持时可使用WebSocket作为替代"
+                });
+            } catch (e) {
+                features.push({
+                    name: "WebTransport API",
+                    supported: false,
+                    description: "双向流传输协议 (Chrome 97+, Firefox 114+, Edge 97+, Safari不支持)，不支持时可使用WebSocket作为替代"
+                });
+            }
+            
+            // 新增媒体相关API检测
+            try {
+                var pipApiSupported = false;
+                try {
+                    pipApiSupported = 'requestPictureInPicture' in HTMLVideoElement.prototype;
+                } catch (e) {}
+                features.push({
+                    name: "Picture-in-Picture API",
+                    supported: pipApiSupported,
+                    description: "画中画功能 (Chrome 70+, Firefox 71+, Safari 13+, Edge 79+)，不支持时可提供自定义窗口化播放体验"
+                });
+            } catch (e) {
+                features.push({
+                    name: "Picture-in-Picture API",
+                    supported: false,
+                    description: "画中画功能 (Chrome 70+, Firefox 71+, Safari 13+, Edge 79+)，不支持时可提供自定义窗口化播放体验"
+                });
+            }
+            
+            try {
+                var mediaSessionSupported = false;
+                try {
+                    mediaSessionSupported = 'mediaSession' in navigator;
+                } catch (e) {}
+                features.push({
+                    name: "Media Session API",
+                    supported: mediaSessionSupported,
+                    description: "媒体会话控制 (Chrome 73+, Firefox 82+, Safari 13+, Edge 79+)，不支持时可降级为基本媒体控制"
+                });
+            } catch (e) {
+                features.push({
+                    name: "Media Session API",
+                    supported: false,
+                    description: "媒体会话控制 (Chrome 73+, Firefox 82+, Safari 13+, Edge 79+)，不支持时可降级为基本媒体控制"
+                });
+            }
+            
+            try {
+                var mediaSourceSupported = false;
+                try {
+                    mediaSourceSupported = 'MediaSource' in window;
+                } catch (e) {}
+                features.push({
+                    name: "Media Source Extensions",
+                    supported: mediaSourceSupported,
+                    description: "流媒体扩展 (Chrome 23+, Firefox 42+, Safari 8+, Edge 12+)，不支持时可使用渐进式下载作为替代"
+                });
+            } catch (e) {
+                features.push({
+                    name: "Media Source Extensions",
+                    supported: false,
+                    description: "流媒体扩展 (Chrome 23+, Firefox 42+, Safari 8+, Edge 12+)，不支持时可使用渐进式下载作为替代"
+                });
+            }
+            
+            // 新增网络相关API检测
+            try {
+                var beaconApiSupported = false;
+                try {
+                    beaconApiSupported = 'sendBeacon' in navigator;
+                } catch (e) {}
+                features.push({
+                    name: "Beacon API",
+                    supported: beaconApiSupported,
+                    description: "异步数据传输 (Chrome 39+, Firefox 31+, Safari 11.1+, Edge 14+)，不支持时可使用fetch keepalive作为替代"
+                });
+            } catch (e) {
+                features.push({
+                    name: "Beacon API",
+                    supported: false,
+                    description: "异步数据传输 (Chrome 39+, Firefox 31+, Safari 11.1+, Edge 14+)，不支持时可使用fetch keepalive作为替代"
+                });
+            }
+            
+            try {
+                var resourceHintsSupported = false;
+                try {
+                    var link = document.createElement('link');
+                    resourceHintsSupported = 'relList' in link && link.relList.supports('preload') && link.relList.supports('prefetch');
+                } catch (e) {}
+                features.push({
+                    name: "Resource Hints",
+                    supported: resourceHintsSupported,
+                    description: "preload, prefetch, preconnect (Chrome 50+, Firefox 58+, Safari 11.1+, Edge 79+)，不支持时可使用传统方式优化资源加载"
+                });
+            } catch (e) {
+                features.push({
+                    name: "Resource Hints",
+                    supported: false,
+                    description: "preload, prefetch, preconnect (Chrome 50+, Firefox 58+, Safari 11.1+, Edge 79+)，不支持时可使用传统方式优化资源加载"
+                });
+            }
+            
+            // 新增图形相关API检测
+            try {
+                var offscreenCanvasSupported = false;
+                try {
+                    offscreenCanvasSupported = 'OffscreenCanvas' in window;
+                } catch (e) {}
+                features.push({
+                    name: "OffscreenCanvas",
+                    supported: offscreenCanvasSupported,
+                    description: "离屏画布渲染 (Chrome 69+, Firefox 70+, Safari不支持, Edge 79+)，不支持时可使用worker中的Canvas API作为替代"
+                });
+            } catch (e) {
+                features.push({
+                    name: "OffscreenCanvas",
+                    supported: false,
+                    description: "离屏画布渲染 (Chrome 69+, Firefox 70+, Safari不支持, Edge 79+)，不支持时可使用worker中的Canvas API作为替代"
+                });
+            }
+            
+            try {
+                var webglSupported = false;
+                try {
+                    var canvas = document.createElement('canvas');
+                    webglSupported = !!(window.WebGLRenderingContext && (canvas.getContext('webgl') || canvas.getContext('experimental-webgl')));
+                } catch (e) {}
+                features.push({
+                    name: "WebGL",
+                    supported: webglSupported,
+                    description: "WebGL 3D图形 (Chrome 9+, Firefox 4+, Safari 5.1+, Edge 12+)"
+                });
+            } catch (e) {
+                features.push({
+                    name: "WebGL",
+                    supported: false,
+                    description: "WebGL 3D图形 (Chrome 9+, Firefox 4+, Safari 5.1+, Edge 12+)"
+                });
+            }
+            
+            try {
+                var webgl2Supported = false;
+                try {
+                    var canvas = document.createElement('canvas');
+                    webgl2Supported = !!(window.WebGL2RenderingContext && canvas.getContext('webgl2'));
+                } catch (e) {}
+                features.push({
+                    name: "WebGL 2.0",
+                    supported: webgl2Supported,
+                    description: "WebGL 2.0高级图形 (Chrome 56+, Firefox 51+, Safari 15+, Edge 79+)"
+                });
+            } catch (e) {
+                features.push({
+                    name: "WebGL 2.0",
+                    supported: false,
+                    description: "WebGL 2.0高级图形 (Chrome 56+, Firefox 51+, Safari 15+, Edge 79+)"
+                });
+            }
+            
+            // 新增存储相关API检测
+            try {
+                var storageManagerSupported = false;
+                try {
+                    storageManagerSupported = 'storage' in navigator;
+                } catch (e) {}
+                features.push({
+                    name: "Storage Manager API",
+                    supported: storageManagerSupported,
+                    description: "存储配额和使用情况 (Chrome 55+, Firefox 57+, Safari 15+, Edge 79+)，不支持时可使用localStorage或IndexedDB作为替代"
+                });
+            } catch (e) {
+                features.push({
+                    name: "Storage Manager API",
+                    supported: false,
+                    description: "存储配额和使用情况 (Chrome 55+, Firefox 57+, Safari 15+, Edge 79+)，不支持时可使用localStorage或IndexedDB作为替代"
+                });
+            }
+            
+            try {
+                var cookieStoreSupported = false;
+                try {
+                    cookieStoreSupported = 'cookieStore' in window;
+                } catch (e) {}
+                features.push({
+                    name: "Cookie Store API",
+                    supported: cookieStoreSupported,
+                    description: "异步Cookie操作 (Chrome 87+, Firefox 95+, Safari不支持, Edge 87+)，不支持时可使用传统document.cookie操作"
+                });
+            } catch (e) {
+                features.push({
+                    name: "Cookie Store API",
+                    supported: false,
+                    description: "异步Cookie操作 (Chrome 87+, Firefox 95+, Safari不支持, Edge 87+)，不支持时可使用传统document.cookie操作"
+                });
+            }
+            
+            // 新增设备能力API检测
+            try {
+                var batteryApiSupported = false;
+                try {
+                    batteryApiSupported = 'getBattery' in navigator;
+                } catch (e) {}
+                features.push({
+                    name: "Battery Status API",
+                    supported: batteryApiSupported,
+                    description: "电池状态信息 (Chrome 38+, Firefox 43+, Safari不支持, Edge 79+)，不支持时可提供基本功能"
+                });
+            } catch (e) {
+                features.push({
+                    name: "Battery Status API",
+                    supported: false,
+                    description: "电池状态信息 (Chrome 38+, Firefox 43+, Safari不支持, Edge 79+)，不支持时可提供基本功能"
+                });
+            }
+            
+            try {
+                var screenOrientationSupported = false;
+                try {
+                    screenOrientationSupported = 'screenOrientation' in window.screen || 'orientation' in window.screen;
+                } catch (e) {}
+                features.push({
+                    name: "Screen Orientation API",
+                    supported: screenOrientationSupported,
+                    description: "屏幕方向控制 (Chrome 38+, Firefox 43+, Safari 16+, Edge 79+)，不支持时可监听resize事件作为替代"
+                });
+            } catch (e) {
+                features.push({
+                    name: "Screen Orientation API",
+                    supported: false,
+                    description: "屏幕方向控制 (Chrome 38+, Firefox 43+, Safari 16+, Edge 79+)，不支持时可监听resize事件作为替代"
+                });
+            }
+            
+            try {
+                var wakeLockSupported = false;
+                try {
+                    wakeLockSupported = 'wakeLock' in navigator;
+                } catch (e) {}
+                features.push({
+                    name: "Wake Lock API",
+                    supported: wakeLockSupported,
+                    description: "防止设备休眠 (Chrome 84+, Firefox 96+, Safari 16+, Edge 84+)，不支持时可使用视频循环播放作为替代"
+                });
+            } catch (e) {
+                features.push({
+                    name: "Wake Lock API",
+                    supported: false,
+                    description: "防止设备休眠 (Chrome 84+, Firefox 96+, Safari 16+, Edge 84+)，不支持时可使用视频循环播放作为替代"
+                });
+            }
+            
+            // 新增性能和用户体验特性检测
+            try {
+                var performanceObserverSupported = false;
+                try {
+                    performanceObserverSupported = typeof PerformanceObserver === 'function';
+                } catch (e) {}
+                features.push({
+                    name: "Performance Observer API",
+                    supported: performanceObserverSupported,
+                    description: "性能监控API (Chrome 52+, Firefox 57+, Safari 11+, Edge 79+)，不支持时可使用performance.now()和setTimeout结合实现基本监控"
+                });
+            } catch (e) {
+                features.push({
+                    name: "Performance Observer API",
+                    supported: false,
+                    description: "性能监控API (Chrome 52+, Firefox 57+, Safari 11+, Edge 79+)，不支持时可使用performance.now()和setTimeout结合实现基本监控"
+                });
+            }
+            
+            try {
+                var performanceEntriesSupported = false;
+                try {
+                    performanceEntriesSupported = typeof performance.getEntries === 'function';
+                } catch (e) {}
+                features.push({
+                    name: "Performance Entries",
+                    supported: performanceEntriesSupported,
+                    description: "性能条目收集 (Chrome 43+, Firefox 40+, Safari 10+, Edge 12+)，不支持时可使用基本性能API作为替代"
+                });
+            } catch (e) {
+                features.push({
+                    name: "Performance Entries",
+                    supported: false,
+                    description: "性能条目收集 (Chrome 43+, Firefox 40+, Safari 10+, Edge 12+)，不支持时可使用基本性能API作为替代"
+                });
+            }
+            
+            try {
+                var lcpSupported = false;
+                try {
+                    lcpSupported = 'getEntriesByName' in performance && 'LCP' in window;
+                } catch (e) {}
+                features.push({
+                    name: "Largest Contentful Paint",
+                    supported: lcpSupported,
+                    description: "最大内容绘制 (Web Vitals) (Chrome 77+, Firefox 90+, Safari 16+, Edge 79+)，不支持时可使用自定义性能测量"
+                });
+            } catch (e) {
+                features.push({
+                    name: "Largest Contentful Paint",
+                    supported: false,
+                    description: "最大内容绘制 (Web Vitals) (Chrome 77+, Firefox 90+, Safari 16+, Edge 79+)，不支持时可使用自定义性能测量"
+                });
+            }
+            
+            try {
+                var idbLargeDataSupported = false;
+                try {
+                    idbLargeDataSupported = 'indexedDB' in window && 'databases' in indexedDB;
+                } catch (e) {}
+                features.push({
+                    name: "IndexedDB v3",
+                    supported: idbLargeDataSupported,
+                    description: "增强的IndexedDB支持 (Chrome 70+, Firefox 73+, Safari 14+, Edge 79+)，不支持时可降级使用IndexedDB v2"
+                });
+            } catch (e) {
+                features.push({
+                    name: "IndexedDB v3",
+                    supported: false,
+                    description: "增强的IndexedDB支持 (Chrome 70+, Firefox 73+, Safari 14+, Edge 79+)，不支持时可降级使用IndexedDB v2"
+                });
+            }
+            
+            // 新增安全和隐私特性检测
+            try {
+                var integritySupported = false;
+                try {
+                    const script = document.createElement('script');
+                    integritySupported = 'integrity' in script;
+                } catch (e) {}
+                features.push({
+                    name: "Subresource Integrity",
+                    supported: integritySupported,
+                    description: "资源完整性验证 (Chrome 45+, Firefox 43+, Safari 11.1+, Edge 17+)，不支持时可使用其他安全措施如CSP"
+                });
+            } catch (e) {
+                features.push({
+                    name: "Subresource Integrity",
+                    supported: false,
+                    description: "资源完整性验证 (Chrome 45+, Firefox 43+, Safari 11.1+, Edge 17+)，不支持时可使用其他安全措施如CSP"
+                });
+            }
+            
+            try {
+                var referrerPolicySupported = false;
+                try {
+                    const link = document.createElement('link');
+                    referrerPolicySupported = 'referrerPolicy' in link;
+                } catch (e) {}
+                features.push({
+                    name: "Referrer Policy",
+                    supported: referrerPolicySupported,
+                    description: "引用来源策略支持 (Chrome 51+, Firefox 50+, Safari 11.1+, Edge 79+)，不支持时可使用meta标签设置"
+                });
+            } catch (e) {
+                features.push({
+                    name: "Referrer Policy",
+                    supported: false,
+                    description: "引用来源策略支持 (Chrome 51+, Firefox 50+, Safari 11.1+, Edge 79+)，不支持时可使用meta标签设置"
+                });
+            }
+            
+            try {
+                var permissionsPolicySupported = false;
+                try {
+                    permissionsPolicySupported = 'permissionsPolicy' in document || 'featurePolicy' in document;
+                } catch (e) {}
+                features.push({
+                    name: "Permissions Policy",
+                    supported: permissionsPolicySupported,
+                    description: "权限策略支持 (Chrome 88+, Firefox 96+, Safari不支持, Edge 88+)，不支持时可使用HTTP头部设置"
+                });
+            } catch (e) {
+                features.push({
+                    name: "Permissions Policy",
+                    supported: false,
+                    description: "权限策略支持 (Chrome 88+, Firefox 96+, Safari不支持, Edge 88+)，不支持时可使用HTTP头部设置"
+                });
+            }
+            
+            // 新增HTML特性检测
+            try {
+                var dialogSupported = false;
+                try {
+                    dialogSupported = 'dialog' in document.createElement('dialog');
+                } catch (e) {}
+                features.push({
+                    name: "HTML Dialog API",
+                    supported: dialogSupported,
+                    description: "HTML对话框元素支持 (Chrome 37+, Firefox 98+, Safari 15.4+, Edge 79+)，不支持时可使用自定义模态框组件"
+                });
+            } catch (e) {
+                features.push({
+                    name: "HTML Dialog API",
+                    supported: false,
+                    description: "HTML对话框元素支持 (Chrome 37+, Firefox 98+, Safari 15.4+, Edge 79+)，不支持时可使用自定义模态框组件"
+                });
+            }
+            
+            try {
+                var popoverSupported = false;
+                try {
+                    const testEl = document.createElement('div');
+                    popoverSupported = 'popover' in testEl;
+                } catch (e) {}
+                features.push({
+                    name: "Popover API",
+                    supported: popoverSupported,
+                    description: "弹出层API支持 (Chrome 114+, Firefox 118+, Safari不支持, Edge 114+)，不支持时可使用自定义弹出层实现"
+                });
+            } catch (e) {
+                features.push({
+                    name: "Popover API",
+                    supported: false,
+                    description: "弹出层API支持 (Chrome 114+, Firefox 118+, Safari不支持, Edge 114+)，不支持时可使用自定义弹出层实现"
+                });
+            }
+            
+            try {
+                var inertSupported = false;
+                try {
+                    const testEl = document.createElement('div');
+                    // 检查inert属性是否存在
+                    inertSupported = 'inert' in testEl;
+                    
+                    // 如果属性存在，尝试设置并验证它
+                    if (inertSupported) {
+                        testEl.inert = true;
+                        // 进一步验证属性设置是否有效
+                        inertSupported = testEl.hasAttribute('inert');
+                    }
+                } catch (e) {}
+                features.push({
+                    name: "HTML inert属性",
+                    supported: inertSupported,
+                    description: "惰性内容支持 (Chrome 85+, Edge 85+, Safari 15+, Firefox 129+)"
+                });
+            } catch (e) {
+                features.push({
+                    name: "HTML inert属性",
+                    supported: false,
+                    description: "惰性内容支持 (Chrome 85+, Edge 85+, Safari 15+, Firefox 129+)"
+                });
+            }
+            
+            // 新增ES2023+特性检测
+            try {
+                var objectGroupBySupported = false;
+                try {
+                    objectGroupBySupported = typeof Object.groupBy === 'function';
+                } catch (e) {}
+                features.push({
+                    name: "Object.groupBy()",
+                    supported: objectGroupBySupported,
+                    description: "对象分组方法 (Chrome 117+, Firefox 117+, Safari 17+, Edge 117+)，不支持时可使用reduce方法实现类似功能"
+                });
+            } catch (e) {
+                features.push({
+                    name: "Object.groupBy()",
+                    supported: false,
+                    description: "对象分组方法 (Chrome 117+, Firefox 117+, Safari 17+, Edge 117+)，不支持时可使用reduce方法实现类似功能"
+                });
+            }
+            
+            try {
+                var mapGroupBySupported = false;
+                try {
+                    mapGroupBySupported = typeof Map.groupBy === 'function';
+                } catch (e) {}
+                features.push({
+                    name: "Map.groupBy()",
+                    supported: mapGroupBySupported,
+                    description: "Map分组方法 (Chrome 117+, Firefox 117+, Safari 17+, Edge 117+)，不支持时可使用reduce方法和Map实现类似功能"
+                });
+            } catch (e) {
+                features.push({
+                    name: "Map.groupBy()",
+                    supported: false,
+                    description: "Map分组方法 (Chrome 117+, Firefox 117+, Safari 17+, Edge 117+)，不支持时可使用reduce方法和Map实现类似功能"
+                });
+            }
+            
+            try {
+                var promiseTrySupported = false;
+                try {
+                    promiseTrySupported = typeof Promise.try === 'function';
+                } catch (e) {}
+                features.push({
+                    name: "Promise.try()",
+                    supported: promiseTrySupported,
+                    description: "Promise尝试方法 (Chrome 125+, Firefox 127+, Safari不支持, Edge 125+)，不支持时可使用Promise.resolve()结合try-catch实现"
+                });
+            } catch (e) {
+                features.push({
+                    name: "Promise.try()",
+                    supported: false,
+                    description: "Promise尝试方法 (Chrome 125+, Firefox 127+, Safari不支持, Edge 125+)，不支持时可使用Promise.resolve()结合try-catch实现"
+                });
+            }
+            
+            try {
+                var arrayBufferTransferSupported = false;
+                try {
+                    arrayBufferTransferSupported = typeof ArrayBuffer.prototype.transfer === 'function';
+                } catch (e) {}
+                features.push({
+                    name: "ArrayBuffer.prototype.transfer()",
+                    supported: arrayBufferTransferSupported,
+                    description: "ArrayBuffer传输方法 (Chrome 124+, Firefox 125+, Safari 17+, Edge 124+)，不支持时可使用常规的复制和创建新缓冲区方法"
+                });
+            } catch (e) {
+                features.push({
+                    name: "ArrayBuffer.prototype.transfer()",
+                    supported: false,
+                    description: "ArrayBuffer传输方法 (Chrome 124+, Firefox 125+, Safari 17+, Edge 124+)，不支持时可使用常规的复制和创建新缓冲区方法"
+                });
+            }
+            
+            try {
+                var stringIsWellFormedSupported = false;
+                try {
+                    stringIsWellFormedSupported = typeof String.prototype.isWellFormed === 'function';
+                } catch (e) {}
+                features.push({
+                    name: "String.prototype.isWellFormed()",
+                    supported: stringIsWellFormedSupported,
+                    description: "字符串格式检查方法 (Chrome 109+, Firefox 110+, Safari 16.4+, Edge 109+)，不支持时可使用正则表达式实现基本检测"
+                });
+            } catch (e) {
+                features.push({
+                    name: "String.prototype.isWellFormed()",
+                    supported: false,
+                    description: "字符串格式检查方法 (Chrome 109+, Firefox 110+, Safari 16.4+, Edge 109+)，不支持时可使用正则表达式实现基本检测"
+                });
+            }
+            
+            try {
+                var stringToWellFormedSupported = false;
+                try {
+                    stringToWellFormedSupported = typeof String.prototype.toWellFormed === 'function';
+                } catch (e) {}
+                features.push({
+                    name: "String.prototype.toWellFormed()",
+                    supported: stringToWellFormedSupported,
+                    description: "字符串格式修复方法 (Chrome 109+, Firefox 110+, Safari 16.4+, Edge 109+)，不支持时可使用自定义函数处理不合法的UTF-16序列"
+                });
+            } catch (e) {
+                features.push({
+                    name: "String.prototype.toWellFormed()",
+                    supported: false,
+                    description: "字符串格式修复方法 (Chrome 109+, Firefox 110+, Safari 16.4+, Edge 109+)，不支持时可使用自定义函数处理不合法的UTF-16序列"
+                });
+            }
+            
+            return features;
+        }
+        
+        function detectCSSFeatures() {
+            var features = [];
+            var style = document.createElement("style");
+            document.head.appendChild(style);
+            
+            // 高级CSS特性
+            try {
+                var cssMaskingSupported = false;
+                try {
+                    var testDiv = document.createElement("div");
+                    testDiv.style.maskImage = "url('data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\"><rect width=\"100\" height=\"100\" fill=\"black\"/></svg>')";
+                    testDiv.style.webkitMaskImage = "url('data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\"><rect width=\"100\" height=\"100\" fill=\"black\"/></svg>')";
+                    cssMaskingSupported = testDiv.style.maskImage !== "" || testDiv.style.webkitMaskImage !== "";
+                } catch (e) {}
+                features.push({
+                    name: "CSS Masking",
+                    supported: cssMaskingSupported,
+                    description: "CSS蒙版和裁剪 (Chrome 4+, Firefox 53+, Safari 4+, Edge 12+)，不支持时可使用SVG或背景组合作为替代"
+                });
+            } catch (e) {
+                features.push({
+                    name: "CSS Masking",
+                    supported: false,
+                    description: "CSS蒙版和裁剪 (Chrome 4+, Firefox 53+, Safari 4+, Edge 12+)，不支持时可使用SVG或背景组合作为替代"
+                });
+            }
+            
+            try {
+                var cssScrollSnapSupported = false;
+                try {
+                    var testDiv = document.createElement("div");
+                    testDiv.style.scrollSnapType = "y mandatory";
+                    testDiv.style.webkitScrollSnapType = "y mandatory";
+                    cssScrollSnapSupported = testDiv.style.scrollSnapType !== "" || testDiv.style.webkitScrollSnapType !== "";
+                } catch (e) {}
+                features.push({
+                    name: "CSS Scroll Snap",
+                    supported: cssScrollSnapSupported,
+                    description: "滚动捕捉 (Chrome 69+, Firefox 68+, Safari 11+, Edge 79+)，不支持时可使用JavaScript实现滚动对齐"
+                });
+            } catch (e) {
+                features.push({
+                    name: "CSS Scroll Snap",
+                    supported: false,
+                    description: "滚动捕捉 (Chrome 69+, Firefox 68+, Safari 11+, Edge 79+)，不支持时可使用JavaScript实现滚动对齐"
+                });
+            }
+            
+            try {
+                var cssGridAdvancedSupported = false;
+                try {
+                    // 测试grid-template-areas
+                    var testDiv = document.createElement("div");
+                    testDiv.style.gridTemplateAreas = "\"header header\" \"sidebar content\"";
+                    cssGridAdvancedSupported = testDiv.style.gridTemplateAreas !== "";
+                } catch (e) {}
+                features.push({
+                    name: "CSS Grid Advanced",
+                    supported: cssGridAdvancedSupported,
+                    description: "高级Grid布局功能 (Chrome 70+, Firefox 70+, Safari 14+, Edge 79+)，不支持时可使用嵌套Grid或定位技术"
+                });
+            } catch (e) {
+                features.push({
+                    name: "CSS Grid Advanced",
+                    supported: false,
+                    description: "高级Grid布局功能 (Chrome 70+, Firefox 70+, Safari 14+, Edge 79+)，不支持时可使用嵌套Grid或定位技术"
+                });
+            }
+            
+            try {
+                var cssLogicalPropertiesSupported = false;
+                try {
+                    var testDiv = document.createElement("div");
+                    testDiv.style.marginBlock = "10px";
+                    testDiv.style.marginInline = "20px";
+                    cssLogicalPropertiesSupported = testDiv.style.marginBlock !== "" || testDiv.style.marginInline !== "";
+                } catch (e) {}
+                features.push({
+                    name: "CSS Logical Properties",
+                    supported: cssLogicalPropertiesSupported,
+                    description: "逻辑属性（基于写入模式） (Chrome 69+, Firefox 66+, Safari 14.1+, Edge 79+)，不支持时可使用传统物理属性"
+                });
+            } catch (e) {
+                features.push({
+                    name: "CSS Logical Properties",
+                    supported: false,
+                    description: "逻辑属性（基于写入模式） (Chrome 69+, Firefox 66+, Safari 14.1+, Edge 79+)，不支持时可使用传统物理属性"
+                });
+            }
+            
+            try {
+                var cssContainerQueriesSupported = false;
+                try {
+                    // 测试容器查询
+                    if (style.sheet && style.sheet.insertRule) {
+                        try {
+                            style.sheet.insertRule(".container { container-type: inline-size; }");
+                            style.sheet.insertRule("@container (min-width: 300px) { .item { color: red; } }");
+                            cssContainerQueriesSupported = true;
+                        } catch (ruleError) {
+                            // 插入失败表示不支持
+                        }
+                    }
+                } catch (e) {}
+                features.push({
+                    name: "CSS Container Queries",
+                    supported: cssContainerQueriesSupported,
+                    description: "容器查询 (Chrome 105+, Firefox 110+, Safari 16+, Edge 105+)，不支持时可使用媒体查询或JavaScript实现"
+                });
+            } catch (e) {
+                features.push({
+                    name: "CSS Container Queries",
+                    supported: false,
+                    description: "容器查询 (Chrome 105+, Firefox 110+, Safari 16+, Edge 105+)，不支持时可使用媒体查询或JavaScript实现"
+                });
+            }
+            var sheet = style.sheet;
+            
+            // 检测Flexbox
+            try {
+                if (sheet) {
+                    sheet.insertRule("#flex-test { display: flex; }", 0);
+                    features.push({
+                        name: "Flexbox",
+                        supported: true,
+                        description: "弹性布局 (Chrome 29+, Firefox 28+, Safari 9+, Edge 12+)"
+                    });
+                } else {
+                    // 降级检测方式
+                    var testDiv = document.createElement("div");
+                    testDiv.style.display = "flex";
+                    features.push({
+                        name: "Flexbox",
+                        supported: testDiv.style.display === "flex",
+                        description: "弹性布局 (Chrome 29+, Firefox 28+, Safari 9+, Edge 12+)"
+                    });
+                }
+            } catch (e) {
+                features.push({
+                    name: "Flexbox",
+                    supported: false,
+                    description: "弹性布局 (Chrome 29+, Firefox 28+, Safari 9+, Edge 12+)"
+                });
+            }
+            
+            // 检测CSS Grid
+            try {
+                if (sheet) {
+                    sheet.insertRule("#grid-test { display: grid; }", 0);
+                    features.push({
+                        name: "CSS Grid",
+                        supported: true,
+                        description: "网格布局 (Chrome 57+, Firefox 52+, Safari 10.1+, Edge 16+)"
+                    });
+                } else {
+                    // 降级检测方式
+                    var testDiv = document.createElement("div");
+                    testDiv.style.display = "grid";
+                    features.push({
+                        name: "CSS Grid",
+                        supported: testDiv.style.display === "grid",
+                        description: "网格布局 (Chrome 57+, Firefox 52+, Safari 10.1+, Edge 16+)"
+                    });
+                }
+            } catch (e) {
+                features.push({
+                    name: "CSS Grid",
+                    supported: false,
+                    description: "网格布局 (Chrome 57+, Firefox 52+, Safari 10.1+, Edge 16+)"
+                });
+            }
+            
+            // 检测CSS变量
+            try {
+                if (sheet) {
+                    sheet.insertRule(":root { --test-var: red; }", 0);
+                    features.push({
+                        name: "CSS变量",
+                        supported: true,
+                        description: "CSS自定义属性 (Chrome 49+, Firefox 31+, Safari 9.1+, Edge 15+)"
+                    });
+                } else {
+                    features.push({
+                        name: "CSS变量",
+                        supported: false,
+                        description: "CSS自定义属性 (Chrome 49+, Firefox 31+, Safari 9.1+, Edge 15+)"
+                    });
+                }
+            } catch (e) {
+                features.push({
+                    name: "CSS变量",
+                    supported: false,
+                    description: "CSS自定义属性 (Chrome 49+, Firefox 31+, Safari 9.1+, Edge 15+)"
+                });
+            }
+            
+            // 检测媒体查询
+            features.push({
+                name: "媒体查询",
+                supported: typeof window.matchMedia !== "undefined",
+                description: "响应式媒体查询 (Chrome 9+, Firefox 6+, Safari 5.1+, Edge 12+)"
+            });
+            
+            // 检测CSS动画
+            try {
+                if (sheet) {
+                    sheet.insertRule("@keyframes test {}", 0);
+                    features.push({
+                        name: "CSS动画",
+                        supported: true,
+                        description: "CSS @keyframes动画 (Chrome 4+, Firefox 5+, Safari 4+, Edge 12+)"
+                    });
+                } else {
+                    features.push({
+                        name: "CSS动画",
+                        supported: false,
+                        description: "CSS @keyframes动画 (Chrome 4+, Firefox 5+, Safari 4+, Edge 12+)"
+                    });
+                }
+            } catch (e) {
+                features.push({
+                    name: "CSS动画",
+                    supported: false,
+                    description: "CSS @keyframes动画 (Chrome 4+, Firefox 5+, Safari 4+, Edge 12+)"
+                });
+            }
+            
+            // Chrome 83-141版本CSS新特性检测
+            // 注意：CSS逻辑属性已在前面检测，这里省略重复检测
+            
+            // CSS aspect-ratio
+            try {
+                var aspectRatioSupported = false;
+                try {
+                    var testDiv = document.createElement("div");
+                    testDiv.style.aspectRatio = "1/1";
+                    aspectRatioSupported = testDiv.style.aspectRatio === "1/1";
+                } catch (e) {}
+                features.push({
+                    name: "CSS aspect-ratio",
+                    supported: aspectRatioSupported,
+                    description: "宽高比属性 (Chrome 88+, Firefox 83+, Safari 15+, Edge 88+)，不支持时可使用padding-top/bottom或JavaScript实现"
+                });
+            } catch (e) {
+                features.push({
+                    name: "CSS aspect-ratio",
+                    supported: false,
+                    description: "宽高比属性 (Chrome 88+, Firefox 83+, Safari 15+, Edge 88+)，不支持时可使用padding-top/bottom或JavaScript实现"
+                });
+            }
+            
+            // CSS Grid subgrid
+            try {
+                var subgridSupported = false;
+                try {
+                    if (sheet) {
+                        try {
+                            sheet.insertRule(".subgrid-test { display: grid; grid-template-rows: subgrid; }");
+                            subgridSupported = true;
+                        } catch (e) {
+                            subgridSupported = false;
+                        }
+                    }
+                } catch (e) {}
+                features.push({
+                    name: "CSS Grid subgrid",
+                    supported: subgridSupported,
+                    description: "网格子网格功能 (Chrome 117+, Firefox 71+, Safari 16+, Edge 117+)，不支持时可使用嵌套Grid和手动对齐"
+                });
+            } catch (e) {
+                features.push({
+                    name: "CSS Grid subgrid",
+                    supported: false,
+                    description: "网格子网格功能 (Chrome 117+, Firefox 71+, Safari 16+, Edge 117+)，不支持时可使用嵌套Grid和手动对齐"
+                });
+            }
+            
+            // 注意：CSS Container Queries已在前面检测，这里省略重复检测
+            
+            // CSS @layer
+            try {
+                var atLayerSupported = false;
+                try {
+                    if (sheet) {
+                        try {
+                            sheet.insertRule("@layer test {}");
+                            atLayerSupported = true;
+                        } catch (e) {
+                            atLayerSupported = false;
+                        }
+                    }
+                } catch (e) {}
+                features.push({
+                    name: "CSS @layer",
+                    supported: atLayerSupported,
+                    description: "样式层 (Chrome 99+, Firefox 97+, Safari 15.4+, Edge 99+)，不支持时可使用特定选择器优先级管理"
+                });
+            } catch (e) {
+                features.push({
+                    name: "CSS @layer",
+                    supported: false,
+                    description: "样式层 (Chrome 99+, Firefox 97+, Safari 15.4+, Edge 99+)，不支持时可使用特定选择器优先级管理"
+                });
+            }
+            
+            // CSS nesting
+            try {
+                var cssNestingSupported = false;
+                try {
+                    if (sheet) {
+                        try {
+                            // 使用降级语法测试CSS嵌套
+                            sheet.insertRule(".nesting-test { color: red; &:hover { color: blue; }}");
+                            cssNestingSupported = true;
+                        } catch (e) {
+                            cssNestingSupported = false;
+                        }
+                    }
+                } catch (e) {}
+                features.push({
+                    name: "CSS嵌套",
+                    supported: cssNestingSupported,
+                    description: "CSS嵌套规则 (Chrome 112+, Firefox 117+, Safari 17+, Edge 112+)，不支持时可使用CSS预处理器或BEM命名法"
+                });
+            } catch (e) {
+                features.push({
+                    name: "CSS嵌套",
+                    supported: false,
+                    description: "CSS嵌套规则 (Chrome 112+, Firefox 117+, Safari 17+, Edge 112+)，不支持时可使用CSS预处理器或BEM命名法"
+                });
+            }
+            
+            // CSS :has() selector
+            try {
+                var hasSelectorSupported = false;
+                try {
+                    if (sheet) {
+                        try {
+                            sheet.insertRule("body:has(p) {}");
+                            hasSelectorSupported = true;
+                        } catch (e) {
+                            hasSelectorSupported = false;
+                        }
+                    }
+                } catch (e) {}
+                features.push({
+                    name: "CSS :has()选择器",
+                    supported: hasSelectorSupported,
+                    description: "关系选择器 (Chrome 105+, Firefox 121+, Safari 15.4+, Edge 105+)，不支持时可使用JavaScript实现父元素选择"
+                });
+            } catch (e) {
+                features.push({
+                    name: "CSS :has()选择器",
+                    supported: false,
+                    description: "关系选择器 (Chrome 105+, Firefox 121+, Safari 15.4+, Edge 105+)，不支持时可使用JavaScript实现父元素选择"
+                });
+            }
+            
+            // CSS scroll-behavior
+            try {
+                var scrollBehaviorSupported = false;
+                try {
+                    var testDiv = document.createElement("div");
+                    testDiv.style.scrollBehavior = "smooth";
+                    scrollBehaviorSupported = testDiv.style.scrollBehavior === "smooth";
+                } catch (e) {}
+                features.push({
+                    name: "CSS scroll-behavior",
+                    supported: scrollBehaviorSupported,
+                    description: "滚动行为 (Chrome 61+, Firefox 36+, Safari 14+, Edge 79+)，不支持时可使用JavaScript实现平滑滚动"
+                });
+            } catch (e) {
+                features.push({
+                    name: "CSS scroll-behavior",
+                    supported: false,
+                    description: "滚动行为 (Chrome 61+, Firefox 36+, Safari 14+, Edge 79+)，不支持时可使用JavaScript实现平滑滚动"
+                });
+            }
+            
+            // 注意：CSS Grid subgrid已在前面检测，这里省略重复检测
+            
+            // accent-color
+            try {
+                var accentColorSupported = false;
+                try {
+                    var testDiv = document.createElement("div");
+                    testDiv.style.accentColor = "red";
+                    accentColorSupported = testDiv.style.accentColor === "red";
+                } catch (e) {}
+                features.push({
+                    name: "CSS accent-color",
+                    supported: accentColorSupported,
+                    description: "强调色属性 (Chrome 93+, Firefox 92+, Safari 15.4+, Edge 93+)，不支持时可使用CSS变量或特定选择器样式覆盖"
+                });
+            } catch (e) {
+                features.push({
+                    name: "CSS accent-color",
+                    supported: false,
+                    description: "强调色属性 (Chrome 93+, Firefox 92+, Safari 15.4+, Edge 93+)，不支持时可使用CSS变量或特定选择器样式覆盖"
+                });
+            }
+            
+            // content-visibility
+            try {
+                var contentVisibilitySupported = false;
+                try {
+                    var testDiv = document.createElement("div");
+                    testDiv.style.contentVisibility = "auto";
+                    contentVisibilitySupported = testDiv.style.contentVisibility === "auto";
+                } catch (e) {}
+                features.push({
+                    name: "CSS content-visibility",
+                    supported: contentVisibilitySupported,
+                    description: "内容可见性优化 (Chrome 85+, Firefox 不支持, Safari 不支持, Edge 85+)，不支持时可使用虚拟滚动或延迟加载技术"
+                });
+            } catch (e) {
+                features.push({
+                    name: "CSS content-visibility",
+                    supported: false,
+                    description: "内容可见性优化 (Chrome 85+, Firefox 不支持, Safari 不支持, Edge 85+)，不支持时可使用虚拟滚动或延迟加载技术"
+                });
+            }
+            
+            // scrollbar-gutter
+            try {
+                var scrollbarGutterSupported = false;
+                try {
+                    var testDiv = document.createElement("div");
+                    testDiv.style.scrollbarGutter = "stable";
+                    scrollbarGutterSupported = testDiv.style.scrollbarGutter === "stable";
+                } catch (e) {}
+                features.push({
+                    name: "CSS scrollbar-gutter",
+                    supported: scrollbarGutterSupported,
+                    description: "滚动条预留空间 (Chrome 94+, Firefox 97+, Safari 不支持, Edge 94+)，不支持时可使用padding或JavaScript计算滚动条宽度"
+                });
+            } catch (e) {
+                features.push({
+                    name: "CSS scrollbar-gutter",
+                    supported: false,
+                    description: "滚动条预留空间 (Chrome 94+, Firefox 97+, Safari 不支持, Edge 94+)，不支持时可使用padding或JavaScript计算滚动条宽度"
+                });
+            }
+            
+            // text-wrap: balance
+            try {
+                var textWrapBalanceSupported = false;
+                try {
+                    var testDiv = document.createElement("div");
+                    testDiv.style.textWrap = "balance";
+                    textWrapBalanceSupported = testDiv.style.textWrap === "balance" || 
+                                            (typeof testDiv.style.textWrap !== "undefined" && 
+                                             testDiv.style.textWrap !== "");
+                } catch (e) {}
+                features.push({
+                    name: "CSS text-wrap: balance",
+                    supported: textWrapBalanceSupported,
+                    description: "文本平衡换行 (Chrome 104+, Firefox 124+, Safari 16.4+, Edge 104+)，不支持时可使用JavaScript库如text-balance.js"
+                });
+            } catch (e) {
+                features.push({
+                    name: "CSS text-wrap: balance",
+                    supported: false,
+                    description: "文本平衡换行 (Chrome 104+, Firefox 124+, Safari 16.4+, Edge 104+)，不支持时可使用JavaScript库如text-balance.js"
+                });
+            }
+            
+            // CSS :has() selector (加强测试)
+            try {
+                var hasSelectorSupportedEnhanced = false;
+                try {
+                    if (typeof document.querySelector === "function") {
+                        try {
+                            // 使用try-catch避免选择器错误导致整个测试失败
+                            document.querySelector("body:has(p)");
+                            hasSelectorSupportedEnhanced = true;
+                        } catch (e) {
+                            hasSelectorSupportedEnhanced = false;
+                        }
+                    }
+                } catch (e) {}
+                features.push({
+                    name: "CSS :has() 增强测试",
+                    supported: hasSelectorSupportedEnhanced,
+                    description: "父元素选择器实际检测 (Chrome 105+, Firefox 121+, Safari 15.4+, Edge 105+)"
+                });
+            } catch (e) {
+                features.push({
+                    name: "CSS :has() 增强测试",
+                    supported: false,
+                    description: "父元素选择器实际检测 (Chrome 105+, Firefox 121+, Safari 15.4+, Edge 105+)"
+                });
+            }
+            
+            // 新增CSS特性测试项目
+            // CSS @scope
+            try {
+                var cssScopeSupported = false;
+                try {
+                    if (sheet) {
+                        try {
+                            sheet.insertRule("@scope (.scope-container) { :scope { color: red; } }");
+                            cssScopeSupported = true;
+                        } catch (e) {
+                            cssScopeSupported = false;
+                        }
+                    }
+                } catch (e) {}
+                features.push({
+                    name: "CSS @scope",
+                    supported: cssScopeSupported,
+                    description: "CSS作用域规则 (Chrome 118+, Firefox 121+, Safari 17+, Edge 118+)"
+                });
+            } catch (e) {
+                features.push({
+                    name: "CSS @scope",
+                    supported: false,
+                    description: "CSS作用域规则 (Chrome 118+, Firefox 121+, Safari 17+, Edge 118+)"
+                });
+            }
+            
+            // CSS color-mix()
+            try {
+                var colorMixSupported = false;
+                try {
+                    var testDiv = document.createElement("div");
+                    testDiv.style.color = "color-mix(in srgb, red, blue)";
+                    colorMixSupported = testDiv.style.color !== "";
+                } catch (e) {}
+                features.push({
+                    name: "CSS color-mix()",
+                    supported: colorMixSupported,
+                    description: "颜色混合函数 (Chrome 111+, Firefox 119+, Safari 16.4+, Edge 111+)"
+                });
+            } catch (e) {
+                features.push({
+                    name: "CSS color-mix()",
+                    supported: false,
+                    description: "颜色混合函数 (Chrome 111+, Firefox 119+, Safari 16.4+, Edge 111+)"
+                });
+            }
+            
+            // CSS gradient interpolation spaces
+            try {
+                var gradientInterpolationSupported = false;
+                try {
+                    var testDiv = document.createElement("div");
+                    testDiv.style.background = "linear-gradient(in hsl, red, blue)";
+                    gradientInterpolationSupported = testDiv.style.background !== "";
+                } catch (e) {}
+                features.push({
+                    name: "CSS渐变插值空间",
+                    supported: gradientInterpolationSupported,
+                    description: "渐变颜色插值空间 (Chrome 109+, Firefox 119+, Safari 16.4+, Edge 109+)，不支持时可使用标准RGB渐变"
+                });
+            } catch (e) {
+                features.push({
+                    name: "CSS渐变插值空间",
+                    supported: false,
+                    description: "渐变颜色插值空间 (Chrome 109+, Firefox 119+, Safari 16.4+, Edge 109+)，不支持时可使用标准RGB渐变"
+                });
+            }
+            
+            // CSS text-wrap: pretty
+            try {
+                var textWrapPrettySupported = false;
+                try {
+                    var testDiv = document.createElement("div");
+                    testDiv.style.textWrap = "pretty";
+                    textWrapPrettySupported = testDiv.style.textWrap === "pretty";
+                } catch (e) {}
+                features.push({
+                    name: "CSS text-wrap: pretty",
+                    supported: textWrapPrettySupported,
+                    description: "文本美化换行 (Chrome 114+, Firefox 122+, Safari 17+, Edge 114+)，不支持时可使用默认换行或自定义JavaScript处理"
+                });
+            } catch (e) {
+                features.push({
+                    name: "CSS text-wrap: pretty",
+                    supported: false,
+                    description: "文本美化换行 (Chrome 114+, Firefox 122+, Safari 17+, Edge 114+)，不支持时可使用默认换行或自定义JavaScript处理"
+                });
+            }
+            
+            // CSS font-palette
+            try {
+                var fontPaletteSupported = false;
+                try {
+                    var testDiv = document.createElement("div");
+                    testDiv.style.fontPalette = "light";
+                    fontPaletteSupported = testDiv.style.fontPalette === "light";
+                } catch (e) {}
+                features.push({
+                    name: "CSS font-palette",
+                    supported: fontPaletteSupported,
+                    description: "字体调色板 (Chrome 98+, Firefox 122+, Safari 17+, Edge 98+)，不支持时可使用不同的字体文件或CSS变量"
+                });
+            } catch (e) {
+                features.push({
+                    name: "CSS font-palette",
+                    supported: false,
+                    description: "字体调色板 (Chrome 98+, Firefox 122+, Safari 17+, Edge 98+)，不支持时可使用不同的字体文件或CSS变量"
+                });
+            }
+            
+            // CSS backdrop-filter
+            try {
+                var backdropFilterSupported = false;
+                try {
+                    var testDiv = document.createElement("div");
+                    testDiv.style.backdropFilter = "blur(10px)";
+                    testDiv.style.webkitBackdropFilter = "blur(10px)";
+                    backdropFilterSupported = testDiv.style.backdropFilter !== "" || testDiv.style.webkitBackdropFilter !== "";
+                } catch (e) {}
+                features.push({
+                    name: "CSS backdrop-filter",
+                    supported: backdropFilterSupported,
+                    description: "背景模糊效果 (Chrome 76+, Firefox 103+, Safari 9+, Edge 79+)"
+                });
+            } catch (e) {
+                features.push({
+                    name: "CSS backdrop-filter",
+                    supported: false,
+                    description: "背景模糊效果 (Chrome 76+, Firefox 103+, Safari 9+, Edge 79+)"
+                });
+            }
+            
+            // CSS ::marker
+            try {
+                var markerPseudoSupported = false;
+                try {
+                    if (sheet) {
+                        try {
+                            sheet.insertRule("::marker { color: red; }");
+                            markerPseudoSupported = true;
+                        } catch (e) {
+                            markerPseudoSupported = false;
+                        }
+                    }
+                } catch (e) {}
+                features.push({
+                    name: "CSS ::marker",
+                    supported: markerPseudoSupported,
+                    description: "列表标记伪元素 (Chrome 86+, Firefox 68+, Safari 14+, Edge 86+)，不支持时可使用list-style-image或自定义列表样式"
+                });
+            } catch (e) {
+                features.push({
+                    name: "CSS ::marker",
+                    supported: false,
+                    description: "列表标记伪元素 (Chrome 86+, Firefox 68+, Safari 14+, Edge 86+)，不支持时可使用list-style-image或自定义列表样式"
+                });
+            }
+            
+            // CSS :is()
+            try {
+                var isSelectorSupported = false;
+                try {
+                    if (sheet) {
+                        try {
+                            sheet.insertRule(":is(h1, h2, h3) { color: red; }");
+                            isSelectorSupported = true;
+                        } catch (e) {
+                            isSelectorSupported = false;
+                        }
+                    }
+                } catch (e) {}
+                features.push({
+                    name: "CSS :is()选择器",
+                    supported: isSelectorSupported,
+                    description: "选择器列表 (Chrome 88+, Firefox 78+, Safari 14+, Edge 88+)，不支持时可使用传统CSS选择器分组"
+                });
+            } catch (e) {
+                features.push({
+                    name: "CSS :is()选择器",
+                    supported: false,
+                    description: "选择器列表 (Chrome 88+, Firefox 78+, Safari 14+, Edge 88+)，不支持时可使用传统CSS选择器分组"
+                });
+            }
+            
+            // CSS :where()
+            try {
+                var whereSelectorSupported = false;
+                try {
+                    if (sheet) {
+                        try {
+                            sheet.insertRule(":where(h1, h2, h3) { color: red; }");
+                            whereSelectorSupported = true;
+                        } catch (e) {
+                            whereSelectorSupported = false;
+                        }
+                    }
+                } catch (e) {}
+                features.push({
+                    name: "CSS :where()选择器",
+                    supported: whereSelectorSupported,
+                    description: "优先级重置选择器 (Chrome 88+, Firefox 78+, Safari 14+, Edge 88+)"
+                });
+            } catch (e) {
+                features.push({
+                    name: "CSS :where()选择器",
+                    supported: false,
+                    description: "优先级重置选择器 (Chrome 88+, Firefox 78+, Safari 14+, Edge 88+)，不支持时可使用CSS变量或额外选择器提高优先级"
+                });
+            }
+            
+            // CSS text-decoration-thickness
+            try {
+                var textDecorationThicknessSupported = false;
+                try {
+                    var testDiv = document.createElement("div");
+                    testDiv.style.textDecorationThickness = "2px";
+                    testDiv.style.webkitTextDecorationThickness = "2px";
+                    textDecorationThicknessSupported = testDiv.style.textDecorationThickness !== "" || testDiv.style.webkitTextDecorationThickness !== "";
+                } catch (e) {}
+                features.push({
+                    name: "CSS text-decoration-thickness",
+                    supported: textDecorationThicknessSupported,
+                    description: "文本装饰线粗细 (Chrome 89+, Firefox 70+, Safari 15.4+, Edge 89+)"
+                });
+            } catch (e) {
+                features.push({
+                    name: "CSS text-decoration-thickness",
+                    supported: false,
+                    description: "文本装饰线粗细 (Chrome 89+, Firefox 70+, Safari 15.4+, Edge 89+)，不支持时可使用SVG或背景图片实现类似效果"
+                });
+            }
+            
+            // CSS overscroll-behavior
+            try {
+                var overscrollBehaviorSupported = false;
+                try {
+                    var testDiv = document.createElement("div");
+                    testDiv.style.overscrollBehavior = "contain";
+                    overscrollBehaviorSupported = testDiv.style.overscrollBehavior === "contain";
+                } catch (e) {}
+                features.push({
+                    name: "CSS overscroll-behavior",
+                    supported: overscrollBehaviorSupported,
+                    description: "过度滚动行为 (Chrome 63+, Firefox 59+, Safari 16.4+, Edge 79+)"
+                });
+            } catch (e) {
+                features.push({
+                    name: "CSS overscroll-behavior",
+                    supported: false,
+                    description: "过度滚动行为 (Chrome 63+, Firefox 59+, Safari 16.4+, Edge 79+)，不支持时可使用JavaScript touch事件模拟"
+                });
+            }
+            
+            // 新增CSS特性检测
+            try {
+                var containerStyleQuerySupported = false;
+                try {
+                    var containerStyleDiv = document.createElement('div');
+                    containerStyleDiv.style.containerType = 'inline-size';
+                    containerStyleQuerySupported = containerStyleDiv.style.containerType === 'inline-size';
+                } catch (e) {}
+                features.push({
+                    name: "CSS Container Style Queries",
+                    supported: containerStyleQuerySupported,
+                    description: "容器样式查询 (Chrome 119+, Firefox 121+, Safari 17+, Edge 119+)"
+                });
+            } catch (e) {
+                features.push({
+                    name: "CSS Container Style Queries",
+                    supported: false,
+                    description: "容器样式查询 (Chrome 119+, Firefox 121+, Safari 17+, Edge 119+)，不支持时可使用容器大小查询或媒体查询作为替代"
+                });
+            }
+            
+            try {
+                var containerNamedQuerySupported = false;
+                try {
+                    var containerNamedDiv = document.createElement('div');
+                    containerNamedDiv.style.container = 'my-container / inline-size';
+                    containerNamedQuerySupported = containerNamedDiv.style.container.indexOf('my-container') !== -1;
+                } catch (e) {}
+                features.push({
+                    name: "CSS Named Containers",
+                    supported: containerNamedQuerySupported,
+                    description: "命名容器 (Chrome 105+, Firefox 121+, Safari 17+, Edge 105+)，不支持时可使用标准容器查询"
+                });
+            } catch (e) {
+                features.push({
+                    name: "CSS Named Containers",
+                    supported: false,
+                    description: "命名容器 (Chrome 105+, Firefox 121+, Safari 17+, Edge 105+)，不支持时可使用标准容器查询"
+                });
+            }
+            
+            try {
+                var labColorSupported = false;
+                try {
+                    var labColorDiv = document.createElement('div');
+                    labColorDiv.style.color = 'lab(50% 0 0)';
+                    labColorSupported = labColorDiv.style.color !== '';
+                } catch (e) {}
+                features.push({
+                    name: "Lab/LCH Colors",
+                    supported: labColorSupported,
+                    description: "Lab/LCH颜色空间 (Chrome 99+, Firefox 96+, Safari 15+, Edge 99+)，不支持时可使用RGB/HSL作为替代"
+                });
+            } catch (e) {
+                features.push({
+                    name: "Lab/LCH Colors",
+                    supported: false,
+                    description: "Lab/LCH颜色空间 (Chrome 99+, Firefox 96+, Safari 15+, Edge 99+)，不支持时可使用RGB/HSL作为替代"
+                });
+            }
+            
+            try {
+                var scrollTimelineSupported = false;
+                try {
+                    scrollTimelineSupported = 'ScrollTimeline' in window || 'CSSScrollTimeline' in window;
+                } catch (e) {}
+                features.push({
+                    name: "Scroll-linked Animations",
+                    supported: scrollTimelineSupported,
+                    description: "滚动关联动画 (Chrome 115+, Firefox 125+, Safari不支持, Edge 115+)，不支持时可使用JavaScript滚动事件实现"
+                });
+            } catch (e) {
+                features.push({
+                    name: "Scroll-linked Animations",
+                    supported: false,
+                    description: "滚动关联动画 (Chrome 115+, Firefox 125+, Safari不支持, Edge 115+)，不支持时可使用JavaScript滚动事件实现"
+                });
+            }
+            
+            try {
+                var inertCssSupported = false;
+                try {
+                    var inertCssDiv = document.createElement('div');
+                    inertCssDiv.style.contain = 'layout paint';
+                    inertCssSupported = inertCssDiv.style.contain === 'layout paint';
+                } catch (e) {}
+                features.push({
+                    name: "CSS Containment",
+                    supported: inertCssSupported,
+                    description: "CSS包含属性 (Chrome 52+, Firefox 69+, Safari 15.4+, Edge 79+)，不支持时可使用定位和溢出控制"
+                });
+            } catch (e) {
+                features.push({
+                    name: "CSS Containment",
+                    supported: false,
+                    description: "CSS包含属性 (Chrome 52+, Firefox 69+, Safari 15.4+, Edge 79+)，不支持时可使用定位和溢出控制"
+                });
+            }
+            
+            try {
+                var colorContrastSupported = false;
+                try {
+                    var colorContrastDiv = document.createElement('div');
+                    colorContrastDiv.style.color = 'color-contrast(white vs black, gray)';
+                    colorContrastSupported = colorContrastDiv.style.color !== '';
+                } catch (e) {}
+                features.push({
+                    name: "color-contrast()",
+                    supported: colorContrastSupported,
+                    description: "颜色对比度函数 (Chrome 126+, Firefox 129+, Safari不支持, Edge 126+)，不支持时可使用JavaScript计算对比度"
+                });
+            } catch (e) {
+                features.push({
+                    name: "color-contrast()",
+                    supported: false,
+                    description: "颜色对比度函数 (Chrome 126+, Firefox 129+, Safari不支持, Edge 126+)，不支持时可使用JavaScript计算对比度"
+                });
+            }
+            
+            // HTML inert属性检测 (虽然是HTML属性，但在CSS检测中也加入以便在报告中显示)
+            try {
+                var htmlInertSupported = false;
+                try {
+                    const testEl = document.createElement('div');
+                    htmlInertSupported = 'inert' in testEl;
+                    
+                    if (htmlInertSupported) {
+                        testEl.inert = true;
+                        htmlInertSupported = testEl.hasAttribute('inert');
+                    }
+                } catch (e) {}
+                features.push({
+                    name: "HTML inert属性",
+                    supported: htmlInertSupported,
+                    description: "惰性内容支持 (Chrome 85+, Edge 85+, Safari 15+, Firefox 129+)"
+                });
+            } catch (e) {
+                features.push({
+                    name: "HTML inert属性",
+                    supported: false,
+                    description: "惰性内容支持 (Chrome 85+, Edge 85+, Safari 15+, Firefox 129+)"
+                });
+            }
+            
+            // 清理
+            document.head.removeChild(style);
+            
+            return features;
+        }
+        
+        function collectPerformanceMetrics() {
+            var metrics = {};
+            
+            // DOM加载时间
+            if (window.performance && window.performance.timing) {
+                var timing = window.performance.timing;
+                metrics.domLoadTime = timing.domContentLoadedEventEnd - timing.domContentLoadedEventStart;
+                metrics.resourceLoadTime = timing.loadEventEnd - timing.navigationStart;
+            }
+            
+            // 屏幕和视口信息
+            metrics.screenResolution = window.screen.width + "x" + window.screen.height;
+            metrics.viewportSize = window.innerWidth + "x" + window.innerHeight;
+            
+            return metrics;
+        }
+        
+        // 手动测试函数已移除，只保留自动测试功能
+        
+        // 简化的浏览器检测函数
+        function getBrowserInfo() {
+            var ua = navigator.userAgent;
+            var info = {
+                name: "未知浏览器",
+                version: "未知版本",
+                os: "未知操作系统"
+            };
+            
+            // 检测操作系统
+            if (/Windows/i.test(ua)) info.os = "Windows";
+            else if (/Macintosh/i.test(ua)) info.os = "Mac OS X";
+            else if (/Linux/i.test(ua)) info.os = "Linux";
+            else if (/iPhone|iPad|iPod/i.test(ua)) info.os = "iOS";
+            else if (/Android/i.test(ua)) info.os = "Android";
+            
+            // 检测浏览器
+            if (/Edge/i.test(ua)) {
+                info.name = "Microsoft Edge";
+                info.version = ua.match(/Edge\/(\d+\.\d+)/)?.[1] || "未知";
+            } else if (/Chrome/i.test(ua) && !/Edge/i.test(ua)) {
+                info.name = "Google Chrome";
+                info.version = ua.match(/Chrome\/(\d+\.\d+)/)?.[1] || "未知";
+            } else if (/Firefox/i.test(ua)) {
+                info.name = "Mozilla Firefox";
+                info.version = ua.match(/Firefox\/(\d+\.\d+)/)?.[1] || "未知";
+            } else if (/Safari/i.test(ua) && !/Chrome/i.test(ua)) {
+                info.name = "Apple Safari";
+                info.version = ua.match(/Version\/(\d+\.\d+)/)?.[1] || "未知";
+            }
+            
+            return info;
+        }
+        
+        function generateCompatibilityReport() {
+            // 收集浏览器信息
+            compatibilityResults.browserInfo = getBrowserInfo();
+            
+            // 检测JavaScript特性
+            compatibilityResults.jsFeatures = detectJavaScriptFeatures();
+            
+            // 检测CSS特性
+            compatibilityResults.cssFeatures = detectCSSFeatures();
+            
+            // 收集性能指标
+            compatibilityResults.performance = collectPerformanceMetrics();
+            
+            // 计算统计信息
+            var supportedCount = 0;
+            var unsupportedCount = 0;
+            var partialCount = 0;
+            
+            // 统计JavaScript特性 (使用传统for循环兼容老旧浏览器)
+            for (var i = 0; i < compatibilityResults.jsFeatures.length; i++) {
+                var jsFeature = compatibilityResults.jsFeatures[i];
+                if (jsFeature.supported) supportedCount++;
+                else unsupportedCount++;
+            }
+            
+            // 统计CSS特性 (使用传统for循环兼容老旧浏览器)
+            for (var j = 0; j < compatibilityResults.cssFeatures.length; j++) {
+                var cssFeatureItem = compatibilityResults.cssFeatures[j];
+                if (cssFeatureItem.supported) supportedCount++;
+                else unsupportedCount++;
+            }
+            
+            // 计算兼容性得分
+            var totalFeatures = supportedCount + unsupportedCount + partialCount;
+            var compatibilityScore = totalFeatures > 0 ? Math.round((supportedCount / totalFeatures) * 100) : 0;
+            
+            // 更新报告数据
+            document.getElementById("supported-count").textContent = supportedCount;
+            document.getElementById("unsupported-count").textContent = unsupportedCount;
+            document.getElementById("partial-count").textContent = partialCount;
+            document.getElementById("compatibility-score").textContent = compatibilityScore + "%";
+            
+            // 更新浏览器信息
+            document.getElementById("report-browser-name").textContent = compatibilityResults.browserInfo.name;
+            document.getElementById("report-browser-version").textContent = compatibilityResults.browserInfo.version;
+            document.getElementById("report-os").textContent = compatibilityResults.browserInfo.os;
+            document.getElementById("report-resolution").textContent = compatibilityResults.performance.screenResolution || "--";
+            document.getElementById("report-viewport").textContent = compatibilityResults.performance.viewportSize || "--";
+            
+            // 更新JavaScript兼容性网格
+            var jsGrid = document.getElementById("js-compatibility-grid");
+            jsGrid.innerHTML = "";
+            // 使用传统for循环兼容老旧浏览器
+            for (var k = 0; k < compatibilityResults.jsFeatures.length; k++) {
+                var jsFeature = compatibilityResults.jsFeatures[k];
+                var item = document.createElement("div");
+                item.className = "compatibility-item";
+                
+                var statusClass = jsFeature.supported ? "supported" : "unsupported";
+                var statusText = jsFeature.supported ? "支持" : "不支持";
+                
+                item.innerHTML = 
+                    '<div class="feature-name">' + jsFeature.name + '</div>' +
+                    '<div class="feature-desc">' + jsFeature.description + '</div>' +
+                    '<div class="status ' + statusClass + '">' + statusText + '</div>';
+                
+                jsGrid.appendChild(item);
+            }
+            
+            // 更新CSS兼容性网格
+            var cssGrid = document.getElementById("css-compatibility-grid");
+            cssGrid.innerHTML = "";
+            // 使用传统for循环兼容老旧浏览器
+            for (var l = 0; l < compatibilityResults.cssFeatures.length; l++) {
+                var cssFeatureItem = compatibilityResults.cssFeatures[l];
+                var item = document.createElement("div");
+                item.className = "compatibility-item";
+                
+                var statusClass = cssFeatureItem.supported ? "supported" : "unsupported";
+                var statusText = cssFeatureItem.supported ? "支持" : "不支持";
+                
+                item.innerHTML = 
+                    '<div class="feature-name">' + cssFeatureItem.name + '</div>' +
+                    '<div class="feature-desc">' + cssFeatureItem.description + '</div>' +
+                    '<div class="status ' + statusClass + '">' + statusText + '</div>';
+                
+                cssGrid.appendChild(item);
+            }
+            
+            // 生成兼容性建议
+            var suggestions = generateSuggestions();
+            var suggestionsElement = document.getElementById("compatibility-suggestions");
+            suggestionsElement.innerHTML = "";
+            
+            if (suggestions.length > 0) {
+                var list = document.createElement("ul");
+                // 使用传统for循环替代forEach以兼容IE
+                for (var m = 0; m < suggestions.length; m++) {
+                    var li = document.createElement("li");
+                    // 使用innerText兼容IE，textContent在IE8及以下不支持
+                    if (li.innerText !== undefined) {
+                        li.innerText = suggestions[m];
+                    } else {
+                        li.textContent = suggestions[m];
+                    }
+                    list.appendChild(li);
+                }
+                suggestionsElement.appendChild(list);
+            } else {
+                var p = document.createElement("p");
+                p.textContent = "该浏览器兼容性良好，未发现明显问题";
+                suggestionsElement.appendChild(p);
+            }
+            
+            // 更新性能指标显示
+            if (compatibilityResults.performance.domLoadTime !== undefined) {
+                document.getElementById("dom-load-time").textContent = compatibilityResults.performance.domLoadTime + "ms";
+            }
+            if (compatibilityResults.performance.resourceLoadTime !== undefined) {
+                document.getElementById("resource-load-time").textContent = compatibilityResults.performance.resourceLoadTime + "ms";
+            }
+        }
+        
+        function generateSuggestions() {
+            var suggestions = [];
+            var browserName = compatibilityResults.browserInfo.name.toLowerCase();
+            
+            // 基于浏览器类型的建议
+            if (browserName.indexOf("internet explorer") !== -1) {
+                suggestions.push("检测到IE浏览器，建议使用Babel转译ES6+代码以提高兼容性");
+                suggestions.push("IE浏览器不支持许多现代CSS特性，建议使用autoprefixer添加前缀");
+                suggestions.push("对于IE9及以下版本，需要提供flexbox和grid布局的替代方案");
+            } else if (browserName.indexOf("safari") !== -1 && browserName.indexOf("chrome") === -1) {
+                suggestions.push("检测到Safari浏览器，注意它对某些现代CSS特性的支持可能滞后，建议添加适当的polyfill");
+            } else if (browserName.indexOf("firefox") !== -1) {
+                suggestions.push("检测到Firefox浏览器，对于某些实验性特性，可能需要在about:config中启用相关设置");
+            }
+            
+            // 基于特性检测的建议
+            var jsFeatures = compatibilityResults.jsFeatures;
+            var cssFeatures = compatibilityResults.cssFeatures;
+            
+            // 检查Promise支持（使用传统循环替代some方法以兼容IE）
+            var hasPromise = false;
+            for (var n = 0; n < jsFeatures.length; n++) {
+                if (jsFeatures[n].name === "Promise" && jsFeatures[n].supported) {
+                    hasPromise = true;
+                    break;
+                }
+            }
+            if (!hasPromise) {
+                suggestions.push("浏览器不支持Promise，建议添加Promise polyfill");
+            }
+            
+            // 检查Fetch支持
+            var hasFetch = false;
+            for (var o = 0; o < jsFeatures.length; o++) {
+                if (jsFeatures[o].name === "Fetch API" && jsFeatures[o].supported) {
+                    hasFetch = true;
+                    break;
+                }
+            }
+            if (!hasFetch) {
+                suggestions.push("浏览器不支持Fetch API，建议使用XMLHttpRequest替代或添加fetch polyfill");
+            }
+            
+            // 检查ES6特性
+            var hasLetConst = false;
+            for (var p = 0; p < jsFeatures.length; p++) {
+                if (jsFeatures[p].name === "let/const" && jsFeatures[p].supported) {
+                    hasLetConst = true;
+                    break;
+                }
+            }
+            if (!hasLetConst) {
+                suggestions.push("浏览器不支持let/const，建议使用var并注意变量作用域问题");
+            }
+            
+            // 检查Flexbox支持
+            var hasFlexbox = false;
+            for (var q = 0; q < cssFeatures.length; q++) {
+                if (cssFeatures[q].name === "Flexbox" && cssFeatures[q].supported) {
+                    hasFlexbox = true;
+                    break;
+                }
+            }
+            if (!hasFlexbox) {
+                suggestions.push("浏览器不支持Flexbox，建议使用浮动布局或表格布局作为替代");
+            }
+            
+            // 检查媒体查询支持
+            var hasMediaQueries = false;
+            for (var r = 0; r < cssFeatures.length; r++) {
+                if (cssFeatures[r].name === "媒体查询" && cssFeatures[r].supported) {
+                    hasMediaQueries = true;
+                    break;
+                }
+            }
+            if (!hasMediaQueries) {
+                suggestions.push("浏览器不支持媒体查询，响应式设计可能无法正常工作");
+            }
+            
+            // 检查HTML inert属性支持
+            var hasInert = false;
+            for (var s = 0; s < jsFeatures.length; s++) {
+                if (jsFeatures[s].name === "HTML inert属性" && jsFeatures[s].supported) {
+                    hasInert = true;
+                    break;
+                }
+            }
+            if (!hasInert) {
+                suggestions.push("浏览器不支持HTML inert属性，建议使用ARIA属性(aria-hidden)和CSS pointer-events:none结合JS禁用交互作为替代方案");
+            }
+            
+            // 检查CSS Grid支持
+            var hasCssGrid = false;
+            for (var t = 0; t < cssFeatures.length; t++) {
+                if (cssFeatures[t].name === "CSS Grid" && cssFeatures[t].supported) {
+                    hasCssGrid = true;
+                    break;
+                }
+            }
+            if (!hasCssGrid) {
+                suggestions.push("浏览器不支持CSS Grid，建议使用Flexbox或传统布局技术作为替代");
+            }
+            
+            // 检查CSS变量支持
+            var hasCssVariables = false;
+            for (var u = 0; u < cssFeatures.length; u++) {
+                if (cssFeatures[u].name === "CSS变量" && cssFeatures[u].supported) {
+                    hasCssVariables = true;
+                    break;
+                }
+            }
+            if (!hasCssVariables) {
+                suggestions.push("浏览器不支持CSS变量，建议使用预处理器变量(Sass/Less)或CSS后处理器进行编译");
+            }
+            
+            // 检查CSS动画支持
+            var hasCssAnimation = false;
+            for (var v = 0; v < cssFeatures.length; v++) {
+                if (cssFeatures[v].name === "CSS动画" && cssFeatures[v].supported) {
+                    hasCssAnimation = true;
+                    break;
+                }
+            }
+            if (!hasCssAnimation) {
+                suggestions.push("浏览器不支持CSS动画，建议使用JavaScript动画库如jQuery.animate()作为替代");
+            }
+            
+            // 检查Web Components支持
+            var hasWebComponents = false;
+            for (var w = 0; w < jsFeatures.length; w++) {
+                if (jsFeatures[w].name === "Web Components" && jsFeatures[w].supported) {
+                    hasWebComponents = true;
+                    break;
+                }
+            }
+            if (!hasWebComponents) {
+                suggestions.push("浏览器不支持Web Components，建议使用React、Vue等框架组件系统作为替代");
+            }
+            
+            // 检查localStorage支持
+            var hasLocalStorage = false;
+            for (var x = 0; x < jsFeatures.length; x++) {
+                if (jsFeatures[x].name === "localStorage" && jsFeatures[x].supported) {
+                    hasLocalStorage = true;
+                    break;
+                }
+            }
+            if (!hasLocalStorage) {
+                suggestions.push("浏览器不支持localStorage，建议使用cookies或IndexedDB polyfill作为替代");
+            }
+            
+            // 检查ES模块支持
+            var hasEsModules = false;
+            for (var y = 0; y < jsFeatures.length; y++) {
+                if (jsFeatures[y].name === "ES模块" && jsFeatures[y].supported) {
+                    hasEsModules = true;
+                    break;
+                }
+            }
+            if (!hasEsModules) {
+                suggestions.push("浏览器不支持ES模块，建议使用Webpack或Rollup等打包工具将模块打包为单一文件");
+            }
+            
+            // 检查WebGL支持
+            var hasWebGL = false;
+            for (var z = 0; z < jsFeatures.length; z++) {
+                if (jsFeatures[z].name === "WebGL" && jsFeatures[z].supported) {
+                    hasWebGL = true;
+                    break;
+                }
+            }
+            if (!hasWebGL) {
+                suggestions.push("浏览器不支持WebGL，建议提供Canvas 2D或静态图片作为替代方案");
+            }
+            
+            // 检查触摸事件支持
+            var hasTouchEvents = false;
+            for (var aa = 0; aa < jsFeatures.length; aa++) {
+                if (jsFeatures[aa].name === "触摸事件" && jsFeatures[aa].supported) {
+                    hasTouchEvents = true;
+                    break;
+                }
+            }
+            if (!hasTouchEvents) {
+                suggestions.push("浏览器不支持触摸事件，建议同时监听鼠标事件以确保桌面设备兼容性");
+            }
+            
+            // 检查IndexedDB支持
+            var hasIndexedDB = false;
+            for (var bb = 0; bb < jsFeatures.length; bb++) {
+                if (jsFeatures[bb].name === "IndexedDB" && jsFeatures[bb].supported) {
+                    hasIndexedDB = true;
+                    break;
+                }
+            }
+            if (!hasIndexedDB) {
+                suggestions.push("浏览器不支持IndexedDB，建议使用localStorage或服务器端存储作为替代");
+            }
+            
+            // 检查Service Worker支持
+            var hasServiceWorker = false;
+            for (var cc = 0; cc < jsFeatures.length; cc++) {
+                if (jsFeatures[cc].name === "Service Worker" && jsFeatures[cc].supported) {
+                    hasServiceWorker = true;
+                    break;
+                }
+            }
+            if (!hasServiceWorker) {
+                suggestions.push("浏览器不支持Service Worker，离线功能将无法使用，建议提供降级方案");
+            }
+            
+            // 检查WebSockets支持
+            var hasWebSockets = false;
+            for (var dd = 0; dd < jsFeatures.length; dd++) {
+                if (jsFeatures[dd].name === "WebSockets" && jsFeatures[dd].supported) {
+                    hasWebSockets = true;
+                    break;
+                }
+            }
+            if (!hasWebSockets) {
+                suggestions.push("浏览器不支持WebSockets，建议使用轮询技术作为实时通信的替代方案");
+            }
+            
+            // 检查Intersection Observer支持
+            var hasIntersectionObserver = false;
+            for (var ee = 0; ee < jsFeatures.length; ee++) {
+                if (jsFeatures[ee].name === "Intersection Observer" && jsFeatures[ee].supported) {
+                    hasIntersectionObserver = true;
+                    break;
+                }
+            }
+            if (!hasIntersectionObserver) {
+                suggestions.push("浏览器不支持Intersection Observer，建议使用传统的滚动事件监听来实现懒加载等功能");
+            }
+            
+            // 检查CSS Container Queries支持
+            var hasContainerQueries = false;
+            for (var ff = 0; ff < cssFeatures.length; ff++) {
+                if (cssFeatures[ff].name === "CSS Container Queries" && cssFeatures[ff].supported) {
+                    hasContainerQueries = true;
+                    break;
+                }
+            }
+            if (!hasContainerQueries) {
+                suggestions.push("浏览器不支持CSS Container Queries，建议使用JavaScript或媒体查询来根据容器大小调整样式");
+            }
+            
+            // 检查WebGL2支持
+            var hasWebGL2 = false;
+            for (var gg = 0; gg < jsFeatures.length; gg++) {
+                if (jsFeatures[gg].name === "WebGL2" && jsFeatures[gg].supported) {
+                    hasWebGL2 = true;
+                    break;
+                }
+            }
+            if (!hasWebGL2) {
+                suggestions.push("浏览器不支持WebGL2，建议回退到WebGL 1.0或Canvas 2D渲染");
+            }
+            
+            // 检查Web Audio API支持
+            var hasWebAudioApi = false;
+            for (var hh = 0; hh < jsFeatures.length; hh++) {
+                if (jsFeatures[hh].name === "Web Audio API" && jsFeatures[hh].supported) {
+                    hasWebAudioApi = true;
+                    break;
+                }
+            }
+            if (!hasWebAudioApi) {
+                suggestions.push("浏览器不支持Web Audio API，建议使用HTML5 Audio标签作为基础音频功能的替代");
+            }
+            
+            // 检查Service Workers支持
+            var hasServiceWorkers = false;
+            for (var ii = 0; ii < jsFeatures.length; ii++) {
+                if (jsFeatures[ii].name === "Service Workers" && jsFeatures[ii].supported) {
+                    hasServiceWorkers = true;
+                    break;
+                }
+            }
+            if (!hasServiceWorkers) {
+                suggestions.push("浏览器不支持Service Workers，离线功能和推送通知将无法使用，建议使用Application Cache作为基础缓存");
+            }
+            
+            // 检查Beacon API支持
+            var hasBeaconApi = false;
+            for (var jj = 0; jj < jsFeatures.length; jj++) {
+                if (jsFeatures[jj].name === "Beacon API" && jsFeatures[jj].supported) {
+                    hasBeaconApi = true;
+                    break;
+                }
+            }
+            if (!hasBeaconApi) {
+                suggestions.push("浏览器不支持Beacon API，建议使用传统的XMLHttpRequest或设置较小超时的fetch请求");
+            }
+            
+            // 检查Performance Observer API支持
+            var hasPerformanceObserver = false;
+            for (var kk = 0; kk < jsFeatures.length; kk++) {
+                if (jsFeatures[kk].name === "Performance Observer API" && jsFeatures[kk].supported) {
+                    hasPerformanceObserver = true;
+                    break;
+                }
+            }
+            if (!hasPerformanceObserver) {
+                suggestions.push("浏览器不支持Performance Observer API，建议使用window.performance.timing对象获取基本性能指标");
+            }
+            
+            // 检查BroadcastChannel API支持
+            var hasBroadcastChannel = false;
+            for (var ll = 0; ll < jsFeatures.length; ll++) {
+                if (jsFeatures[ll].name === "BroadcastChannel API" && jsFeatures[ll].supported) {
+                    hasBroadcastChannel = true;
+                    break;
+                }
+            }
+            if (!hasBroadcastChannel) {
+                suggestions.push("浏览器不支持BroadcastChannel API，建议使用localStorage事件或服务器作为消息中继");
+            }
+            
+            // 检查Media Source Extensions支持
+            var hasMediaSource = false;
+            for (var mm = 0; mm < jsFeatures.length; mm++) {
+                if (jsFeatures[mm].name === "Media Source Extensions" && jsFeatures[mm].supported) {
+                    hasMediaSource = true;
+                    break;
+                }
+            }
+            if (!hasMediaSource) {
+                suggestions.push("浏览器不支持Media Source Extensions，建议使用普通的HTML5视频播放器而不是流媒体播放");
+            }
+            
+            // 检查Wake Lock API支持
+            var hasWakeLock = false;
+            for (var nn = 0; nn < jsFeatures.length; nn++) {
+                if (jsFeatures[nn].name === "Wake Lock API" && jsFeatures[nn].supported) {
+                    hasWakeLock = true;
+                    break;
+                }
+            }
+            if (!hasWakeLock) {
+                suggestions.push("浏览器不支持Wake Lock API，屏幕可能在不活动时自动关闭，没有直接替代方案");
+            }
+            
+            // 检查Picture-in-Picture API支持
+            var hasPiP = false;
+            for (var oo = 0; oo < jsFeatures.length; oo++) {
+                if (jsFeatures[oo].name === "Picture-in-Picture API" && jsFeatures[oo].supported) {
+                    hasPiP = true;
+                    break;
+                }
+            }
+            if (!hasPiP) {
+                suggestions.push("浏览器不支持Picture-in-Picture API，建议提供手动调整视频窗口的替代方案");
+            }
+            
+            return suggestions;
+        }
+        
+        // 安全测试函数，提供超时保护
+        function safeTestFeature(testFunction, defaultResult, timeoutMs) {
+            var timeoutId;
+            var testComplete = false;
+            
+            // 创建一个安全的测试包装器
+            function safeTest() {
+                try {
+                    var result = testFunction();
+                    testComplete = true;
+                    return result;
+                } catch (e) {
+                    console.warn('特性测试失败:', e);
+                    testComplete = true;
+                    return defaultResult;
+                }
+            }
+            
+            // 设置超时保护
+            timeoutMs = timeoutMs || 1000; // 默认超时1秒
+            timeoutId = setTimeout(function() {
+                if (!testComplete) {
+                    console.warn('特性测试超时');
+                    testComplete = true;
+                }
+            }, timeoutMs);
+            
+            // 执行测试
+            var result = safeTest();
+            
+            // 清除超时
+            if (timeoutId) {
+                clearTimeout(timeoutId);
+            }
+            
+            return result;
+        }
+        
+        function runAutoTest() {
+            // 显示加载指示器
+            var loadingIndicator = document.getElementById("loading-indicator");
+            loadingIndicator.style.display = "block";
+            
+            // 保存原始错误处理器（实际上init函数已经设置了全局错误监听）
+            // 这里只需确保错误被正确捕获到页面上
+            console.log('开始自动测试...');
+            
+            // 设置整体测试超时保护
+            var overallTimeoutId = setTimeout(function() {
+                console.warn('自动测试超时，终止测试');
+                loadingIndicator.style.display = "none";
+                
+                // 我们现在使用全局错误监听，不需要恢复原始错误处理器
+                alert('自动兼容性测试超时，请检查浏览器控制台查看详情');
+            }, 30000); // 30秒全局超时
+            
+            // 延迟执行以显示加载动画
+            setTimeout(function() {
+                try {
+                    // 使用安全测试包装生成报告
+                    safeTestFeature(
+                        function() {
+                            generateCompatibilityReport();
+                            return true;
+                        },
+                        false,
+                        25000
+                    );
+                } catch (e) {
+                    console.error('测试过程中发生未捕获错误:', e);
+                } finally {
+                    // 隐藏加载指示器
+                    loadingIndicator.style.display = "none";
+                    
+                    // 清除全局超时
+                    clearTimeout(overallTimeoutId);
+                    
+                    // 我们现在使用全局错误监听，不需要恢复原始错误处理器
+                    
+                    // 滚动到报告部分（使用IE兼容的方式）
+                    try {
+                        var reportElement = document.getElementById("compatibility-report");
+                        if (reportElement) {
+                            if (reportElement.scrollIntoView) {
+                                // 不使用behavior参数以兼容IE
+                                reportElement.scrollIntoView();
+                            } else if (reportElement.scrollIntoViewIfNeeded) {
+                                reportElement.scrollIntoViewIfNeeded();
+                            } else {
+                                // 最基础的滚动方式
+                                window.scrollTo(0, reportElement.offsetTop);
+                            }
+                        }
+                    } catch (e) {
+                        console.warn('滚动到报告部分失败:', e);
+                    }
+                }
+            }, 1000);
+        }
+        
+        // 存储错误信息的数组
+        var errors = [];
+        
+        // 添加错误信息到页面
+        function addErrorToPage(message, source, lineno, colno, error) {
+            var errorPanel = document.getElementById("error-panel");
+            var errorList = document.getElementById("error-list");
+            
+            // 构造错误信息
+            var errorItem = document.createElement("div");
+            errorItem.className = "error-item";
+            
+            var errorMessage = document.createElement("div");
+            errorMessage.className = "error-message";
+            errorMessage.textContent = message || '未知错误';
+            
+            var errorSource = document.createElement("div");
+            errorSource.className = "error-source";
+            
+            var sourceInfo = [];
+            if (source) sourceInfo.push(source);
+            if (lineno) sourceInfo.push('行: ' + lineno);
+            if (colno) sourceInfo.push('列: ' + colno);
+            
+            if (errorSource.length > 0) {
+                errorSource.textContent = sourceInfo.join(', ');
+            }
+            
+            if (error && error.stack) {
+                // 仅添加简短的堆栈信息，避免占用太多空间
+                var stackInfo = document.createElement("div");
+                stackInfo.className = "error-source";
+                var stackLines = error.stack.split('\n');
+                if (stackLines.length > 3) {
+                    stackInfo.textContent = '堆栈: ' + stackLines.slice(0, 3).join(' ');
+                } else {
+                    stackInfo.textContent = '堆栈: ' + error.stack;
+                }
+                errorItem.appendChild(stackInfo);
+            }
+            
+            errorItem.appendChild(errorMessage);
+            errorItem.appendChild(errorSource);
+            
+            // 添加到错误列表的开头
+            if (errorList.firstChild) {
+                errorList.insertBefore(errorItem, errorList.firstChild);
+            } else {
+                errorList.appendChild(errorItem);
+            }
+            
+            // 显示错误面板
+            errorPanel.style.display = "block";
+            
+            // 限制错误列表数量，避免内存溢出
+            var maxErrors = 20;
+            var errorItems = errorList.querySelectorAll('.error-item');
+            if (errorItems.length > maxErrors) {
+                for (var i = maxErrors; i < errorItems.length; i++) {
+                    errorList.removeChild(errorItems[i]);
+                }
+            }
+        }
+        
+        // 页面加载时执行初始化
+        function init() {            
+            // 添加自动测试按钮事件
+            var autoTestButton = document.getElementById("run-auto-test");
+            if (autoTestButton.addEventListener) {
+                autoTestButton.addEventListener("click", runAutoTest);
+            } else if (autoTestButton.attachEvent) {
+                autoTestButton.attachEvent("onclick", runAutoTest);
+            } else {
+                autoTestButton.onclick = runAutoTest;
+            }
+            
+            // 添加错误面板关闭按钮事件（添加元素存在性检查）
+            var errorCloseBtn = document.getElementById("error-close-btn");
+            if (errorCloseBtn) {
+                if (errorCloseBtn.addEventListener) {
+                    errorCloseBtn.addEventListener("click", function() {
+                        var errorPanel = document.getElementById("error-panel");
+                        if (errorPanel) errorPanel.style.display = "none";
+                    });
+                } else if (errorCloseBtn.attachEvent) {
+                    errorCloseBtn.attachEvent("onclick", function() {
+                        var errorPanel = document.getElementById("error-panel");
+                        if (errorPanel) errorPanel.style.display = "none";
+                    });
+                } else {
+                    errorCloseBtn.onclick = function() {
+                        var errorPanel = document.getElementById("error-panel");
+                        if (errorPanel) errorPanel.style.display = "none";
+                    };
+                }
+            } else {
+                console.log("错误关闭按钮不存在，跳过事件绑定");
+            }
+            
+            // 设置全局错误监听
+            window.onerror = function(message, source, lineno, colno, error) {
+                console.error('发生错误:', message);
+                addErrorToPage(message, source, lineno, colno, error);
+                return true; // 防止错误冒泡
+            };
+            
+            // 设置Promise错误监听
+            if (window.addEventListener) {
+                window.addEventListener('unhandledrejection', function(event) {
+                    var message = 'Promise拒绝: ';
+                    if (event.reason && typeof event.reason === 'string') {
+                        message += event.reason;
+                    } else if (event.reason && event.reason.message) {
+                        message += event.reason.message;
+                    } else {
+                        message += '未知Promise拒绝';
+                    }
+                    console.error(message, event.reason);
+                    addErrorToPage(message, null, null, null, event.reason);
+                });
+            }            
+            // 自动运行检测（可选）
+            // runAutoTest();
+        }
+        
+        // 页面加载完成后初始化
+        if (window.addEventListener) {
+            window.addEventListener("load", init);
+        } else if (window.attachEvent) {
+            window.attachEvent("onload", init);
+        } else {
+            window.onload = init;
+        }
+    </script>
+</body>
+</html>
