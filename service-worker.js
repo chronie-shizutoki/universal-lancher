@@ -1,7 +1,7 @@
 // Service Worker for 统一启动器
 
 // 使用带时间戳的缓存名称，方便更新
-const CACHE_VERSION = 'v4'; // 更新此版本号以强制刷新缓存
+const CACHE_VERSION = 'v5'; // 更新此版本号以强制刷新缓存
 const CACHE_NAME = `universal-launcher-${CACHE_VERSION}`;
 const STATIC_ASSETS = [
   '/',
