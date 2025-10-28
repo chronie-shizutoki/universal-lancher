@@ -25,6 +25,7 @@
 
 <div class="button-group main">
   <a class="btn primary" href="http://192.168.0.197:3010">记账Homemoney</a>
+  <a class="btn primary" href="#" onclick="checkCountryAndRedirect(event, 'http://192.168.0.197:3000')">记账国际版HFM</a>
   <a class="btn primary" href="http://192.168.0.197:3100">金流Chrysorrhoe</a>
   <a class="btn primary" href="http://192.168.0.197:5000">库存Inventory</a>
 </div>
@@ -49,6 +50,29 @@
 
 <script>
   document.getElementById('user-agent').textContent = navigator.userAgent;
+  
+  // IP地理位置检查函数
+  async function checkCountryAndRedirect(event, targetUrl) {
+    event.preventDefault();
+    
+    try {
+      // 使用ipapi.co API获取IP信息
+      const response = await fetch('https://ipapi.co/json/');
+      const data = await response.json();
+      
+      // 检查是否为中国大陆
+      if (data.country === 'CN') {
+        alert('您所在国家或地区不受支持');
+      } else {
+        // 非中国大陆用户可以访问
+        window.location.href = targetUrl;
+      }
+    } catch (error) {
+      console.error('IP检查失败:', error);
+      // 错误情况下允许访问，避免因API问题导致无法使用
+      window.location.href = targetUrl;
+    }
+  }
 </script>
 
 <style>
