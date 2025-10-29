@@ -1,0 +1,117 @@
+  /* 定义浅色模式变量 */
+  :root {
+    --install-bg: #2c3e50;
+    --install-text: #fff;
+    --install-guide-bg: #f0f0f0;
+    --install-guide-text: #333;
+    --install-guide-border: #ddd;
+    --modal-bg: #fff;
+    --modal-text: #333;
+    --modal-title: #2c3e50;
+    --modal-subtitle: #34495e;
+  }
+
+  
+  body {
+    font-family: system-ui, sans-serif;
+    background: #f5f7fa;
+    color: #333;
+    margin: 0;
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    text-align: center;
+  }
+
+  .welcome h1 {
+    margin: 0 0 .5rem;
+    font-weight: 600;
+    color: #2c3e50;
+    text-align: center;
+  }
+
+  .welcome p {
+    margin: 0 0 2rem;
+    font-size: 1.1rem;
+    color: #555;
+    text-align: center;
+  }
+
+  .button-group {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-bottom: 2.5rem;
+  }
+
+  .btn {
+    padding: .9rem 1.8rem;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 500;
+    transition: transform .15s ease, box-shadow .15s ease;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, .08);
+  }
+
+  .btn.primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #fff;
+  }
+
+  .btn.secondary {
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    color: #333;
+  }
+
+  .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, .12);
+  }
+
+  .extras h2 {
+    font-size: 1.25rem;
+    margin: 0 0 1rem;
+    color: #2c3e50;
+    text-align: center;
+  }
+
+  /* 深色模式变量覆盖 */
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --install-bg: #1e2a38;
+      --install-text: #e0e0e0;
+      --install-guide-bg: #3a3a3a;
+      --install-guide-text: #e0e0e0;
+      --install-guide-border: #555;
+      --modal-bg: #2c3e50;
+      --modal-text: #fff;
+      --modal-title: #fff;
+      --modal-subtitle: #ccc;
+    }
+
+        body {
+      background: #2c3e50;
+      color: #fff;
+    }
+
+    .welcome h1, .extras h2 {
+      color: #fff;
+    }
+
+    .welcome p {
+      color: #aaa;
+    }
+
+    .btn.primary {
+      background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+    }
+
+    .btn.secondary {
+      background: #aaa;
+      color: #fff;
+    }
+  }
