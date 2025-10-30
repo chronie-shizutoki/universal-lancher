@@ -5,22 +5,80 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>服务状态监控</title>
     <style>
+        /* 定义CSS变量，用于浅色和深色主题 */
+        :root {
+            /* 浅色主题 */
+            --bg-primary: #f5f5f5;
+            --bg-primary-large: #f0f2f5;
+            --bg-container: white;
+            --bg-service-item: #f9f9f9;
+            --bg-service-running: #e8f5e9;
+            --bg-service-stopped: #ffebee;
+            --bg-service-checking: #fff8e1;
+            --text-primary: #333;
+            --text-primary-large: #2c3e50;
+            --text-secondary: #666;
+            --text-secondary-large: #7f8c8d;
+            --text-tertiary: #34495e;
+            --text-white: white;
+            --text-dark: #333;
+            --border-color: #ddd;
+            --border-service-item: #ccc;
+            --border-service-running: #4CAF50;
+            --border-service-stopped: #f44336;
+            --border-service-checking: #FFC107;
+            --bg-status-running: #4CAF50;
+            --bg-status-stopped: #f44336;
+            --bg-status-checking: #FFC107;
+            --bg-button: #2196F3;
+            --bg-button-hover: #0b7dda;
+            --bg-button-active: #0a6bba;
+            --shadow-primary: 0 0 10px rgba(0, 0, 0, 0.1);
+            --shadow-secondary: 0 2px 8px rgba(0, 0, 0, 0.1);
+            --shadow-hover: 0 4px 16px rgba(0, 0, 0, 0.15);
+        }
+
+        /* 深色主题 */
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-primary: #1a1a1a;
+                --bg-primary-large: #121212;
+                --bg-container: #252525;
+                --bg-service-item: #333333;
+                --bg-service-running: #1b2e1f;
+                --bg-service-stopped: #3a1c1c;
+                --bg-service-checking: #33301a;
+                --text-primary: #e0e0e0;
+                --text-primary-large: #f0f0f0;
+                --text-secondary: #b0b0b0;
+                --text-secondary-large: #a0a0a0;
+                --text-tertiary: #d0d0d0;
+                --border-color: #555555;
+                --border-service-item: #666666;
+                --shadow-primary: 0 0 10px rgba(0, 0, 0, 0.3);
+                --shadow-secondary: 0 2px 8px rgba(0, 0, 0, 0.3);
+                --shadow-hover: 0 4px 16px rgba(0, 0, 0, 0.4);
+            }
+        }
+
         body {
             font-family: 'Microsoft YaHei', Arial, sans-serif;
             margin: 0;
             padding: 20px;
-            background-color: #f5f5f5;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            transition: background-color 0.3s ease;
         }
         .container {
             max-width: 800px;
             margin: 0 auto;
-            background-color: white;
+            background-color: var(--bg-container);
             padding: 20px;
             border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            box-shadow: var(--shadow-primary);
         }
         h1 {
-            color: #333;
+            color: var(--text-primary);
             text-align: center;
             margin-bottom: 20px;
         }
@@ -34,7 +92,7 @@
         @media (min-width: 1200px) {
             body {
                 padding: 30px;
-                background-color: #f0f2f5;
+                background-color: var(--bg-primary-large);
             }
             
             .container {
@@ -45,7 +103,7 @@
             h1 {
                 font-size: 36px;
                 margin-bottom: 30px;
-                color: #2c3e50;
+                color: var(--text-primary-large);
             }
             
             .service-list {
@@ -57,26 +115,26 @@
             .service-item {
                 padding: 25px;
                 border-radius: 8px;
-                border-left: 6px solid #ccc;
+                border-left: 6px solid var(--border-service-item);
                 transition: all 0.4s ease;
-                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+                box-shadow: var(--shadow-secondary);
             }
             
             .service-item:hover {
                 transform: translateY(-2px);
-                box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+                box-shadow: var(--shadow-hover);
             }
             
             .service-name {
                 font-size: 24px;
                 margin-bottom: 10px;
-                color: #2c3e50;
+                color: var(--text-primary-large);
             }
             
             .service-url {
                 font-size: 16px;
                 margin-bottom: 15px;
-                color: #7f8c8d;
+                color: var(--text-secondary-large);
             }
             
             .status {
@@ -89,7 +147,7 @@
             .response-time {
                 font-size: 18px;
                 font-weight: bold;
-                color: #34495e;
+                color: var(--text-tertiary);
             }
             
             button {
@@ -116,35 +174,36 @@
             .last-update {
                 font-size: 16px;
                 margin-top: 30px;
-                color: #7f8c8d;
+                color: var(--text-secondary-large);
             }
         }
         .service-item {
             padding: 15px;
             border-radius: 6px;
-            border-left: 4px solid #ccc;
-            background-color: #f9f9f9;
+            border-left: 4px solid var(--border-service-item);
+            background-color: var(--bg-service-item);
             transition: all 0.3s ease;
         }
         .service-item.running {
-            border-left-color: #4CAF50;
-            background-color: #e8f5e9;
+            border-left-color: var(--border-service-running);
+            background-color: var(--bg-service-running);
         }
         .service-item.stopped {
-            border-left-color: #f44336;
-            background-color: #ffebee;
+            border-left-color: var(--border-service-stopped);
+            background-color: var(--bg-service-stopped);
         }
         .service-item.checking {
-            border-left-color: #FFC107;
-            background-color: #fff8e1;
+            border-left-color: var(--border-service-checking);
+            background-color: var(--bg-service-checking);
         }
         .service-name {
             font-weight: bold;
             font-size: 18px;
             margin-bottom: 5px;
+            color: var(--text-primary);
         }
         .service-url {
-            color: #666;
+            color: var(--text-secondary);
             font-size: 14px;
             margin-bottom: 10px;
         }
@@ -156,20 +215,20 @@
             font-weight: bold;
         }
         .status.running {
-            background-color: #4CAF50;
-            color: white;
+            background-color: var(--bg-status-running);
+            color: var(--text-white);
         }
         .status.stopped {
-            background-color: #f44336;
-            color: white;
+            background-color: var(--bg-status-stopped);
+            color: var(--text-white);
         }
         .status.checking {
-            background-color: #FFC107;
-            color: #333;
+            background-color: var(--bg-status-checking);
+            color: var(--text-dark);
         }
         .response-time {
             font-size: 14px;
-            color: #666;
+            color: var(--text-secondary);
             margin-top: 5px;
         }
         .action-buttons {
@@ -178,8 +237,8 @@
         }
         button {
             padding: 10px 20px;
-            background-color: #2196F3;
-            color: white;
+            background-color: var(--bg-button);
+            color: var(--text-white);
             border: none;
             border-radius: 4px;
             cursor: pointer;
@@ -187,10 +246,10 @@
             transition: background-color 0.3s;
         }
         button:hover {
-            background-color: #0b7dda;
+            background-color: var(--bg-button-hover);
         }
         button:active {
-            background-color: #0a6bba;
+            background-color: var(--bg-button-active);
         }
         .check-interval {
             margin-top: 15px;
@@ -198,17 +257,20 @@
         }
         .check-interval label {
             margin-right: 10px;
+            color: var(--text-primary);
         }
         .check-interval input {
             width: 80px;
             padding: 5px;
-            border: 1px solid #ddd;
+            border: 1px solid var(--border-color);
             border-radius: 4px;
+            background-color: var(--bg-container);
+            color: var(--text-primary);
         }
         .last-update {
             margin-top: 20px;
             text-align: center;
-            color: #666;
+            color: var(--text-secondary);
             font-size: 14px;
         }
     </style>
