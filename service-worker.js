@@ -1,13 +1,15 @@
 // Service Worker for 统一启动器
 
 // 使用带时间戳的缓存名称，方便更新
-const CACHE_VERSION = 'v11'; // 更新此版本号以强制刷新缓存
+const CACHE_VERSION = 'v12'; // 更新此版本号以强制刷新缓存
 const CACHE_NAME = `universal-launcher-${CACHE_VERSION}`;
 const STATIC_ASSETS = [
   '/',
   '/index.html',
   '/manifest.json',
-  '/icons/icon.png'
+  '/icons/icon.svg',
+  '/icons/icon.png',
+  './component/*'
 ];
 
 // 安装Service Worker，预缓存静态资源
