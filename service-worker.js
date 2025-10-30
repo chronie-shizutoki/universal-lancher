@@ -1,13 +1,13 @@
 // Service Worker for 统一启动器
 
 // 使用带时间戳的缓存名称，方便更新
-const CACHE_VERSION = 'v9'; // 更新此版本号以强制刷新缓存
+const CACHE_VERSION = 'v10'; // 更新此版本号以强制刷新缓存
 const CACHE_NAME = `universal-launcher-${CACHE_VERSION}`;
 const STATIC_ASSETS = [
   '/',
   '/index.html',
   '/manifest.json',
-  '/icons/icon.svg'
+  '/icons/icon.png'
 ];
 
 // 安装Service Worker，预缓存静态资源
@@ -134,8 +134,8 @@ self.addEventListener('push', (event) => {
   const data = event.data.json();
   const options = {
     body: data.body || '有新消息',
-    icon: '/icons/icon.svg',
-    badge: '/icons/icon.svg',
+    icon: '/icons/icon.png',
+    badge: '/icons/icon.png',
     vibrate: [100, 50, 100],
     data: {
       url: data.url || '/'
