@@ -76,10 +76,89 @@
   </p>
 </div>
 
+<!-- 自定义弹窗HTML结构 -->
+<div id="customModal" class="custom-modal">
+  <div class="custom-modal-content">
+    <div class="custom-modal-header">
+      <h3 class="custom-modal-title" id="modalTitle">提示</h3>
+    </div>
+    <div class="custom-modal-body">
+      <p id="modalMessage">消息内容</p>
+    </div>
+    <div class="custom-modal-footer">
+      <button id="modalCloseBtn" class="custom-modal-button">确定</button>
+    </div>
+  </div>
+</div>
+
 <script>
   
   document.getElementById('user-agent').textContent = navigator.userAgent;
   
+  // 自定义弹窗函数
+  function showModal(title, message) {
+    const modal = document.getElementById('customModal');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalMessage = document.getElementById('modalMessage');
+    const modalCloseBtn = document.getElementById('modalCloseBtn');
+    
+    // 确保弹窗元素存在
+    if (!modal || !modalTitle || !modalMessage || !modalCloseBtn) {
+      console.error('弹窗元素未找到');
+      return;
+    }
+    
+    // 设置弹窗内容
+    modalTitle.textContent = title || '提示';
+    modalMessage.textContent = message || '';
+    
+    // 重置状态
+    modal.style.display = 'flex';
+    modal.classList.remove('hide', 'show');
+    
+    // 防止背景滚动
+    document.body.style.overflow = 'hidden';
+    
+    // 强制重排，确保过渡效果能正确触发
+    void modal.offsetWidth;
+    
+    // 添加显示类
+    modal.classList.add('show');
+    
+    // 关闭弹窗的通用函数
+    function closeModal() {
+      // 添加隐藏类
+      modal.classList.remove('show');
+      modal.classList.add('hide');
+      
+      // 动画完成后恢复背景滚动和隐藏弹窗
+      setTimeout(() => {
+        modal.style.display = 'none';
+        document.body.style.overflow = '';
+      }, 300); // 与CSS过渡时间一致
+    }
+    
+    // 关闭按钮事件
+    modalCloseBtn.onclick = function() {
+      closeModal();
+    };
+    
+    // 点击背景关闭弹窗
+    modal.onclick = function(event) {
+      if (event.target === modal) {
+        closeModal();
+      }
+    };
+    
+    // 按ESC键关闭弹窗
+    document.addEventListener('keydown', function escHandler(event) {
+      if (event.key === 'Escape') {
+        closeModal();
+        document.removeEventListener('keydown', escHandler);
+      }
+    });
+  }
+
   // IP地理位置检查函数
   async function checkCountryAndRedirect(event, targetUrl) {
     event.preventDefault();
@@ -91,15 +170,14 @@
       
       // 检查是否为中国大陆
       if (data.country === 'CN') {
-        alert('您所在国家或地区不受支持');
+        showModal('地区限制', '您所在国家或地区不受支持');
       } else {
         // 非中国大陆用户可以访问
         window.location.href = targetUrl;
       }
     } catch (error) {
       console.error('IP检查失败:', error);
-      // 错误情况下允许访问，避免因API问题导致无法使用
-      window.location.href = targetUrl;
+      showModal('地区限制', '您所在国家或地区不受支持');
     }
   }
 
