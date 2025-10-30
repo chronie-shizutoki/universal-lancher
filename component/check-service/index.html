@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>服务状态监控</title>
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .service-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        /* 大屏设备样式优化 */
+        @media (min-width: 1200px) {
+            body {
+                padding: 30px;
+                background-color: #f0f2f5;
+            }
+            
+            .container {
+                max-width: 1600px;
+                padding: 30px;
+            }
+            
+            h1 {
+                font-size: 36px;
+                margin-bottom: 30px;
+                color: #2c3e50;
+            }
+            
+            .service-list {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+                gap: 25px;
+            }
+            
+            .service-item {
+                padding: 25px;
+                border-radius: 8px;
+                border-left: 6px solid #ccc;
+                transition: all 0.4s ease;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            }
+            
+            .service-item:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+            }
+            
+            .service-name {
+                font-size: 24px;
+                margin-bottom: 10px;
+                color: #2c3e50;
+            }
+            
+            .service-url {
+                font-size: 16px;
+                margin-bottom: 15px;
+                color: #7f8c8d;
+            }
+            
+            .status {
+                font-size: 18px;
+                padding: 8px 16px;
+                border-radius: 6px;
+                margin-bottom: 10px;
+            }
+            
+            .response-time {
+                font-size: 18px;
+                font-weight: bold;
+                color: #34495e;
+            }
+            
+            button {
+                padding: 12px 30px;
+                font-size: 18px;
+                border-radius: 6px;
+            }
+            
+            .check-interval {
+                margin-top: 25px;
+            }
+            
+            .check-interval label {
+                font-size: 18px;
+                margin-right: 15px;
+            }
+            
+            .check-interval input {
+                width: 100px;
+                padding: 8px;
+                font-size: 16px;
+            }
+            
+            .last-update {
+                font-size: 16px;
+                margin-top: 30px;
+                color: #7f8c8d;
+            }
+        }
+        .service-item {
+            padding: 15px;
+            border-radius: 6px;
+            border-left: 4px solid #ccc;
+            background-color: #f9f9f9;
+            transition: all 0.3s ease;
+        }
+        .service-item.running {
+            border-left-color: #4CAF50;
+            background-color: #e8f5e9;
+        }
+        .service-item.stopped {
+            border-left-color: #f44336;
+            background-color: #ffebee;
+        }
+        .service-item.checking {
+            border-left-color: #FFC107;
+            background-color: #fff8e1;
+        }
+        .service-name {
+            font-weight: bold;
+            font-size: 18px;
+            margin-bottom: 5px;
+        }
+        .service-url {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+        .status {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        .status.running {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .status.stopped {
+            background-color: #f44336;
+            color: white;
+        }
+        .status.checking {
+            background-color: #FFC107;
+            color: #333;
+        }
+        .response-time {
+            font-size: 14px;
+            color: #666;
+            margin-top: 5px;
+        }
+        .action-buttons {
+            margin-top: 20px;
+            text-align: center;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #2196F3;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #0b7dda;
+        }
+        button:active {
+            background-color: #0a6bba;
+        }
+        .check-interval {
+            margin-top: 15px;
+            text-align: center;
+        }
+        .check-interval label {
+            margin-right: 10px;
+        }
+        .check-interval input {
+            width: 80px;
+            padding: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .last-update {
+            margin-top: 20px;
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>服务状态监控</h1>
+        <div class="service-list" id="service-list"></div>
+        <div class="action-buttons">
+            <button id="check-all">立即检查所有服务</button>
+        </div>
+        <div class="check-interval">
+            <label for="interval">自动检查间隔（秒）：</label>
+            <input type="number" id="interval" min="5" max="3600" value="60">
+        </div>
+        <div class="last-update" id="last-update">最后更新：未检查</div>
+    </div>
+
+    <script>
+        // 服务配置
+        const services = [
+            { name: "家庭消费系统", port: 3010 },
+            { name: "家庭消费系统国际版", port: 3000 },
+            { name: "库存管理", port: 5000 },
+            { name: "金流", port: 3100 },
+            { name: "收入记录", port: 8200 },
+            { name: "金流储值", port: 3020 }
+        ];
+        
+        const baseUrl = "http://192.168.0.197";
+        let autoCheckInterval = null;
+        const responseTimeThreshold = 2000; // 2000ms响应时间阈值，超过则视为失败
+        
+        // DOM元素
+        const serviceListElement = document.getElementById('service-list');
+        const checkAllButton = document.getElementById('check-all');
+        const intervalInput = document.getElementById('interval');
+        const lastUpdateElement = document.getElementById('last-update');
+        
+        // 初始化服务列表
+        function initializeServices() {
+            serviceListElement.innerHTML = '';
+            
+            services.forEach(service => {
+                const serviceElement = document.createElement('div');
+                serviceElement.className = 'service-item checking';
+                serviceElement.id = `service-${service.port}`;
+                serviceElement.innerHTML = `
+                    <div class="service-name">${service.name}</div>
+                    <div class="service-url">${baseUrl}:${service.port}</div>
+                    <div class="status checking">检查中...</div>
+                    <div class="response-time">响应时间：--</div>
+                `;
+                serviceListElement.appendChild(serviceElement);
+            });
+        }
+        
+        // 检查单个服务状态
+        async function checkServiceStatus(service) {
+            const serviceElement = document.getElementById(`service-${service.port}`);
+            const statusElement = serviceElement.querySelector('.status');
+            const responseTimeElement = serviceElement.querySelector('.response-time');
+            
+            // 更新UI为检查中状态
+            serviceElement.className = 'service-item checking';
+            statusElement.className = 'status checking';
+            statusElement.textContent = '检查中...';
+            responseTimeElement.textContent = '响应时间：--';
+            
+            const url = `${baseUrl}:${service.port}`;
+            const startTime = performance.now();
+            
+            // 设置超时控制器
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 5000);
+            
+            try {
+        // 使用fetch API检查服务状态
+        await fetch(url, {
+            method: 'GET',
+            mode: 'cors',
+            cache: 'no-cache',
+            signal: controller.signal
+        });
+    } catch (error) {
+        // 捕获所有错误
+    } finally {
+            clearTimeout(timeoutId);
+            const endTime = performance.now();
+            const responseTime = Math.round(endTime - startTime);
+            
+            // 无论响应时间是否超过阈值，都显示响应时间
+            responseTimeElement.textContent = `响应时间：${responseTime}ms`;
+            
+            // 核心逻辑：判断响应时间是否超过阈值
+            if (responseTime <= responseTimeThreshold) {
+                serviceElement.className = 'service-item running';
+                statusElement.className = 'status running';
+                statusElement.textContent = '运行正常';
+                return { port: service.port, status: 'running', responseTime };
+            } else {
+                serviceElement.className = 'service-item stopped';
+                statusElement.className = 'status stopped';
+                statusElement.textContent = '响应超时';
+                return { port: service.port, status: 'stopped', responseTime };
+            }
+            
+            }
+        }
+        
+        // 检查所有服务状态
+        async function checkAllServices() {
+            // 禁用检查按钮，防止重复点击
+            checkAllButton.disabled = true;
+            checkAllButton.textContent = '检查中...';
+            
+            try {
+                // 并行检查所有服务
+                const results = await Promise.all(services.map(service => checkServiceStatus(service)));
+                
+                // 更新最后检查时间
+                updateLastCheckTime();
+                
+                return results;
+            } finally {
+                // 恢复按钮状态
+                checkAllButton.disabled = false;
+                checkAllButton.textContent = '立即检查所有服务';
+            }
+        }
+        
+        // 更新最后检查时间
+        function updateLastCheckTime() {
+            const now = new Date();
+            const formattedTime = now.toLocaleString('zh-CN', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+            lastUpdateElement.textContent = `最后更新：${formattedTime}`;
+        }
+        
+        // 设置自动检查
+        function setupAutoCheck(intervalSeconds) {
+            // 清除现有的自动检查
+            if (autoCheckInterval) {
+                clearInterval(autoCheckInterval);
+            }
+            
+            // 设置新的自动检查间隔
+            autoCheckInterval = setInterval(() => {
+                checkAllServices();
+            }, intervalSeconds * 1000);
+        }
+        
+        // 事件监听器
+        checkAllButton.addEventListener('click', checkAllServices);
+        
+        intervalInput.addEventListener('change', (event) => {
+            const intervalSeconds = parseInt(event.target.value);
+            if (!isNaN(intervalSeconds) && intervalSeconds >= 5) {
+                setupAutoCheck(intervalSeconds);
+            } else {
+                // 重置为最小值
+                event.target.value = 5;
+                setupAutoCheck(5);
+            }
+        });
+        
+        // 页面加载时初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeServices();
+            // 初始检查所有服务
+            checkAllServices();
+            // 设置自动检查
+            setupAutoCheck(parseInt(intervalInput.value));
+        });
+    </script>
+</body>
+</html>
