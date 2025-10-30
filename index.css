@@ -1,21 +1,31 @@
-  /* 定义浅色模式变量 */
+/* 定义液态玻璃风格的变量 */
   :root {
-    --install-bg: #2c3e50;
+    --glass-bg: rgba(255, 255, 255, 0.2);
+    --glass-border: rgba(255, 255, 255, 0.3);
+    --glass-shadow: rgba(0, 0, 0, 0.1);
+    --text-primary: #333;
+    --text-secondary: #555;
+    --accent-gradient: linear-gradient(135deg, #b8e0ff 0%, #7f5af0 100%);
+    --install-bg: rgba(44, 62, 80, 0.9);
     --install-text: #fff;
-    --install-guide-bg: #f0f0f0;
+    --install-guide-bg: rgba(240, 240, 240, 0.9);
     --install-guide-text: #333;
-    --install-guide-border: #ddd;
-    --modal-bg: #fff;
-    --modal-text: #333;
-    --modal-title: #2c3e50;
-    --modal-subtitle: #34495e;
+    --install-guide-border: rgba(221, 221, 221, 0.8);
+    --blur-strength: 10px;
   }
 
-  
+  /* 全局重置和基础样式 */
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  /* 背景渐变和动画 */
   body {
     font-family: system-ui, sans-serif;
-    background: #f5f7fa;
-    color: #333;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    color: var(--text-primary);
     margin: 0;
     padding: 2rem;
     display: flex;
@@ -24,94 +34,210 @@
     justify-content: center;
     min-height: 100vh;
     text-align: center;
+    position: relative;
+    overflow-x: hidden;
   }
 
+  /* 液态玻璃容器样式 */
+  .glass-container {
+    background: var(--glass-bg);
+    backdrop-filter: blur(var(--blur-strength));
+    -webkit-backdrop-filter: blur(var(--blur-strength));
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    box-shadow: 0 8px 32px var(--glass-shadow);
+    padding: 2rem;
+    margin-bottom: 2rem;
+    transition: all 0.3s ease;
+    max-width: 100%;
+    width: 100%;
+  }
+
+  .glass-container:hover {
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+    transform: translateY(-2px);
+  }
+
+  /* 标题和段落样式 */
   .welcome h1 {
-    margin: 0 0 .5rem;
-    font-weight: 600;
-    color: #2c3e50;
+    margin: 0 0 1rem;
+    font-weight: 700;
+    color: var(--text-primary);
     text-align: center;
+    font-size: 2.5rem;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    background: linear-gradient(135deg, #b8e0ff 0%, #7f5af0 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
   }
 
   .welcome p {
     margin: 0 0 2rem;
-    font-size: 1.1rem;
-    color: #555;
+    font-size: 1.2rem;
+    color: var(--text-secondary);
     text-align: center;
+    line-height: 1.6;
   }
 
+  /* 按钮组样式 */
   .button-group {
     display: flex;
     gap: 1rem;
     flex-wrap: wrap;
     justify-content: center;
-    margin-bottom: 2.5rem;
+    margin-bottom: 2rem;
   }
 
+  /* 液态玻璃按钮样式 */
   .btn {
-    padding: .9rem 1.8rem;
-    border-radius: 8px;
+    padding: 1rem 2rem;
+    border-radius: 12px;
     text-decoration: none;
-    font-weight: 500;
-    transition: transform .15s ease, box-shadow .15s ease;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, .08);
+    font-weight: 600;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    position: relative;
+    overflow: hidden;
+    z-index: 1;
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
   }
 
-  .btn.primary {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: #fff;
+  .btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s;
+    z-index: -1;
   }
 
-  .btn.secondary {
-    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-    color: #333;
+  .btn:hover::before {
+    left: 100%;
   }
 
   .btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 12px rgba(0, 0, 0, .12);
+    transform: translateY(-3px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
   }
 
+  .btn:active {
+    transform: translateY(-1px);
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+  }
+
+  .btn.primary {
+    background: var(--accent-gradient);
+    color: white;
+  }
+
+  .btn.secondary {
+    background: rgba(255, 255, 255, 0.3);
+    color: var(--text-primary);
+  }
+
+  /* 额外服务部分样式 */
   .extras h2 {
-    font-size: 1.25rem;
-    margin: 0 0 1rem;
-    color: #2c3e50;
+    font-size: 1.5rem;
+    margin: 0 0 1.5rem;
+    color: var(--text-primary);
     text-align: center;
+    position: relative;
+    display: inline-block;
+  }
+
+  .extras h2::after {
+    content: '';
+    position: absolute;
+    bottom: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60%;
+    height: 3px;
+    background: var(--accent-gradient);
+    border-radius: 3px;
+  }
+
+  /* 底部用户代理信息 */
+  #user-agent {
+    opacity: 0.7;
+    font-size: 0.8rem;
+    margin-top: 2rem;
   }
 
   /* 深色模式变量覆盖 */
   @media (prefers-color-scheme: dark) {
     :root {
-      --install-bg: #1e2a38;
-      --install-text: #e0e0e0;
-      --install-guide-bg: #3a3a3a;
+      --glass-bg: rgba(20, 30, 40, 0.7);
+      --glass-border: rgba(255, 255, 255, 0.1);
+      --glass-shadow: rgba(0, 0, 0, 0.3);
+      --text-primary: #ffffff;
+      --text-secondary: #e0e0e0;
+      --install-bg: rgba(20, 30, 40, 0.9);
+      --install-text: #ffffff;
+      --install-guide-bg: rgba(40, 50, 60, 0.9);
       --install-guide-text: #e0e0e0;
-      --install-guide-border: #555;
-      --modal-bg: #2c3e50;
-      --modal-text: #fff;
-      --modal-title: #fff;
-      --modal-subtitle: #ccc;
+      --install-guide-border: rgba(255, 255, 255, 0.1);
     }
 
-        body {
-      background: #2c3e50;
-      color: #fff;
-    }
-
-    .welcome h1, .extras h2 {
-      color: #fff;
-    }
-
-    .welcome p {
-      color: #aaa;
-    }
-
-    .btn.primary {
-      background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+    body {
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
     }
 
     .btn.secondary {
-      background: #aaa;
-      color: #fff;
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--text-primary);
+    }
+  }
+
+  /* 响应式设计 */
+  @media (max-width: 768px) {
+    body {
+      padding: 1rem;
+    }
+
+    .glass-container {
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .welcome h1 {
+      font-size: 2rem;
+    }
+
+    .welcome p {
+      font-size: 1rem;
+    }
+
+    .button-group {
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+    }
+
+    .btn {
+      width: 100%;
+      max-width: 300px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .welcome h1 {
+      font-size: 1.8rem;
+    }
+
+    .glass-container {
+      padding: 1.25rem;
+      border-radius: 12px;
+    }
+
+    .btn {
+      padding: 0.8rem 1.5rem;
+      font-size: 0.9rem;
     }
   }
