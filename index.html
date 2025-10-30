@@ -32,7 +32,11 @@
 
   <div class="button-group main">
     <a class="btn primary" href="http://192.168.0.197:3010">记账</a>
+    <a class="btn primary" href="#" onclick="allowintime(event, 'http://192.168.0.197:3000')">记账（国际版）</a>
+    <!--
+    // 临时禁用检查
     <a class="btn primary" href="#" onclick="checkCountryAndRedirect(event, 'http://192.168.0.197:3000')">记账（国际版）</a>
+    -->
     <a class="btn primary" href="http://192.168.0.197:3100">金流</a>
     <a class="btn primary" href="http://192.168.0.197:5000">库存</a>
   </div>
@@ -43,7 +47,7 @@
   <div class="extras">
     <h2>其他临时服务</h2>
     <div class="button-group secondary">
-      <a class="btn secondary" href="http://192.168.0.197:8200">收入</a>
+      <a class="btn secondary" href="#" onclick="outdate(event)">收入</a>
       <a class="btn secondary" href="http://192.168.0.197:8100">金流充值</a>
     </div>
   </div>
@@ -163,6 +167,24 @@
     });
   }
 
+  // 过时提示函数
+  function outdate(event) {
+    event.preventDefault();
+    showModal('提示', '抱歉，此服务已下线');
+  }
+
+  // 临时允许国际版访问函数
+  function allowintime(event, targetUrl) {
+    event.preventDefault();
+    showModal('提示', '临时允许访问国际版，部分功能可能存在限制。3秒后自动跳转');
+    // 3秒后自动跳转
+    setTimeout(() => {
+      window.location.href = targetUrl;
+    }, 3000);
+  }
+
+  <!-- 
+  // 临时禁用检查
   // IP地理位置检查函数
   async function checkCountryAndRedirect(event, targetUrl) {
     event.preventDefault();
@@ -184,6 +206,7 @@
       showModal('地区限制', '您所在国家或地区不受支持');
     }
   }
+ -->
 
   // 处理快捷方式URL参数
   function handleShortcuts() {
