@@ -231,6 +231,36 @@
             color: var(--text-secondary);
             margin-top: 5px;
         }
+        
+        .health-info {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid var(--border-color);
+        }
+        
+        .health-details {
+            font-size: 13px;
+            color: var(--text-secondary);
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+        
+        .health-error {
+            font-size: 13px;
+            color: #f44336;
+            font-weight: bold;
+        }
+        
+        @media (min-width: 1200px) {
+            .health-details {
+                font-size: 15px;
+            }
+            
+            .health-error {
+                font-size: 15px;
+            }
+        }
         .action-buttons {
             margin-top: 20px;
             text-align: center;
@@ -292,7 +322,7 @@
     <script>
         // 服务配置
         const services = [
-            { name: "家庭消费系统", port: 3010 },
+            { name: "家庭消费系统", port: 3010, healthEndpoint: "/api/health" },
             { name: "家庭消费系统国际版", port: 3000 },
             { name: "库存管理", port: 5000 },
             { name: "金流", port: 3100 },
@@ -317,11 +347,18 @@
                 const serviceElement = document.createElement('div');
                 serviceElement.className = 'service-item checking';
                 serviceElement.id = `service-${service.port}`;
+                
+                // 构建服务URL
+                const serviceUrl = service.healthEndpoint ? 
+                    `${baseUrl}:${service.port}${service.healthEndpoint}` : 
+                    `${baseUrl}:${service.port}`;
+                
                 serviceElement.innerHTML = `
                     <div class="service-name">${service.name}</div>
-                    <div class="service-url">${baseUrl}:${service.port}</div>
+                    <div class="service-url">${serviceUrl}</div>
                     <div class="status checking">检查中...</div>
                     <div class="response-time">响应时间：--</div>
+                    ${service.healthEndpoint ? '<div class="health-info"></div>' : ''}
                 `;
                 serviceListElement.appendChild(serviceElement);
             });
@@ -332,6 +369,7 @@
             const serviceElement = document.getElementById(`service-${service.port}`);
             const statusElement = serviceElement.querySelector('.status');
             const responseTimeElement = serviceElement.querySelector('.response-time');
+            const healthInfoElement = serviceElement.querySelector('.health-info');
             
             // 更新UI为检查中状态
             serviceElement.className = 'service-item checking';
@@ -339,44 +377,126 @@
             statusElement.textContent = '检查中...';
             responseTimeElement.textContent = '响应时间：--';
             
-            const url = `${baseUrl}:${service.port}`;
+            // 构建请求URL
+            const url = service.healthEndpoint ? 
+                `${baseUrl}:${service.port}${service.healthEndpoint}` : 
+                `${baseUrl}:${service.port}`;
+            
             const startTime = performance.now();
+            let isHealthy = false;
+            let healthData = null;
             
             // 设置超时控制器
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), 5000);
             
             try {
-        // 使用fetch API检查服务状态
-        await fetch(url, {
-            method: 'GET',
-            mode: 'cors',
-            cache: 'no-cache',
-            signal: controller.signal
-        });
-    } catch (error) {
-        // 捕获所有错误
-    } finally {
-            clearTimeout(timeoutId);
-            const endTime = performance.now();
-            const responseTime = Math.round(endTime - startTime);
-            
-            // 无论响应时间是否超过阈值，都显示响应时间
-            responseTimeElement.textContent = `响应时间：${responseTime}ms`;
-            
-            // 核心逻辑：判断响应时间是否超过阈值
-            if (responseTime <= responseTimeThreshold) {
-                serviceElement.className = 'service-item running';
-                statusElement.className = 'status running';
-                statusElement.textContent = '运行正常';
-                return { port: service.port, status: 'running', responseTime };
-            } else {
-                serviceElement.className = 'service-item stopped';
-                statusElement.className = 'status stopped';
-                statusElement.textContent = '响应超时';
-                return { port: service.port, status: 'stopped', responseTime };
-            }
-            
+                // 使用fetch API检查服务状态
+                const response = await fetch(url, {
+                    method: 'GET',
+                    mode: 'cors',
+                    cache: 'no-cache',
+                    signal: controller.signal,
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
+                
+                // 检查响应状态
+                if (response.ok) {
+                    // 如果有健康检查端点，尝试解析JSON
+                    if (service.healthEndpoint) {
+                        try {
+                            healthData = await response.json();
+                            // 检查健康状态
+                            isHealthy = healthData.status === 'OK';
+                        } catch (jsonError) {
+                            console.error('解析健康检查数据失败:', jsonError);
+                        }
+                    } else {
+                        isHealthy = true;
+                    }
+                }
+            } catch (error) {
+                console.error('检查服务状态失败:', error);
+            } finally {
+                clearTimeout(timeoutId);
+                const endTime = performance.now();
+                const responseTime = Math.round(endTime - startTime);
+                
+                // 显示响应时间
+                responseTimeElement.textContent = `响应时间：${responseTime}ms`;
+                
+                // 如果有健康检查数据，展示额外信息
+                    if (healthData && healthInfoElement) {
+                        let healthInfoHTML = '<div class="health-details">';
+                        
+                        // 添加版本信息
+                        if (healthData.version) {
+                            healthInfoHTML += `<div>版本：${healthData.version}</div>`;
+                        }
+                        
+                        // 添加运行时间
+                        if (healthData.uptime) {
+                            const uptime = parseInt(healthData.uptime);
+                            const hours = Math.floor(uptime / 3600);
+                            const minutes = Math.floor((uptime % 3600) / 60);
+                            const seconds = uptime % 60;
+                            const formatted = `${hours}时${minutes}分${seconds}秒`;
+                            healthInfoHTML += `<div>运行时间：${formatted}</div>`;
+                        }
+                        
+                        // 添加数据库状态
+                        if (healthData.services?.database) {
+                            const dbStatus = healthData.services.database.status === 'connected' ? 
+                                '<span style="color: #4CAF50">已连接</span>' : 
+                                `<span style="color: #f44336">${healthData.services.database.status || '未知'}</span>`;
+                            healthInfoHTML += `<div>数据库：${dbStatus}</div>`;
+                        }
+                        
+                        // 添加内存使用情况
+                        if (healthData.resources?.memory?.heapUsed) {
+                            healthInfoHTML += `<div>内存使用：${healthData.resources.memory.heapUsed}</div>`;
+                        }
+                        
+                        // 添加CPU信息
+                        if (healthData.resources?.cpu) {
+                            // CPU使用率
+                            if (healthData.resources.cpu.usagePercent) {
+                                healthInfoHTML += `<div>CPU使用率：${healthData.resources.cpu.usagePercent}</div>`;
+                            }
+                            // CPU型号和核心数
+                            if (healthData.resources?.cpu?.model && healthData.resources?.cpu?.count) {
+                                healthInfoHTML += `<div>CPU型号：${healthData.resources.cpu.model} (${healthData.resources.cpu.count}核心)</div>`;
+                            } else if (healthData.resources?.cpu?.model) {
+                                healthInfoHTML += `<div>CPU型号：${healthData.resources.cpu.model}</div>`;
+                            } else if (healthData.resources?.cpu?.count) {
+                                healthInfoHTML += `<div>CPU核心数：${healthData.resources.cpu.count}</div>`;
+                            }
+                        }
+                        
+                        healthInfoHTML += '</div>';
+                        healthInfoElement.innerHTML = healthInfoHTML;
+                    }
+                
+                // 判断服务状态
+                if (isHealthy && responseTime <= responseTimeThreshold) {
+                    serviceElement.className = 'service-item running';
+                    statusElement.className = 'status running';
+                    statusElement.textContent = '运行正常';
+                    return { port: service.port, status: 'running', responseTime, healthData };
+                } else {
+                    serviceElement.className = 'service-item stopped';
+                    statusElement.className = 'status stopped';
+                    statusElement.textContent = healthData?.status !== 'OK' ? '状态异常' : '响应超时';
+                    
+                    // 如果有健康信息元素，显示错误详情
+                    if (healthInfoElement && healthData?.status !== 'OK') {
+                        healthInfoElement.innerHTML = `<div class="health-error">健康检查状态：${healthData?.status || '未知错误'}</div>`;
+                    }
+                    
+                    return { port: service.port, status: 'stopped', responseTime, healthData };
+                }
             }
         }
         
