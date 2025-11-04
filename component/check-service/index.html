@@ -324,7 +324,7 @@
         const services = [
             { name: "家庭消费系统", port: 3010, healthEndpoint: "/api/health" },
             { name: "家庭消费系统国际版", port: 3000 },
-            { name: "库存管理", port: 5000 },
+            { name: "库存管理", port: 5000, healthEndpoint: "/api/health" },
             { name: "金流", port: 3100 },
             { name: "金流储值", port: 3020 }
         ];
@@ -408,8 +408,8 @@
                     if (service.healthEndpoint) {
                         try {
                             healthData = await response.json();
-                            // 检查健康状态
-                            isHealthy = healthData.status === 'OK';
+                            // 检查健康状态 - 支持多种状态格式
+                            isHealthy = healthData.status === 'OK' || healthData.status === 'healthy';
                         } catch (jsonError) {
                             console.error('解析健康检查数据失败:', jsonError);
                         }
@@ -446,17 +446,37 @@
                             healthInfoHTML += `<div>运行时间：${formatted}</div>`;
                         }
                         
-                        // 添加数据库状态
-                        if (healthData.services?.database) {
+                        // 处理特殊格式的数据库状态（库存管理服务）
+                        if (healthData.database) {
+                            const dbStatus = healthData.database === 'healthy' ? 
+                                '<span style="color: #4CAF50">健康</span>' : 
+                                `<span style="color: #f44336">${healthData.database || '未知'}</span>`;
+                            healthInfoHTML += `<div>数据库：${dbStatus}</div>`;
+                        } 
+                        // 处理标准格式的数据库状态
+                        else if (healthData.services?.database) {
                             const dbStatus = healthData.services.database.status === 'connected' ? 
                                 '<span style="color: #4CAF50">已连接</span>' : 
                                 `<span style="color: #f44336">${healthData.services.database.status || '未知'}</span>`;
                             healthInfoHTML += `<div>数据库：${dbStatus}</div>`;
                         }
                         
-                        // 添加内存使用情况
-                        if (healthData.resources?.memory?.heapUsed) {
+                        // 处理特殊格式的内存使用情况（库存管理服务）
+                        if (healthData.memory_usage) {
+                            if (healthData.memory_usage.rss_mb) {
+                                healthInfoHTML += `<div>内存使用：${healthData.memory_usage.rss_mb} MB</div>`;
+                            } else if (healthData.memory_usage.rss) {
+                                healthInfoHTML += `<div>内存使用：${healthData.memory_usage.rss} B</div>`;
+                            }
+                        } 
+                        // 处理标准格式的内存使用情况
+                        else if (healthData.resources?.memory?.heapUsed) {
                             healthInfoHTML += `<div>内存使用：${healthData.resources.memory.heapUsed}</div>`;
+                        }
+                        
+                        // 添加服务名称（如果有）
+                        if (healthData.service) {
+                            healthInfoHTML += `<div>服务名称：${healthData.service}</div>`;
                         }
                         
                         // 添加CPU信息
@@ -490,8 +510,8 @@
                     statusElement.className = 'status stopped';
                     statusElement.textContent = healthData?.status !== 'OK' ? '状态异常' : '响应超时';
                     
-                    // 如果有健康信息元素，显示错误详情
-                    if (healthInfoElement && healthData?.status !== 'OK') {
+                    // 如果有健康信息元素，显示错误详情 - 考虑多种状态格式
+                    if (healthInfoElement && healthData && healthData.status !== 'OK' && healthData.status !== 'healthy') {
                         healthInfoElement.innerHTML = `<div class="health-error">健康检查状态：${healthData?.status || '未知错误'}</div>`;
                     }
                     
