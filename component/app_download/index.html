@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>统一启动器 Android 应用</title>
+    <style>
+        /* 全局变量 - 浅色模式 */
+        :root {
+            --bg-color: #f0f2f5;
+            --text-color: #333;
+            --container-bg: rgba(255, 255, 255, 0.6);
+            --warning-bg: rgba(255, 243, 205, 0.8);
+            --warning-border: rgba(255, 234, 167, 0.8);
+            --warning-text: #856404;
+            --btn-primary-bg: #3498db;
+            --btn-primary-hover: #2980b9;
+            --btn-secondary-bg: #95a5a6;
+            --btn-secondary-hover: #7f8c8d;
+            --btn-text: #fff;
+            --version-item-bg: rgba(255, 255, 255, 0.6);
+            --version-border: #ddd;
+            --version-date-color: #666;
+        }
+        
+        /* 深色模式变量 */
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-color: #121212;
+                --text-color: #e0e0e0;
+                --container-bg: rgba(30, 30, 30, 0.7);
+                --warning-bg: rgba(64, 43, 0, 0.8);
+                --warning-border: rgba(255, 193, 7, 0.3);
+                --warning-text: #ffd54f;
+                --btn-primary-bg: #42a5f5;
+                --btn-primary-hover: #1e88e5;
+                --btn-secondary-bg: #757575;
+                --btn-secondary-hover: #9e9e9e;
+                --btn-text: #fff;
+                --version-item-bg: rgba(40, 40, 40, 0.7);
+                --version-border: #444;
+                --version-date-color: #aaa;
+            }
+            
+            body {
+                background-image: 
+                    radial-gradient(circle at 25% 25%, rgba(66, 165, 245, 0.05) 0%, transparent 50%),
+                    radial-gradient(circle at 75% 75%, rgba(156, 39, 176, 0.05) 0%, transparent 50%);
+            }
+            
+            .container,
+            .warning,
+            .version-item {
+                border-color: rgba(255, 255, 255, 0.1);
+            }
+            
+            .btn {
+                border-color: rgba(255, 255, 255, 0.1);
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            }
+            
+            .btn:hover {
+                box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+            }
+            
+            .version-item:hover {
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            }
+        }
+        
+        body {
+            font-family: system-ui, sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: var(--bg-color);
+            background-image: 
+                radial-gradient(circle at 25% 25%, rgba(52, 152, 219, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 75% 75%, rgba(155, 89, 182, 0.1) 0%, transparent 50%);
+            background-attachment: fixed;
+            transition: background-color 0.3s ease;
+        }
+        
+        /* 液态玻璃效果 */
+        .container {
+            text-align: center;
+            padding: 20px;
+            border-radius: 16px;
+            background: var(--container-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+        h1 {
+            color: var(--text-color);
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+        
+        h2, h3 {
+            color: var(--text-color);
+            font-weight: 500;
+        }
+        
+        /* 液态玻璃警告框 */
+        .warning {
+            background: var(--warning-bg);
+            border: 1px solid var(--warning-border);
+            color: var(--warning-text);
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            text-align: left;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            transition: all 0.3s ease;
+        }
+        
+        /* 液态玻璃按钮 */
+        .btn {
+            display: inline-block;
+            padding: 12px 24px;
+            margin: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            text-align: center;
+            text-decoration: none;
+            outline: none;
+            color: var(--btn-text);
+            background: var(--btn-primary-bg);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .btn:hover {
+            background: var(--btn-primary-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        .btn-secondary {
+            background: var(--btn-secondary-bg);
+        }
+        
+        .btn-secondary:hover {
+            background: var(--btn-secondary-hover);
+        }
+        
+        /* 版本列表样式 */
+        .version-list {
+            display: none;
+            margin-top: 30px;
+            text-align: left;
+        }
+        
+        .version-item {
+            padding: 15px;
+            background: var(--version-item-bg);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border-bottom: 1px solid var(--version-border);
+            border-radius: 8px;
+            margin-bottom: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .version-item:last-child {
+            border-bottom: none;
+        }
+        
+        .version-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+        
+        .version-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .version-info a {
+            color: var(--btn-primary-bg);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+        
+        .version-info a:hover {
+            color: var(--btn-primary-hover);
+            text-decoration: underline;
+        }
+        
+        .date-info {
+            color: var(--version-date-color);
+            font-size: 14px;
+        }
+        
+        .build-info {
+            color: var(--version-date-color);
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>统一启动器 Android 应用</h1>
+        
+        <!-- 下载按钮区域 -->
+        <div class="download-section">
+            <h2>下载最新版本</h2>
+            <a href="./app/app-release-251114-01.apk" class="btn" download>下载最新安装包</a>
+            <button id="showAllVersions" class="btn btn-secondary">查看所有安装包</button>
+        </div>
+        
+        <!-- 所有版本列表 -->
+        <div id="versionList" class="version-list">
+            <h3>所有可用版本</h3>
+            <div class="version-item">
+                <div class="version-info">
+                    <div>
+                        <a href="./app/app-release-251114-01.apk" download>app-release-251114-01.apk</a>
+                    </div>
+                    <div class="date-info">2025-11-14</div>
+                    <div class="build-info">第1次构建</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 处理URL参数，支持直接显示所有版本
+        function handleUrlParams() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const showAll = urlParams.get('showAll') === 'true';
+            
+            const versionList = document.getElementById('versionList');
+            const btn = document.getElementById('showAllVersions');
+            
+            if (showAll) {
+                versionList.style.display = 'block';
+                btn.textContent = '隐藏所有安装包';
+            }
+        }
+        
+        // 页面加载时处理URL参数
+        window.addEventListener('DOMContentLoaded', handleUrlParams);
+        
+        // 按钮点击事件处理
+        document.getElementById('showAllVersions').addEventListener('click', function() {
+            const versionList = document.getElementById('versionList');
+            const btn = document.getElementById('showAllVersions');
+            
+            if (versionList.style.display === 'none' || versionList.style.display === '') {
+                versionList.style.display = 'block';
+                btn.textContent = '隐藏所有安装包';
+            } else {
+                versionList.style.display = 'none';
+                btn.textContent = '查看所有安装包';
+            }
+        });
+    </script>
+</body>
+</html>
