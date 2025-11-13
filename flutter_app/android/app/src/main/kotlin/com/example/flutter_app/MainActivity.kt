@@ -1,4 +1,4 @@
-package com.example.flutter_app
+package com.chronie.universal_lancher
 
 import io.flutter.embedding.android.FlutterActivity
 
