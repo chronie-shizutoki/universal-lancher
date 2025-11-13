@@ -174,40 +174,10 @@
     showModal('提示', '抱歉，此服务已下线');
   }
 
-  // 临时允许国际版访问函数
+  // 国际版访问函数
   function allowintime(event, targetUrl) {
-    event.preventDefault();
-    showModal('提示', '临时允许访问国际版，部分功能可能存在限制。3秒后自动跳转');
-    // 3秒后自动跳转
-    setTimeout(() => {
       window.location.href = targetUrl;
-    }, 3000);
   }
-
-  <!-- 
-  // 临时禁用检查
-  // IP地理位置检查函数
-  async function checkCountryAndRedirect(event, targetUrl) {
-    event.preventDefault();
-    
-    try {
-      // 使用ipapi.co API获取IP信息
-      const response = await fetch('https://ipapi.co/json/');
-      const data = await response.json();
-      
-      // 检查是否为中国大陆
-      if (data.country === 'CN') {
-        showModal('地区限制', '您所在国家或地区不受支持');
-      } else {
-        // 非中国大陆用户可以访问
-        window.location.href = targetUrl;
-      }
-    } catch (error) {
-      console.error('IP检查失败:', error);
-      showModal('地区限制', '您所在国家或地区不受支持');
-    }
-  }
- -->
 
   // 处理快捷方式URL参数
   function handleShortcuts() {
