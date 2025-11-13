@@ -20,6 +20,8 @@ class _WebViewPageState extends State<WebViewPage> {
   late final WebViewController _controller;
   bool _isLoading = true;
   String? _errorMessage;
+  bool _canGoBack = false;
+  bool _canGoForward = false;
 
   @override
   void initState() {
@@ -42,6 +44,7 @@ class _WebViewPageState extends State<WebViewPage> {
           onPageFinished: (String url) {
             setState(() {
               _isLoading = false;
+              _updateNavigationState();
             });
           },
           onWebResourceError: (WebResourceError error) {
@@ -53,6 +56,32 @@ class _WebViewPageState extends State<WebViewPage> {
         ),
       )
       ..loadRequest(Uri.parse(widget.url));
+
+    // 初始化导航状态
+    _updateNavigationState();
+  }
+
+  void _updateNavigationState() async {
+    final canGoBack = await _controller.canGoBack();
+    final canGoForward = await _controller.canGoForward();
+    setState(() {
+      _canGoBack = canGoBack;
+      _canGoForward = canGoForward;
+    });
+  }
+
+  void _goBack() async {
+    if (await _controller.canGoBack()) {
+      await _controller.goBack();
+      _updateNavigationState();
+    }
+  }
+
+  void _goForward() async {
+    if (await _controller.canGoForward()) {
+      await _controller.goForward();
+      _updateNavigationState();
+    }
   }
 
   @override
@@ -63,6 +92,16 @@ class _WebViewPageState extends State<WebViewPage> {
         backgroundColor: Theme.of(context).colorScheme.primary,
         foregroundColor: Colors.white,
         actions: [
+          IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: _canGoBack ? _goBack : null,
+            tooltip: '后退',
+          ),
+          IconButton(
+            icon: const Icon(Icons.arrow_forward),
+            onPressed: _canGoForward ? _goForward : null,
+            tooltip: '前进',
+          ),
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: () {
