@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../providers/theme_provider.dart';
 
 class RateCalculatorPage extends StatefulWidget {
   const RateCalculatorPage({super.key});
@@ -132,6 +134,8 @@ class _RateCalculatorPageState extends State<RateCalculatorPage> {
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isDark = themeProvider.isDarkMode;
     return Scaffold(
       appBar: AppBar(
         title: const Text('货币兑换计算器'),
@@ -147,7 +151,7 @@ class _RateCalculatorPageState extends State<RateCalculatorPage> {
                 color: Theme.of(context).colorScheme.surface,
                 borderRadius: BorderRadius.circular(8),
                 boxShadow: [
-                  BoxShadow(color: Colors.black.withValues(alpha: 0.08), blurRadius: 10, offset: const Offset(0, 2)),
+                  BoxShadow(color: isDark ? Colors.white.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.08), blurRadius: 10, offset: const Offset(0, 2)),
                 ],
               ),
               padding: const EdgeInsets.all(16),
@@ -180,7 +184,7 @@ class _RateCalculatorPageState extends State<RateCalculatorPage> {
                 color: Theme.of(context).colorScheme.surface,
                 borderRadius: BorderRadius.circular(8),
                 boxShadow: [
-                  BoxShadow(color: Colors.black.withValues(alpha: 0.08), blurRadius: 10, offset: const Offset(0, 2)),
+                  BoxShadow(color: isDark ? Colors.white.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.08), blurRadius: 10, offset: const Offset(0, 2)),
                 ],
               ),
               padding: const EdgeInsets.all(16),
@@ -197,7 +201,7 @@ class _RateCalculatorPageState extends State<RateCalculatorPage> {
             const SizedBox(height: 16),
             Container(
               decoration: BoxDecoration(
-                color: const Color(0xFFE8F4FC),
+                color: isDark ? const Color(0xFF1A2B3C) : const Color(0xFFE8F4FC),
                 borderRadius: BorderRadius.circular(8),
                 border: Border(left: BorderSide(color: Theme.of(context).colorScheme.primary, width: 3)),
               ),
@@ -231,9 +235,13 @@ class _LabeledField extends StatelessWidget {
       const SizedBox(height: 8),
       TextField(
         controller: controller,
+        style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
         keyboardType: const TextInputType.numberWithOptions(decimal: true),
         decoration: InputDecoration(
           hintText: hint,
+          hintStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6)),
+          filled: true,
+          fillColor: Theme.of(context).colorScheme.surface,
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(6)),
         ),
       ),

@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http;
 import '../models/service_item.dart';
 import '../providers/service_provider.dart';
+import '../providers/theme_provider.dart';
 
 class CheckServicePage extends StatefulWidget {
   const CheckServicePage({super.key});
@@ -171,14 +172,16 @@ class _CheckServicePageState extends State<CheckServicePage> {
     }
   }
 
-  Color _bgColor(ServiceState s, Color base) {
+  Color _bgColor(ServiceState s, BuildContext context) {
+    final isDark = Provider.of<ThemeProvider>(context, listen: false).isDarkMode;
+    
     switch (s) {
       case ServiceState.running:
-        return const Color(0xFFE8F5E9);
+        return isDark ? const Color(0xFF1B3A2F) : const Color(0xFFE8F5E9);
       case ServiceState.stopped:
-        return const Color(0xFFFFEBEE);
+        return isDark ? const Color(0xFF3D1F1F) : const Color(0xFFFFEBEE);
       case ServiceState.checking:
-        return const Color(0xFFFFF8E1);
+        return isDark ? const Color(0xFF3D321F) : const Color(0xFFFFF8E1);
     }
   }
 
@@ -266,6 +269,8 @@ class _CheckServicePageState extends State<CheckServicePage> {
   @override
   Widget build(BuildContext context) {
     final services = context.watch<ServiceProvider>().services;
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isDark = themeProvider.isDarkMode;
     final width = MediaQuery.of(context).size.width;
     final isLarge = width >= 1200;
 
@@ -302,6 +307,7 @@ class _CheckServicePageState extends State<CheckServicePage> {
                             responseTimeMs: r?.responseTimeMs ?? 0,
                             health: health,
                             color: s.color,
+                            context: context,
                           );
                         },
                       )
@@ -320,6 +326,7 @@ class _CheckServicePageState extends State<CheckServicePage> {
                             responseTimeMs: r?.responseTimeMs ?? 0,
                             health: health,
                             color: s.color,
+                            context: context,
                           );
                         },
                       ),
@@ -343,14 +350,26 @@ class _CheckServicePageState extends State<CheckServicePage> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text('自动检查间隔（秒）：'),
+                  Text(
+                    '自动检查间隔（秒）：',
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
+                  ),
                   const SizedBox(width: 8),
                   SizedBox(
                     width: 100,
                     child: TextField(
                       controller: _intervalController,
                       keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(border: OutlineInputBorder()),
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
+                      decoration: InputDecoration(
+                        border: const OutlineInputBorder(),
+                        filled: true,
+                        fillColor: Theme.of(context).colorScheme.surface,
+                      ),
                       onSubmitted: (v) {
                         final seconds = int.tryParse(v) ?? 5;
                         final clamped = seconds < 5 ? 5 : seconds;
@@ -366,7 +385,9 @@ class _CheckServicePageState extends State<CheckServicePage> {
                 _lastUpdate == null
                     ? '最后更新：未检查'
                     : '最后更新：${_formatDateTime(_lastUpdate!)}',
-                style: const TextStyle(color: Colors.grey),
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+                ),
               ),
             ],
           ),
@@ -388,6 +409,7 @@ class _ServiceCard extends StatelessWidget {
   final int responseTimeMs;
   final Map<String, dynamic>? health;
   final Color color;
+  final BuildContext context;
 
   const _ServiceCard({
     required this.title,
@@ -396,10 +418,13 @@ class _ServiceCard extends StatelessWidget {
     required this.responseTimeMs,
     required this.health,
     required this.color,
+    required this.context,
   });
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(this.context);
+    final isDark = Provider.of<ThemeProvider>(this.context).isDarkMode;
     final borderColor = _borderColor(state);
     final bgColor = _bgColor(state);
     final statusText = _statusText(state, health);
@@ -411,13 +436,30 @@ class _ServiceCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(8),
         border: Border(left: BorderSide(color: borderColor, width: 4)),
         boxShadow: [
-          BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 8, offset: const Offset(0, 2)),
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.05), 
+            blurRadius: 8, 
+            offset: const Offset(0, 2)
+          ),
         ],
       ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+        Text(
+          title, 
+          style: TextStyle(
+            fontSize: 18, 
+            fontWeight: FontWeight.bold,
+            color: theme.colorScheme.onSurface
+          )
+        ),
         const SizedBox(height: 6),
-        Text(urlText, style: const TextStyle(fontSize: 14, color: Colors.grey)),
+        Text(
+          urlText, 
+          style: TextStyle(
+            fontSize: 14, 
+            color: isDark ? Colors.white70 : Colors.grey
+          )
+        ),
         const SizedBox(height: 10),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
@@ -425,13 +467,29 @@ class _ServiceCard extends StatelessWidget {
             color: _statusBg(state),
             borderRadius: BorderRadius.circular(4),
           ),
-          child: Text(statusText, style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: _statusFg(state))),
+          child: Text(
+            statusText, 
+            style: TextStyle(
+              fontSize: 14, 
+              fontWeight: FontWeight.bold, 
+              color: _statusFg(state)
+            )
+          ),
         ),
         const SizedBox(height: 6),
-        Text('响应时间：${responseTimeMs > 0 ? '$responseTimeMs ms' : '--'}', style: const TextStyle(fontSize: 14, color: Colors.grey)),
+        Text(
+          '响应时间：${responseTimeMs > 0 ? '$responseTimeMs ms' : '--'}', 
+          style: TextStyle(
+            fontSize: 14, 
+            color: isDark ? Colors.white70 : Colors.grey
+          )
+        ),
         if (health != null) ...[
           const SizedBox(height: 10),
-          const Divider(height: 1),
+          Divider(
+            height: 1,
+            color: isDark ? Colors.white24 : Colors.black12,
+          ),
           const SizedBox(height: 10),
           _buildHealthDetailsWidget(health!),
         ],
@@ -451,13 +509,15 @@ class _ServiceCard extends StatelessWidget {
   }
 
   Color _bgColor(ServiceState s) {
+    final isDark = Provider.of<ThemeProvider>(context).isDarkMode;
+    
     switch (s) {
       case ServiceState.running:
-        return const Color(0xFFE8F5E9);
+        return isDark ? const Color(0xFF1B3A2F) : const Color(0xFFE8F5E9);
       case ServiceState.stopped:
-        return const Color(0xFFFFEBEE);
+        return isDark ? const Color(0xFF3D1F1F) : const Color(0xFFFFEBEE);
       case ServiceState.checking:
-        return const Color(0xFFFFF8E1);
+        return isDark ? const Color(0xFF3D321F) : const Color(0xFFFFF8E1);
     }
   }
 
@@ -496,7 +556,11 @@ class _ServiceCard extends StatelessWidget {
   }
 
   Widget _buildHealthDetailsWidget(Map<String, dynamic> health) {
-    final textStyle = const TextStyle(fontSize: 13, color: Colors.grey);
+    final isDark = Provider.of<ThemeProvider>(context).isDarkMode;
+    final textStyle = TextStyle(
+      fontSize: 13, 
+      color: isDark ? Colors.white70 : Colors.grey
+    );
     final children = <Widget>[];
 
     final version = health['version'];

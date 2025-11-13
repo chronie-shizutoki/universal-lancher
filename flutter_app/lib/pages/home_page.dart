@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/service_item.dart';
 import '../providers/service_provider.dart';
+import '../providers/theme_provider.dart';
 import 'webview_page.dart';
 import 'edit_service_page.dart';
 import 'check_service_page.dart';
 import 'rate_calculator_page.dart';
+import 'settings_page.dart';
 
 /// 主页面
 class HomePage extends StatelessWidget {
@@ -13,6 +15,8 @@ class HomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final theme = Theme.of(context);
     final screenWidth = MediaQuery.of(context).size.width;
     final isSmall = screenWidth < 380;
     final titleSize = isSmall ? 24.0 : 28.0;
@@ -24,10 +28,15 @@ class HomePage extends StatelessWidget {
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [
-              const Color(0xFF667eea).withValues(alpha: 0.1),
-              const Color(0xFF764ba2).withValues(alpha: 0.1),
-            ],
+            colors: themeProvider.isDarkMode 
+                ? [
+                    const Color(0xFF8B9AFF).withValues(alpha: 0.15),
+                    const Color(0xFFA889FF).withValues(alpha: 0.15),
+                  ]
+                : [
+                    const Color(0xFF667eea).withValues(alpha: 0.1),
+                    const Color(0xFF764ba2).withValues(alpha: 0.1),
+                  ],
           ),
         ),
         child: SafeArea(
@@ -43,11 +52,15 @@ class HomePage extends StatelessWidget {
                       Container(
                         padding: const EdgeInsets.all(20),
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: themeProvider.isDarkMode 
+                              ? theme.colorScheme.surface 
+                              : theme.colorScheme.surface,
                           borderRadius: BorderRadius.circular(20),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.1),
+                              color: themeProvider.isDarkMode 
+                                  ? Colors.black.withValues(alpha: 0.3)
+                                  : Colors.black.withValues(alpha: 0.1),
                               blurRadius: 20,
                               offset: const Offset(0, 4),
                             ),
@@ -72,7 +85,7 @@ class HomePage extends StatelessWidget {
                                           style: TextStyle(
                                             fontSize: titleSize,
                                             fontWeight: FontWeight.bold,
-                                            color: const Color(0xFF667eea),
+                                            color: theme.colorScheme.primary,
                                           ),
                                         ),
                                       ),
@@ -84,7 +97,7 @@ class HomePage extends StatelessWidget {
                                         overflow: TextOverflow.ellipsis,
                                         style: TextStyle(
                                           fontSize: subtitleSize,
-                                          color: Colors.grey,
+                                          color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
                                         ),
                                       ),
                                     ],
@@ -109,7 +122,7 @@ class HomePage extends StatelessWidget {
                                                 style: TextStyle(
                                                   fontSize: titleSize,
                                                   fontWeight: FontWeight.bold,
-                                                  color: const Color(0xFF667eea),
+                                                  color: theme.colorScheme.primary,
                                                 ),
                                               ),
                                             ),
@@ -119,7 +132,7 @@ class HomePage extends StatelessWidget {
                                               overflow: TextOverflow.ellipsis,
                                               style: TextStyle(
                                                 fontSize: subtitleSize,
-                                                color: Colors.grey,
+                                                color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
                                               ),
                                             ),
                                           ],
@@ -174,6 +187,27 @@ class HomePage extends StatelessWidget {
                             ),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: const Color(0xFF764ba2),
+                              foregroundColor: Colors.white,
+                              padding: EdgeInsets.symmetric(horizontal: isSmall ? 12 : 20, vertical: 12),
+                            ),
+                          ),
+                          ElevatedButton.icon(
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const SettingsPage(),
+                                ),
+                              );
+                            },
+                            icon: Icon(Icons.settings, size: isSmall ? 18 : 20),
+                            label: const Text(
+                              '设置',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF667eea),
                               foregroundColor: Colors.white,
                               padding: EdgeInsets.symmetric(horizontal: isSmall ? 12 : 20, vertical: 12),
                             ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'providers/service_provider.dart';
+import 'providers/theme_provider.dart';
 import 'pages/home_page.dart';
 
 void main() {
@@ -12,23 +13,22 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (context) => ServiceProvider(),
-      child: MaterialApp(
-        title: '统一启动器',
-        debugShowCheckedModeBanner: false,
-        theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(
-            seedColor: const Color(0xFF667eea),
-            brightness: Brightness.light,
-          ),
-          useMaterial3: true,
-          appBarTheme: const AppBarTheme(
-            centerTitle: true,
-            elevation: 0,
-          ),
-        ),
-        home: const HomePage(),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (context) => ServiceProvider()),
+        ChangeNotifierProvider(create: (context) => ThemeProvider()),
+      ],
+      child: Consumer<ThemeProvider>(
+        builder: (context, themeProvider, child) {
+          return MaterialApp(
+            title: '统一启动器',
+            debugShowCheckedModeBanner: false,
+            themeMode: themeProvider.materialThemeMode,
+            theme: themeProvider.lightTheme,
+            darkTheme: themeProvider.darkTheme,
+            home: const HomePage(),
+          );
+        },
       ),
     );
   }
