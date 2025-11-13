@@ -5,6 +5,7 @@ import '../providers/service_provider.dart';
 import 'webview_page.dart';
 import 'edit_service_page.dart';
 import 'check_service_page.dart';
+import 'rate_calculator_page.dart';
 
 /// 主页面
 class HomePage extends StatelessWidget {
@@ -12,6 +13,11 @@ class HomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isSmall = screenWidth < 380;
+    final titleSize = isSmall ? 24.0 : 28.0;
+    final subtitleSize = isSmall ? 12.0 : 14.0;
+    final headerIconSize = isSmall ? 60.0 : 80.0;
     return Scaffold(
       body: Container(
         decoration: BoxDecoration(
@@ -49,43 +55,86 @@ class HomePage extends StatelessWidget {
                         ),
                         child: Column(
                           children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Image.asset(
-                                  'assets/icons/app_icon.png',
-                                  width: 80,
-                                  height: 80,
-                                ),
-                                const SizedBox(width: 16),
-                                const Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      '统一启动器',
-                                      style: TextStyle(
-                                        fontSize: 28,
-                                        fontWeight: FontWeight.bold,
-                                        color: Color(0xFF667eea),
+                            isSmall
+                                ? Column(
+                                    children: [
+                                      Image.asset(
+                                        'assets/icons/app_icon.png',
+                                        width: headerIconSize,
+                                        height: headerIconSize,
                                       ),
-                                    ),
-                                    Text(
-                                      '请选择一个服务开始',
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        color: Colors.grey,
+                                      const SizedBox(height: 12),
+                                      FittedBox(
+                                        fit: BoxFit.scaleDown,
+                                        child: Text(
+                                          '统一启动器',
+                                          textAlign: TextAlign.center,
+                                          style: TextStyle(
+                                            fontSize: titleSize,
+                                            fontWeight: FontWeight.bold,
+                                            color: const Color(0xFF667eea),
+                                          ),
+                                        ),
                                       ),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        '请选择一个服务开始',
+                                        textAlign: TextAlign.center,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: TextStyle(
+                                          fontSize: subtitleSize,
+                                          color: Colors.grey,
+                                        ),
+                                      ),
+                                    ],
+                                  )
+                                : Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Image.asset(
+                                        'assets/icons/app_icon.png',
+                                        width: headerIconSize,
+                                        height: headerIconSize,
+                                      ),
+                                      const SizedBox(width: 16),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            FittedBox(
+                                              fit: BoxFit.scaleDown,
+                                              child: Text(
+                                                '统一启动器',
+                                                style: TextStyle(
+                                                  fontSize: titleSize,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: const Color(0xFF667eea),
+                                                ),
+                                              ),
+                                            ),
+                                            Text(
+                                              '请选择一个服务开始',
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                              style: TextStyle(
+                                                fontSize: subtitleSize,
+                                                color: Colors.grey,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                           ],
                         ),
                       ),
                       const SizedBox(height: 16),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
+                      Wrap(
+                        alignment: WrapAlignment.center,
+                        spacing: 12,
+                        runSpacing: 12,
                         children: [
                           ElevatedButton.icon(
                             onPressed: () {
@@ -96,12 +145,37 @@ class HomePage extends StatelessWidget {
                                 ),
                               );
                             },
-                            icon: const Icon(Icons.health_and_safety),
-                            label: const Text('服务状态监控'),
+                            icon: Icon(Icons.health_and_safety, size: isSmall ? 18 : 20),
+                            label: const Text(
+                              '服务状态监控',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: const Color(0xFF667eea),
                               foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                              padding: EdgeInsets.symmetric(horizontal: isSmall ? 12 : 20, vertical: 12),
+                            ),
+                          ),
+                          ElevatedButton.icon(
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const RateCalculatorPage(),
+                                ),
+                              );
+                            },
+                            icon: Icon(Icons.currency_exchange, size: isSmall ? 18 : 20),
+                            label: const Text(
+                              '货币兑换计算器',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF764ba2),
+                              foregroundColor: Colors.white,
+                              padding: EdgeInsets.symmetric(horizontal: isSmall ? 12 : 20, vertical: 12),
                             ),
                           ),
                         ],
@@ -134,14 +208,18 @@ class HomePage extends StatelessWidget {
                     );
                   }
                   
+                  final crossAxisCount = screenWidth < 600 ? 2 : 3;
+                  final childAspect = screenWidth < 340
+                      ? 0.8
+                      : (screenWidth < 380 ? 0.9 : (screenWidth < 480 ? 1.0 : 1.2));
                   return SliverPadding(
                     padding: const EdgeInsets.all(16.0),
                     sliver: SliverGrid(
-                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2,
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: crossAxisCount,
                         crossAxisSpacing: 16,
                         mainAxisSpacing: 16,
-                        childAspectRatio: 1.2,
+                        childAspectRatio: childAspect,
                       ),
                       delegate: SliverChildBuilderDelegate(
                         (context, index) {
@@ -188,6 +266,8 @@ class _ServiceCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isSmall = screenWidth < 380;
     return GestureDetector(
       onTap: () {
         Navigator.push(
@@ -238,35 +318,37 @@ class _ServiceCard extends StatelessWidget {
               );
             },
             child: Padding(
-              padding: const EdgeInsets.all(20.0),
+              padding: EdgeInsets.all(isSmall ? 16.0 : 20.0),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(
                     service.icon,
-                    size: 48,
+                    size: isSmall ? 42 : 48,
                     color: Colors.white,
                   ),
-                  const SizedBox(height: 12),
+                  SizedBox(height: isSmall ? 10 : 12),
                   Text(
                     service.name,
-                    style: const TextStyle(
-                      fontSize: 18,
+                    style: TextStyle(
+                      fontSize: isSmall ? 16 : 18,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
                     ),
                     textAlign: TextAlign.center,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                   if (service.description != null) ...[
                     const SizedBox(height: 4),
                     Text(
                       service.description!,
                       style: TextStyle(
-                        fontSize: 12,
+                        fontSize: isSmall ? 11 : 12,
                         color: Colors.white.withValues(alpha: 0.8),
                       ),
                       textAlign: TextAlign.center,
-                      maxLines: 2,
+                      maxLines: isSmall ? 1 : 2,
                       overflow: TextOverflow.ellipsis,
                     ),
                   ],
