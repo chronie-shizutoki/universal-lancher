@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'home_page.dart';
 import 'check_service_page.dart';
 import 'rate_calculator_page.dart';
 import 'settings_page.dart';
@@ -14,12 +15,14 @@ class _MainPageState extends State<MainPage> {
   int _currentIndex = 0;
 
   final List<Widget> _pages = [
+    const HomePage(),
     const CheckServicePage(),
     const RateCalculatorPage(),
     const SettingsPage(),
   ];
 
   final List<String> _titles = [
+    '统一启动器',
     '服务状态监控',
     '货币兑换计算器',
     '设置',
@@ -27,7 +30,6 @@ class _MainPageState extends State<MainPage> {
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
       appBar: AppBar(
         title: Text(_titles[_currentIndex]),
@@ -46,6 +48,11 @@ class _MainPageState extends State<MainPage> {
         backgroundColor: Theme.of(context).colorScheme.surface,
         elevation: 8,
         destinations: const [
+          NavigationDestination(
+            icon: Icon(Icons.home_outlined),
+            selectedIcon: Icon(Icons.home),
+            label: '首页',
+          ),
           NavigationDestination(
             icon: Icon(Icons.health_and_safety_outlined),
             selectedIcon: Icon(Icons.health_and_safety),

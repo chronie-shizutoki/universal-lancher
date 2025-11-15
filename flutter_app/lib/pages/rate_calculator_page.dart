@@ -136,15 +136,8 @@ class _RateCalculatorPageState extends State<RateCalculatorPage> {
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
     final isDark = themeProvider.isDarkMode;
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('货币兑换计算器'),
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        foregroundColor: Colors.white,
-      ),
-      body: SafeArea(
-        child: ListView(
-          padding: const EdgeInsets.all(16),
+    return ListView(
+      padding: const EdgeInsets.all(16),
           children: [
             Container(
               decoration: BoxDecoration(
@@ -215,9 +208,7 @@ class _RateCalculatorPageState extends State<RateCalculatorPage> {
               ]),
             ),
           ],
-        ),
-      ),
-    );
+        );
   }
 }
 

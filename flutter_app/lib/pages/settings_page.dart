@@ -15,16 +15,10 @@ class _SettingsPageState extends State<SettingsPage> {
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
     
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('设置'),
-        centerTitle: true,
-        elevation: 0,
-      ),
-      body: Consumer<ThemeProvider>(
-        builder: (context, themeProvider, _) {
-          return ListView(
-            padding: const EdgeInsets.all(16.0),
+    return Consumer<ThemeProvider>(
+      builder: (context, themeProvider, _) {
+        return ListView(
+          padding: const EdgeInsets.all(16.0),
             children: [
               // 外观设置卡片
               _buildSectionCard(
@@ -59,7 +53,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   _buildInfoTile(
                     context,
                     '构建时间',
-                    '2025年11月14日',
+                    '2025年11月16日',
                     Icons.access_time,
                   ),
                 ],
@@ -72,8 +66,7 @@ class _SettingsPageState extends State<SettingsPage> {
             ],
           );
         },
-      ),
-    );
+      );
   }
 
   /// 构建设置分区卡片

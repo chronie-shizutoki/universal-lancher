@@ -269,129 +269,118 @@ class _CheckServicePageState extends State<CheckServicePage> {
   @override
   Widget build(BuildContext context) {
     final services = context.watch<ServiceProvider>().services;
-    final themeProvider = Provider.of<ThemeProvider>(context);
-    final isDark = themeProvider.isDarkMode;
     final width = MediaQuery.of(context).size.width;
     final isLarge = width >= 1200;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('服务状态监控'),
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        foregroundColor: Colors.white,
-      ),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        children: [
+          Expanded(
+            child: isLarge
+                ? GridView.builder(
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      crossAxisSpacing: 16,
+                      mainAxisSpacing: 16,
+                      childAspectRatio: 2.6,
+                    ),
+                    itemCount: services.length,
+                    itemBuilder: (context, index) {
+                      final s = services[index];
+                      final r = _results[s.id];
+                      final state = r?.state ?? ServiceState.checking;
+                      final health = r?.healthData;
+                      return _ServiceCard(
+                        title: s.name,
+                        urlText: _buildCheckUrl(s),
+                        state: state,
+                        responseTimeMs: r?.responseTimeMs ?? 0,
+                        health: health,
+                        color: s.color,
+                        context: context,
+                      );
+                    },
+                  )
+                : ListView.separated(
+                    itemCount: services.length,
+                    separatorBuilder: (_, __) => const SizedBox(height: 12),
+                    itemBuilder: (context, index) {
+                      final s = services[index];
+                      final r = _results[s.id];
+                      final state = r?.state ?? ServiceState.checking;
+                      final health = r?.healthData;
+                      return _ServiceCard(
+                        title: s.name,
+                        urlText: _buildCheckUrl(s),
+                        state: state,
+                        responseTimeMs: r?.responseTimeMs ?? 0,
+                        health: health,
+                        color: s.color,
+                        context: context,
+                      );
+                    },
+                  ),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Expanded(
-                child: isLarge
-                    ? GridView.builder(
-                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2,
-                          crossAxisSpacing: 16,
-                          mainAxisSpacing: 16,
-                          childAspectRatio: 2.6,
-                        ),
-                        itemCount: services.length,
-                        itemBuilder: (context, index) {
-                          final s = services[index];
-                          final r = _results[s.id];
-                          final state = r?.state ?? ServiceState.checking;
-                          final health = r?.healthData;
-                          return _ServiceCard(
-                            title: s.name,
-                            urlText: _buildCheckUrl(s),
-                            state: state,
-                            responseTimeMs: r?.responseTimeMs ?? 0,
-                            health: health,
-                            color: s.color,
-                            context: context,
-                          );
-                        },
-                      )
-                    : ListView.separated(
-                        itemCount: services.length,
-                        separatorBuilder: (_, __) => const SizedBox(height: 12),
-                        itemBuilder: (context, index) {
-                          final s = services[index];
-                          final r = _results[s.id];
-                          final state = r?.state ?? ServiceState.checking;
-                          final health = r?.healthData;
-                          return _ServiceCard(
-                            title: s.name,
-                            urlText: _buildCheckUrl(s),
-                            state: state,
-                            responseTimeMs: r?.responseTimeMs ?? 0,
-                            health: health,
-                            color: s.color,
-                            context: context,
-                          );
-                        },
-                      ),
+              ElevatedButton(
+                onPressed: _checkingAll ? null : _checkAllServices,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Theme.of(context).colorScheme.primary,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                ),
+                child: Text(_checkingAll ? '检查中...' : '立即检查所有服务'),
               ),
-              const SizedBox(height: 12),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  ElevatedButton(
-                    onPressed: _checkingAll ? null : _checkAllServices,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Theme.of(context).colorScheme.primary,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                    ),
-                    child: Text(_checkingAll ? '检查中...' : '立即检查所有服务'),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    '自动检查间隔（秒）：',
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.onSurface,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  SizedBox(
-                    width: 100,
-                    child: TextField(
-                      controller: _intervalController,
-                      keyboardType: TextInputType.number,
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.onSurface,
-                      ),
-                      decoration: InputDecoration(
-                        border: const OutlineInputBorder(),
-                        filled: true,
-                        fillColor: Theme.of(context).colorScheme.surface,
-                      ),
-                      onSubmitted: (v) {
-                        final seconds = int.tryParse(v) ?? 5;
-                        final clamped = seconds < 5 ? 5 : seconds;
-                        _intervalController.text = '$clamped';
-                        _setupAutoCheck(clamped);
-                      },
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
               Text(
-                _lastUpdate == null
-                    ? '最后更新：未检查'
-                    : '最后更新：${_formatDateTime(_lastUpdate!)}',
+                '自动检查间隔（秒）：',
                 style: TextStyle(
-                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
+              ),
+              const SizedBox(width: 8),
+              SizedBox(
+                width: 100,
+                child: TextField(
+                  controller: _intervalController,
+                  keyboardType: TextInputType.number,
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
+                  decoration: InputDecoration(
+                    border: const OutlineInputBorder(),
+                    filled: true,
+                    fillColor: Theme.of(context).colorScheme.surface,
+                  ),
+                  onSubmitted: (v) {
+                    final seconds = int.tryParse(v) ?? 5;
+                    final clamped = seconds < 5 ? 5 : seconds;
+                    _intervalController.text = '$clamped';
+                    _setupAutoCheck(clamped);
+                  },
                 ),
               ),
             ],
           ),
-        ),
+          const SizedBox(height: 12),
+          Text(
+            _lastUpdate == null
+                ? '最后更新：未检查'
+                : '最后更新：${_formatDateTime(_lastUpdate!)}',
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+            ),
+          ),
+        ],
       ),
     );
   }
