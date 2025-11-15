@@ -5,9 +5,6 @@ import '../providers/service_provider.dart';
 import '../providers/theme_provider.dart';
 import 'webview_page.dart';
 import 'edit_service_page.dart';
-import 'check_service_page.dart';
-import 'rate_calculator_page.dart';
-import 'settings_page.dart';
 
 /// 主页面
 class HomePage extends StatelessWidget {
@@ -143,77 +140,7 @@ class HomePage extends StatelessWidget {
                           ],
                         ),
                       ),
-                      const SizedBox(height: 16),
-                      Wrap(
-                        alignment: WrapAlignment.center,
-                        spacing: 12,
-                        runSpacing: 12,
-                        children: [
-                          ElevatedButton.icon(
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => const CheckServicePage(),
-                                ),
-                              );
-                            },
-                            icon: Icon(Icons.health_and_safety, size: isSmall ? 18 : 20),
-                            label: const Text(
-                              '服务状态监控',
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF667eea),
-                              foregroundColor: Colors.white,
-                              padding: EdgeInsets.symmetric(horizontal: isSmall ? 12 : 20, vertical: 12),
-                            ),
-                          ),
-                          ElevatedButton.icon(
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => const RateCalculatorPage(),
-                                ),
-                              );
-                            },
-                            icon: Icon(Icons.currency_exchange, size: isSmall ? 18 : 20),
-                            label: const Text(
-                              '货币兑换计算器',
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF764ba2),
-                              foregroundColor: Colors.white,
-                              padding: EdgeInsets.symmetric(horizontal: isSmall ? 12 : 20, vertical: 12),
-                            ),
-                          ),
-                          ElevatedButton.icon(
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => const SettingsPage(),
-                                ),
-                              );
-                            },
-                            icon: Icon(Icons.settings, size: isSmall ? 18 : 20),
-                            label: const Text(
-                              '设置',
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF667eea),
-                              foregroundColor: Colors.white,
-                              padding: EdgeInsets.symmetric(horizontal: isSmall ? 12 : 20, vertical: 12),
-                            ),
-                          ),
-                        ],
-                      ),
+                      const SizedBox(height: 24),
                     ],
                   ),
                 ),

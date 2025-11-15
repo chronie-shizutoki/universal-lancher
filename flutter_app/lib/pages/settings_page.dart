@@ -22,7 +22,7 @@ class _SettingsPageState extends State<SettingsPage> {
         elevation: 0,
       ),
       body: Consumer<ThemeProvider>(
-        builder: (context, themeProvider, child) {
+        builder: (context, themeProvider, _) {
           return ListView(
             padding: const EdgeInsets.all(16.0),
             children: [
@@ -52,7 +52,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   _buildInfoTile(
                     context,
                     '版本信息',
-                    '1.0.0',
+                    '1.1.0',
                     Icons.apps_outage,
                   ),
                   const Divider(height: 1),

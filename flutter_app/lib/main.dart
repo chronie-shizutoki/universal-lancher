@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'providers/service_provider.dart';
 import 'providers/theme_provider.dart';
-import 'pages/home_page.dart';
+import 'pages/main_page.dart';
 
 void main() {
   runApp(const MyApp());
@@ -26,7 +26,7 @@ class MyApp extends StatelessWidget {
             themeMode: themeProvider.materialThemeMode,
             theme: themeProvider.lightTheme,
             darkTheme: themeProvider.darkTheme,
-            home: const HomePage(),
+            home: const MainPage(),
           );
         },
       ),

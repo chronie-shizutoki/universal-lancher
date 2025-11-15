@@ -57,7 +57,7 @@ class _RateCalculatorPageState extends State<RateCalculatorPage> {
     });
 
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('汇率设置成功：1美元 = ${_tokenRate} 金流，1美元 = ${_cnyRate} 人民币')),
+      SnackBar(content: Text('汇率设置成功：1美元 = $_tokenRate 金流，1美元 = $_cnyRate 人民币')),
     );
   }
 

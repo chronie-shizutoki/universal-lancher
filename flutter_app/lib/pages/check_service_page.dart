@@ -212,7 +212,7 @@ class _CheckServicePageState extends State<CheckServicePage> {
       final h = uptime ~/ 3600;
       final m = (uptime % 3600) ~/ 60;
       final s = uptime % 60;
-      items.add(Text('运行时间：${h}时${m}分${s}秒', style: textStyle));
+      items.add(Text('运行时间：$h时$m分$s秒', style: textStyle));
     }
 
     if (health['database'] != null) {
@@ -572,7 +572,7 @@ class _ServiceCard extends StatelessWidget {
       final h = uptime ~/ 3600;
       final m = (uptime % 3600) ~/ 60;
       final s = uptime % 60;
-      children.add(Text('运行时间：${h}时${m}分${s}秒', style: textStyle));
+      children.add(Text('运行时间：$h时$m分$s秒', style: textStyle));
     }
 
     if (health['database'] != null) {
