@@ -7,17 +7,7 @@
   <meta name="description" content="统一启动器 - 快速访问各种服务">
   <meta name="theme-color" content="#667eea">
   <link rel="manifest" href="manifest.json">
-  <script src="pwa.js"></script>
   <link rel="stylesheet" href="index.css">
-  <!-- iOS PWA支持 -->
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="统一启动器">
-  <link rel="apple-touch-icon" href="icons/icon.png">
-  <!-- Android PWA增强支持 -->
-  <link rel="icon" href="icons/icon.png" type="image/png">
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="application-name" content="统一启动器">
 </head>
 <body>
 <!-- 主要内容容器 - 液态玻璃效果 -->
@@ -29,29 +19,14 @@
 </div>
     <p>请选择一个服务开始</p>
   </div>
-
-    <div class="button-group main">
-    <p>下载统一启动器（安卓）</p>
-    <a class="btn primary" href="./component/app_download/index.html">下载最新版本</a>
-    <a class="btn primary" href="./component/app_download/index.html?showAll=true">查看全部版本</a>
-</div>
+  <a class="btn primary" href="https://chronie-app-store.netlify.app/" target="_blank">商店发布页</a>
 
   <div class="button-group main">
     <a class="btn primary" href="http://192.168.0.197:3010">记账</a>
-    <a class="btn primary" href="#" onclick="allowintime(event, 'http://192.168.0.197:3000')">记账（国际版）</a>
-    <!--
-    // 临时禁用检查
-    <a class="btn primary" href="#" onclick="checkCountryAndRedirect(event, 'http://192.168.0.197:3000')">记账（国际版）</a>
-    -->
+    <a class="btn primary" href="http://192.168.0.197:3000">记账（国际版）</a>
     <a class="btn primary" href="http://192.168.0.197:3100">金流</a>
     <a class="btn primary" href="http://192.168.0.197:5000">库存</a>
   </div>
-</div>
-
-  <div class="button-group main">
-    <p>下载家庭消费系统（测试版本）</p>
-    <a class="btn primary" href="./component/hfm-android-app/index.html">下载最新版本</a>
-    <a class="btn primary" href="./component/hfm-android-app/index.html?showAll=true">查看全部版本</a>
 </div>
 
 <!-- 工具容器 - 液态玻璃效果 -->
@@ -66,23 +41,6 @@
 <div>
   <br>
   <small id="user-agent"></small>
-</div>
-
-<!-- PWA安装提示 - 液态玻璃风格 -->
-<div id="installPrompt" class="install-prompt" style="display: none; position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--install-bg, rgba(44, 62, 80, 0.9)); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); color: var(--install-text, #fff); padding: 1.5rem; border-radius: 16px; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 8px 32px rgba(0,0,0,0.2); z-index: 9999; min-width: 300px; max-width: 90vw; transition: all 0.3s ease;">
-  <h3 style="margin: 0 0 10px 0; font-size: 1.2rem; text-shadow: 0 2px 4px rgba(0,0,0,0.1);">安装统一启动器</h3>
-  <p style="margin: 0 0 15px 0; opacity: 0.9; line-height: 1.5;">将此应用安装到您的桌面或移动设备，获得更好的体验</p>
-  <div style="display: flex; gap: 12px; justify-content: flex-end; flex-wrap: wrap;">
-    <button id="closeInstallBtn" style="background: rgba(255,255,255,0.1); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); color: inherit; border: 1px solid rgba(255,255,255,0.2); padding: 10px 20px; border-radius: 8px; cursor: pointer; transition: all 0.3s ease; font-weight: 500;">稍后</button>
-    <button id="installBtn" style="background: linear-gradient(135deg, #b8e0ff 0%, #7f5af0 100%); color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);">立即安装</button>
-  </div>
-</div>
-
-<!-- Safari安装指南固定显示在底部 - 液态玻璃风格 -->
-<div class="safari-install-guide" style="position: fixed; bottom: 0; left: 0; right: 0; background: var(--install-guide-bg, rgba(240, 240, 240, 0.9)); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); color: var(--install-guide-text, #333); padding: 1rem; text-align: center; font-size: 0.9rem; z-index: 999; border-top: 1px solid var(--install-guide-border, rgba(221, 221, 221, 0.8)); box-shadow: 0 -2px 15px rgba(0,0,0,0.05); transition: all 0.3s ease;">
-  <p style="margin: 0; display: flex; align-items: center; justify-content: center; gap: 8px; font-weight: 500;">
-    <span>Safari用户: 点击分享按钮 → 添加到主屏幕</span>
-  </p>
 </div>
 
 <!-- 自定义弹窗HTML结构 -->
