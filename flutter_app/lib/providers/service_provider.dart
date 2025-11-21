@@ -57,14 +57,6 @@ class ServiceProvider extends ChangeNotifier {
   List<ServiceItem> _getDefaultServices() {
     return [
       ServiceItem(
-        id: 'accounting',
-        name: '记账',
-        url: 'http://192.168.0.197:3010',
-        icon: Icons.account_balance_wallet,
-        color: const Color(0xFF667eea),
-        description: '家庭记账系统',
-      ),
-      ServiceItem(
         id: 'accounting_intl',
         name: '记账（国际版）',
         url: 'http://192.168.0.197:3000',
@@ -79,14 +71,6 @@ class ServiceProvider extends ChangeNotifier {
         icon: Icons.attach_money,
         color: const Color(0xFFf093fb),
         description: '金流管理系统',
-      ),
-      ServiceItem(
-        id: 'inventory',
-        name: '库存',
-        url: 'http://192.168.0.197:5000',
-        icon: Icons.inventory,
-        color: const Color(0xFF4facfe),
-        description: '库存管理系统',
       ),
     ];
   }

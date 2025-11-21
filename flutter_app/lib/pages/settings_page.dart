@@ -46,14 +46,14 @@ class _SettingsPageState extends State<SettingsPage> {
                   _buildInfoTile(
                     context,
                     '版本信息',
-                    '1.1.0',
+                    '1.2.0',
                     Icons.apps_outage,
                   ),
                   const Divider(height: 1),
                   _buildInfoTile(
                     context,
                     '构建时间',
-                    '2025年11月16日',
+                    '2025年11月22日',
                     Icons.access_time,
                   ),
                 ],
