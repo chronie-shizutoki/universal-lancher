@@ -46,7 +46,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   _buildInfoTile(
                     context,
                     '版本信息',
-                    '1.3.0',
+                    '1.4.0',
                     Icons.apps_outage,
                   ),
                   const Divider(height: 1),

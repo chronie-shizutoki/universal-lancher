@@ -51,10 +51,10 @@ class _CheckServicePageState extends State<CheckServicePage> {
   
   // 固定的服务列表
   final List<ServiceItem> _services = [
-    ServiceItem(id: '1', name: '服务 3000', url: 'http://192.168.0.197:3000'),
-    ServiceItem(id: '2', name: '服务 3010', url: 'http://192.168.0.197:3010/api/lite'),
-    ServiceItem(id: '3', name: '服务 3100', url: 'http://192.168.0.197:3100'),
-    ServiceItem(id: '4', name: '服务 5000', url: 'http://192.168.0.197:5000/api/health'),
+    ServiceItem(id: '1', name: '家庭财务管理系统（国际版）', url: 'http://192.168.0.197:3000'),
+    ServiceItem(id: '2', name: '家庭记账本', url: 'http://192.168.0.197:3010/api/lite'),
+    ServiceItem(id: '3', name: '金流', url: 'http://192.168.0.197:3100'),
+    ServiceItem(id: '4', name: '库存管理', url: 'http://192.168.0.197:5000/api/health'),
   ];
 
   @override
