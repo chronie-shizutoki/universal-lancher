@@ -66,9 +66,11 @@ class _FoodPageState extends State<FoodPage> with SingleTickerProviderStateMixin
     _isSpinning = true;
     _selectedFood = null;
     
-    // 随机选择一个最终角度，使转盘看起来更自然
+    // 随机选择一个最终角度，使转盘看起来更自然且更震撼
     final random = Random();
-    final targetRotation = 720.0 + (random.nextDouble() * 360.0);
+    // 增加旋转圈数，使其更震撼（4-6圈）
+    final rotationMultiplier = 4 + random.nextInt(3); // 4-6圈
+    final targetRotation = rotationMultiplier * 360.0 + (random.nextDouble() * 360.0);
     
     // 重置动画并重新开始
     _controller.reset();
@@ -78,9 +80,22 @@ class _FoodPageState extends State<FoodPage> with SingleTickerProviderStateMixin
     ).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: Curves.easeOutQuart,
+        // 使用更自然的曲线：先快后慢，有一个加速再减速的过程
+        curve: Curves.elasticOut, // 使用弹性曲线增加震撼感
       ),
     );
+    
+    // 在动画开始时添加震动反馈
+    Future.delayed(const Duration(milliseconds: 100), () {
+      if (mounted) {
+        // 可选：添加震动反馈（需要导入vibration包）
+      }
+    });
+    
+    _controller.forward().then((_) {
+      // 旋转结束后选择食物
+      _selectFood();
+    });
     
     _controller.forward().then((_) {
       // 旋转结束后选择食物
@@ -176,8 +191,8 @@ class _FoodPageState extends State<FoodPage> with SingleTickerProviderStateMixin
                 children: [
                   // 背景装饰
                   Container(
-                    width: 350,
-                    height: 350,
+                    width: 200,
+                    height: 200,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       color: Colors.grey[100],
@@ -195,8 +210,8 @@ class _FoodPageState extends State<FoodPage> with SingleTickerProviderStateMixin
                   Transform.rotate(
                     angle: _rotation * pi / 180,
                     child: Container(
-                      width: 300,
-                      height: 300,
+                      width: 200,
+                      height: 200,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         gradient: RadialGradient(
@@ -236,7 +251,7 @@ class _FoodPageState extends State<FoodPage> with SingleTickerProviderStateMixin
                                     child: Text(
                                       _selectedFood!.name,
                                       style: const TextStyle(
-                                        fontSize: 36,
+                                        fontSize: 16,
                                         fontWeight: FontWeight.bold,
                                         color: Colors.red,
                                       ),
@@ -247,7 +262,7 @@ class _FoodPageState extends State<FoodPage> with SingleTickerProviderStateMixin
                                     child: Text(
                                       '点击开始',
                                       style: TextStyle(
-                                        fontSize: 28,
+                                        fontSize: 16,
                                         fontWeight: FontWeight.bold,
                                         color: Colors.white,
                                         shadows: [
@@ -284,8 +299,8 @@ class _FoodPageState extends State<FoodPage> with SingleTickerProviderStateMixin
               // 结果展示（选中后显示）
               if (!_isSpinning && _selectedFood != null)
                 Container(
-                  margin: const EdgeInsets.only(top: 30),
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  margin: const EdgeInsets.only(top: 24),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   decoration: BoxDecoration(
                     color: Colors.green.shade100,
                     borderRadius: BorderRadius.circular(20),
@@ -294,7 +309,7 @@ class _FoodPageState extends State<FoodPage> with SingleTickerProviderStateMixin
                   child: Text(
                     '今天就吃${_selectedFood!.name}吧！',
                     style: const TextStyle(
-                      fontSize: 20,
+                      fontSize: 16,
                       fontWeight: FontWeight.bold,
                       color: Colors.green,
                     ),
@@ -312,9 +327,9 @@ class _FoodPageState extends State<FoodPage> with SingleTickerProviderStateMixin
               ElevatedButton(
                 onPressed: _spinWheel,
                 style: ElevatedButton.styleFrom(
-                  minimumSize: const Size(double.infinity, 60),
-                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-                  textStyle: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  minimumSize: const Size(double.infinity, 40),
+                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                  textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   backgroundColor: Colors.red,
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
@@ -324,8 +339,8 @@ class _FoodPageState extends State<FoodPage> with SingleTickerProviderStateMixin
                 ),
                 child: _isSpinning
                     ? const SizedBox(
-                        width: 20,
-                        height: 20,
+                        width: 16,
+                        height: 16,
                         child: CircularProgressIndicator(
                           color: Colors.white,
                           strokeWidth: 3,
@@ -334,14 +349,14 @@ class _FoodPageState extends State<FoodPage> with SingleTickerProviderStateMixin
                     : const Text('今天吃什么？'),
               ),
               
-              const SizedBox(height: 16),
+              const SizedBox(height: 14),
               
               // 重新选择按钮
               if (!_isSpinning && _selectedFood != null)
                 ElevatedButton(
                   onPressed: _spinWheel,
                   style: ElevatedButton.styleFrom(
-                    minimumSize: const Size(double.infinity, 50),
+                    minimumSize: const Size(double.infinity, 30),
                     padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
                     textStyle: const TextStyle(fontSize: 16),
                     backgroundColor: Colors.orange,
