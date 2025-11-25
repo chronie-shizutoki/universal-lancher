@@ -3,6 +3,7 @@ import 'home_page.dart';
 import 'check_service_page.dart';
 import 'rate_calculator_page.dart';
 import 'settings_page.dart';
+import 'food_page.dart';
 
 class MainPage extends StatefulWidget {
   const MainPage({super.key});
@@ -18,6 +19,7 @@ class _MainPageState extends State<MainPage> {
     const HomePage(),
     const CheckServicePage(),
     const RateCalculatorPage(),
+    const FoodPage(),
     const SettingsPage(),
   ];
 
@@ -25,6 +27,7 @@ class _MainPageState extends State<MainPage> {
     '统一启动器',
     '服务状态监控',
     '货币兑换计算器',
+    '今天吃什么',
     '设置',
   ];
 
@@ -62,6 +65,11 @@ class _MainPageState extends State<MainPage> {
             icon: Icon(Icons.calculate_outlined),
             selectedIcon: Icon(Icons.calculate),
             label: '汇率计算',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.restaurant_outlined),
+            selectedIcon: Icon(Icons.restaurant),
+            label: '今天吃什么',
           ),
           NavigationDestination(
             icon: Icon(Icons.settings_outlined),

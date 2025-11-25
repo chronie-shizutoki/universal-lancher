@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 import '../providers/theme_provider.dart';
 
 /// 设置页面
@@ -106,6 +107,16 @@ class _SettingsPageState extends State<SettingsPage> {
                     _buildTime,
                     Icons.access_time,
                   ),
+                  const Divider(height: 1),
+                  _buildInfoTile(
+                    context,
+                    '应用商店',
+                    '前往应用商店',
+                    Icons.store,
+                    onTap: () {
+                      _launchAppStore();
+                    },
+                  ),
                 ],
               ),
               
@@ -203,8 +214,9 @@ class _SettingsPageState extends State<SettingsPage> {
     BuildContext context, 
     String title, 
     String subtitle, 
-    IconData icon,
-  ) {
+    IconData icon, { 
+    VoidCallback? onTap,
+  }) {
     return ListTile(
       leading: Icon(
         icon,
@@ -213,10 +225,22 @@ class _SettingsPageState extends State<SettingsPage> {
       title: Text(title),
       subtitle: Text(subtitle),
       trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-      onTap: () {
+      onTap: onTap ?? () {
         // 可以添加点击事件，比如显示更多详情
       },
     );
+  }
+  
+  /// 打开应用商店
+  Future<void> _launchAppStore() async {
+    const appStoreUrl = 'https://universal-launcher.netlify.app/app-store.html';
+    if (await canLaunchUrlString(appStoreUrl)) {
+      await launchUrlString(appStoreUrl);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('无法打开应用商店')),
+      );
+    }
   }
 
   /// 构建操作按钮区域
