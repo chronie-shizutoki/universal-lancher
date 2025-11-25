@@ -108,27 +108,19 @@ class _FoodPageState extends State<FoodPage> with SingleTickerProviderStateMixin
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.settings),
-            onPressed: () {
-              // 这里可以添加食物管理界面的导航
-              _showFoodManagementDialog();
-            },
-          ),
-        ],
-      ),
       body: Consumer<FoodProvider>(builder: (context, provider, child) {
         return Column(
           children: [
-            // Tab切换
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                _buildTabButton('随机选择', 0),
-                _buildTabButton('周计划', 1),
-              ],
+            // Tab切换 - 添加顶部内边距
+            Padding(
+              padding: const EdgeInsets.only(top: 48),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  _buildTabButton('随机选择', 0),
+                  _buildTabButton('周计划', 1),
+                ],
+              ),
             ),
 
             Expanded(
@@ -137,6 +129,20 @@ class _FoodPageState extends State<FoodPage> with SingleTickerProviderStateMixin
           ],
         );
       }),
+      // 添加底部安全占位区域
+      bottomNavigationBar: const SizedBox(height: 60),
+      // 右上角悬浮设置按钮
+      floatingActionButton: FloatingActionButton(
+        onPressed: _showFoodManagementDialog,
+        backgroundColor: Colors.blue,
+        foregroundColor: Colors.white,
+        mini: true,
+        shape: const CircleBorder(),
+        child: const Icon(Icons.settings),
+        elevation: 4.0,
+        tooltip: '食物管理',
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endTop,
     );
   }
 

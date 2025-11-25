@@ -36,9 +36,11 @@ class HomePage extends StatelessWidget {
                   ],
           ),
         ),
-        child: SafeArea(
-          child: CustomScrollView(
-            slivers: [
+        child: Stack(
+          children: [
+            SafeArea(
+              child: CustomScrollView(
+                slivers: [
               // 标题栏
               SliverToBoxAdapter(
                 child: Padding(
@@ -193,29 +195,36 @@ class HomePage extends StatelessWidget {
                 },
               ),
               
-              // 底部间距
+              // 底部间距 - 增加间距以确保内容不被悬浮按钮遮挡
               const SliverToBoxAdapter(
-                child: SizedBox(height: 100),
+                child: SizedBox(height: 150),
               ),
             ],
           ),
         ),
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const EditServicePage(),
-            ),
-          );
-        },
-        icon: const Icon(Icons.add),
-        label: const Text('添加服务'),
-        backgroundColor: const Color(0xFF667eea),
-        foregroundColor: Colors.white,
-      ),
-    );
+        // 自定义位置的悬浮按钮，向上偏移
+        Positioned(
+          right: 16,
+          bottom: 80, // 向上偏移，放置在底部导航栏上方
+          child: FloatingActionButton.extended(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const EditServicePage(),
+                ),
+              );
+            },
+            icon: const Icon(Icons.add),
+            label: const Text('添加服务'),
+            backgroundColor: const Color(0xFF667eea),
+            foregroundColor: Colors.white,
+          ),
+        ),
+      ],
+    ),
+  ),
+);
   }
 }
 

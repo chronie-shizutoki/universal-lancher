@@ -134,6 +134,8 @@ class _SettingsPageState extends State<SettingsPage> {
               
               // 操作按钮
               _buildActionButtons(themeProvider),
+              // 底部安全占位区域，确保内容不被底部导航栏遮挡
+              const SizedBox(height: 60),
             ],
           );
         },

@@ -126,7 +126,8 @@ class _CheckServicePageState extends State<CheckServicePage> {
                 },
               ),
             ),
-            const SizedBox(height: 16),
+            // 减少底部间距，让按钮和文字向上偏移
+            const SizedBox(height: 4),
             ElevatedButton(
               onPressed: _checkingAll ? null : _checkAllServices,
               style: ElevatedButton.styleFrom(
@@ -135,7 +136,7 @@ class _CheckServicePageState extends State<CheckServicePage> {
               child: Text(_checkingAll ? '检查中...' : '立即检查'),
             ),
             if (_lastUpdate != null) ...[
-              const SizedBox(height: 8),
+              const SizedBox(height: 4),
               Text(
                 '最后检查时间：${_formatDateTime(_lastUpdate!)}',
                 style: TextStyle(
@@ -144,6 +145,8 @@ class _CheckServicePageState extends State<CheckServicePage> {
                 ),
               ),
             ],
+            // 增加底部安全间距，确保内容不被底部导航栏遮挡
+            const SizedBox(height: 60),
           ],
         ),
       ),
