@@ -18,7 +18,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # of the product and file versions while build-number is used as the build suffix.
 # 注意：版本号会在构建时通过 generate_version.dart 脚本动态生成
 # 格式：1.年月日.时分+时间戳（秒）
-version: 1.20251125.2319+1764083948
+version: 1.20251126.0136+1764092188
 
 environment:
   sdk: ">=3.5.0 <4.0.0"

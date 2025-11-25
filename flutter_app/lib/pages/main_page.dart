@@ -54,27 +54,27 @@ class _MainPageState extends State<MainPage> {
           NavigationDestination(
             icon: Icon(Icons.home_outlined),
             selectedIcon: Icon(Icons.home),
-            label: '首页',
+            label: '',
           ),
           NavigationDestination(
             icon: Icon(Icons.health_and_safety_outlined),
             selectedIcon: Icon(Icons.health_and_safety),
-            label: '服务状态',
+            label: '',
           ),
           NavigationDestination(
             icon: Icon(Icons.calculate_outlined),
             selectedIcon: Icon(Icons.calculate),
-            label: '汇率计算',
+            label: '',
           ),
           NavigationDestination(
             icon: Icon(Icons.restaurant_outlined),
             selectedIcon: Icon(Icons.restaurant),
-            label: '今天吃什么',
+            label: '',
           ),
           NavigationDestination(
             icon: Icon(Icons.settings_outlined),
             selectedIcon: Icon(Icons.settings),
-            label: '设置',
+            label: '',
           ),
         ],
       ),
