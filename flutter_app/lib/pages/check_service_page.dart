@@ -1,11 +1,6 @@
 import 'dart:async';
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http;
-import '../models/service_item.dart';
-import '../providers/service_provider.dart';
-import '../providers/theme_provider.dart';
 
 class CheckServicePage extends StatefulWidget {
   const CheckServicePage({super.key});
@@ -14,372 +9,199 @@ class CheckServicePage extends StatefulWidget {
   State<CheckServicePage> createState() => _CheckServicePageState();
 }
 
-enum ServiceState { checking, running, stopped }
-
-class ServiceCheckResult {
+class ServiceInfo {
   final String id;
   final String name;
   final String url;
-  final ServiceState state;
-  final int responseTimeMs;
-  final Map<String, dynamic>? healthData;
 
-  ServiceCheckResult({
+  ServiceInfo({
     required this.id,
     required this.name,
     required this.url,
-    required this.state,
-    required this.responseTimeMs,
-    this.healthData,
+  });
+}
+
+class ServiceStatus {
+  final String serviceId;
+  bool isHealthy;
+  bool isChecking;
+
+  ServiceStatus({
+    required this.serviceId,
+    this.isHealthy = false,
+    this.isChecking = false,
   });
 }
 
 class _CheckServicePageState extends State<CheckServicePage> {
-  final int _responseTimeThresholdMs = 2000;
-  final TextEditingController _intervalController = TextEditingController(text: '60');
-  Timer? _autoTimer;
-  DateTime? _lastUpdate;
-  bool _checkingAll = false;
+  // 固定的三个服务列表
+  final List<ServiceInfo> _services = [
+    ServiceInfo(
+      id: '1',
+      name: '家庭记账本',
+      url: 'http://192.168.0.197:3010/api/health/lite',
+    ),
+    ServiceInfo(
+      id: '2',
+      name: '库存管理',
+      url: 'http://192.168.0.197:5000/api/health',
+    ),
+    ServiceInfo(
+      id: '3',
+      name: '金流',
+      url: 'http://192.168.0.197:3100',
+    ),
+  ];
 
-  final Map<String, ServiceCheckResult> _results = {};
+  final Map<String, ServiceStatus> _statusMap = {};
+  bool _checkingAll = false;
+  DateTime? _lastUpdate;
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _initializeServices();
-      _checkAllServices();
-      _setupAutoCheck(int.parse(_intervalController.text));
-    });
+    _initializeStatusMap();
+    _checkAllServices();
   }
 
-  @override
-  void dispose() {
-    _intervalController.dispose();
-    _autoTimer?.cancel();
-    super.dispose();
-  }
-
-  void _initializeServices() {
-    final services = context.read<ServiceProvider>().services;
-    setState(() {
-      for (final s in services) {
-        _results[s.id] = ServiceCheckResult(
-          id: s.id,
-          name: s.name,
-          url: s.url,
-          state: ServiceState.checking,
-          responseTimeMs: 0,
-          healthData: null,
-        );
-      }
-    });
-  }
-
-  String _buildCheckUrl(ServiceItem s) {
-    final uri = Uri.parse(s.url);
-    final port = uri.hasPort ? uri.port : 0;
-    if (port == 3010 || port == 5000) {
-      return s.url.endsWith('/') ? '${s.url}api/health' : '${s.url}/api/health';
+  void _initializeStatusMap() {
+    for (final service in _services) {
+      _statusMap[service.id] = ServiceStatus(serviceId: service.id);
     }
-    return s.url;
   }
 
-  Future<ServiceCheckResult> _checkService(ServiceItem s) async {
-    final checkUrl = _buildCheckUrl(s);
-    final sw = Stopwatch()..start();
-    Map<String, dynamic>? health;
-    bool ok = false;
+  Future<void> _checkService(ServiceInfo service) async {
+    setState(() {
+      _statusMap[service.id]!.isChecking = true;
+    });
 
+    bool isHealthy = false;
     try {
-      final resp = await http
-          .get(Uri.parse(checkUrl), headers: {'Accept': 'application/json'})
-          .timeout(const Duration(seconds: 5));
+      final response = await http.get(Uri.parse(service.url)).timeout(const Duration(seconds: 5));
+      isHealthy = response.statusCode >= 200 && response.statusCode < 300;
+    } catch (_) {
+      isHealthy = false;
+    }
 
-      if (resp.statusCode >= 200 && resp.statusCode < 300) {
-        if (checkUrl.endsWith('/api/health')) {
-          try {
-            health = jsonDecode(resp.body) as Map<String, dynamic>;
-            final status = health['status'];
-            ok = status == 'OK' || status == 'healthy';
-          } catch (_) {
-            ok = true;
-          }
-        } else {
-          ok = true;
-        }
-      }
-    } catch (_) {}
-
-    sw.stop();
-    final rt = sw.elapsedMilliseconds;
-    final state = ok && rt <= _responseTimeThresholdMs ? ServiceState.running : ServiceState.stopped;
-
-    return ServiceCheckResult(
-      id: s.id,
-      name: s.name,
-      url: checkUrl,
-      state: state,
-      responseTimeMs: rt,
-      healthData: health,
-    );
+    setState(() {
+      _statusMap[service.id]!.isHealthy = isHealthy;
+      _statusMap[service.id]!.isChecking = false;
+    });
   }
 
   Future<void> _checkAllServices() async {
     if (_checkingAll) return;
+
     setState(() {
       _checkingAll = true;
-      for (final id in _results.keys) {
-        final current = _results[id]!;
-        _results[id] = ServiceCheckResult(
-          id: current.id,
-          name: current.name,
-          url: current.url,
-          state: ServiceState.checking,
-          responseTimeMs: 0,
-          healthData: null,
-        );
+      for (final service in _services) {
+        _statusMap[service.id]!.isChecking = true;
       }
     });
 
-    final services = context.read<ServiceProvider>().services;
-    final futures = services.map(_checkService);
-    final results = await Future.wait(futures);
+    final futures = _services.map(_checkService);
+    await Future.wait(futures);
+
     setState(() {
-      for (final r in results) {
-        _results[r.id] = r;
-      }
-      _lastUpdate = DateTime.now();
       _checkingAll = false;
+      _lastUpdate = DateTime.now();
     });
-  }
-
-  void _setupAutoCheck(int seconds) {
-    _autoTimer?.cancel();
-    _autoTimer = Timer.periodic(Duration(seconds: seconds), (_) {
-      _checkAllServices();
-    });
-  }
-
-  Color _borderColor(ServiceState s) {
-    switch (s) {
-      case ServiceState.running:
-        return const Color(0xFF4CAF50);
-      case ServiceState.stopped:
-        return const Color(0xFFF44336);
-      case ServiceState.checking:
-        return const Color(0xFFFFC107);
-    }
-  }
-
-  Color _bgColor(ServiceState s, BuildContext context) {
-    final isDark = Provider.of<ThemeProvider>(context, listen: false).isDarkMode;
-    
-    switch (s) {
-      case ServiceState.running:
-        return isDark ? const Color(0xFF1B3A2F) : const Color(0xFFE8F5E9);
-      case ServiceState.stopped:
-        return isDark ? const Color(0xFF3D1F1F) : const Color(0xFFFFEBEE);
-      case ServiceState.checking:
-        return isDark ? const Color(0xFF3D321F) : const Color(0xFFFFF8E1);
-    }
-  }
-
-  String _statusText(ServiceState s, Map<String, dynamic>? health) {
-    switch (s) {
-      case ServiceState.running:
-        return '运行正常';
-      case ServiceState.stopped:
-        final status = health != null ? health['status'] : null;
-        return status != 'OK' ? '状态异常' : '响应超时';
-      case ServiceState.checking:
-        return '检查中...';
-    }
-  }
-
-  Widget _buildHealthDetails(Map<String, dynamic> health) {
-    final items = <Widget>[];
-    final textStyle = const TextStyle(fontSize: 13, color: Colors.grey);
-
-    final version = health['version'];
-    if (version != null) {
-      items.add(Text('版本：$version', style: textStyle));
-    }
-
-    final uptimeRaw = health['uptime'];
-    if (uptimeRaw != null) {
-      final uptime = int.tryParse('$uptimeRaw') ?? 0;
-      final h = uptime ~/ 3600;
-      final m = (uptime % 3600) ~/ 60;
-      final s = uptime % 60;
-      items.add(Text('运行时间：$h时$m分$s秒', style: textStyle));
-    }
-
-    if (health['database'] != null) {
-      final db = health['database'] == 'healthy' ? '健康' : '${health['database']}';
-      items.add(Text('数据库：$db', style: textStyle));
-    } else if (health['services'] is Map && (health['services'] as Map)['database'] is Map) {
-      final dbMap = (health['services'] as Map)['database'] as Map;
-      final status = dbMap['status'];
-      final db = status == 'connected' ? '已连接' : '$status';
-      items.add(Text('数据库：$db', style: textStyle));
-    }
-
-    if (health['memory_usage'] is Map) {
-      final mu = health['memory_usage'] as Map;
-      final rssMb = mu['rss_mb'];
-      final rss = mu['rss'];
-      if (rssMb != null) {
-        items.add(Text('内存使用：$rssMb MB', style: textStyle));
-      } else if (rss != null) {
-        items.add(Text('内存使用：$rss B', style: textStyle));
-      }
-    } else if (health['resources'] is Map && (health['resources'] as Map)['memory'] is Map) {
-      final mem = (health['resources'] as Map)['memory'] as Map;
-      final heapUsed = mem['heapUsed'];
-      if (heapUsed != null) {
-        items.add(Text('内存使用：$heapUsed', style: textStyle));
-      }
-    }
-
-    if (health['service'] != null) {
-      items.add(Text('服务名称：${health['service']}', style: textStyle));
-    }
-
-    if (health['resources'] is Map && (health['resources'] as Map)['cpu'] is Map) {
-      final cpu = (health['resources'] as Map)['cpu'] as Map;
-      final usage = cpu['usagePercent'];
-      final model = cpu['model'];
-      final count = cpu['count'];
-      if (usage != null) {
-        items.add(Text('CPU使用率：$usage', style: textStyle));
-      }
-      if (model != null && count != null) {
-        items.add(Text('CPU型号：$model ($count核心)', style: textStyle));
-      } else if (model != null) {
-        items.add(Text('CPU型号：$model', style: textStyle));
-      } else if (count != null) {
-        items.add(Text('CPU核心数：$count', style: textStyle));
-      }
-    }
-
-    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: items);
   }
 
   @override
   Widget build(BuildContext context) {
-    final services = context.watch<ServiceProvider>().services;
-    final width = MediaQuery.of(context).size.width;
-    final isLarge = width >= 1200;
+    return Scaffold(
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            Expanded(
+              child: ListView.separated(
+                itemCount: _services.length,
+                separatorBuilder: (_, __) => const SizedBox(height: 12),
+                itemBuilder: (context, index) {
+                  final service = _services[index];
+                  final status = _statusMap[service.id]!;
+                  return _buildServiceRow(service, status);
+                },
+              ),
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: _checkingAll ? null : _checkAllServices,
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              ),
+              child: Text(_checkingAll ? '检查中...' : '立即检查'),
+            ),
+            if (_lastUpdate != null) ...[
+              const SizedBox(height: 8),
+              Text(
+                '最后检查时间：${_formatDateTime(_lastUpdate!)}',
+                style: TextStyle(
+                  color: Theme.of(context).hintColor,
+                  fontSize: 14,
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
 
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
+  Widget _buildServiceRow(ServiceInfo service, ServiceStatus status) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(8),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Expanded(
-            child: isLarge
-                ? GridView.builder(
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      crossAxisSpacing: 16,
-                      mainAxisSpacing: 16,
-                      childAspectRatio: 2.6,
-                    ),
-                    itemCount: services.length,
-                    itemBuilder: (context, index) {
-                      final s = services[index];
-                      final r = _results[s.id];
-                      final state = r?.state ?? ServiceState.checking;
-                      final health = r?.healthData;
-                      return _ServiceCard(
-                        title: s.name,
-                        urlText: _buildCheckUrl(s),
-                        state: state,
-                        responseTimeMs: r?.responseTimeMs ?? 0,
-                        health: health,
-                        color: s.color,
-                        context: context,
-                      );
-                    },
-                  )
-                : ListView.separated(
-                    itemCount: services.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 12),
-                    itemBuilder: (context, index) {
-                      final s = services[index];
-                      final r = _results[s.id];
-                      final state = r?.state ?? ServiceState.checking;
-                      final health = r?.healthData;
-                      return _ServiceCard(
-                        title: s.name,
-                        urlText: _buildCheckUrl(s),
-                        state: state,
-                        responseTimeMs: r?.responseTimeMs ?? 0,
-                        health: health,
-                        color: s.color,
-                        context: context,
-                      );
-                    },
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  service.name,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
                   ),
-          ),
-          const SizedBox(height: 12),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              ElevatedButton(
-                onPressed: _checkingAll ? null : _checkAllServices,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Theme.of(context).colorScheme.primary,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                 ),
-                child: Text(_checkingAll ? '检查中...' : '立即检查所有服务'),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                '自动检查间隔（秒）：',
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.onSurface,
-                ),
-              ),
-              const SizedBox(width: 8),
-              SizedBox(
-                width: 100,
-                child: TextField(
-                  controller: _intervalController,
-                  keyboardType: TextInputType.number,
+                const SizedBox(height: 4),
+                Text(
+                  service.url,
                   style: TextStyle(
-                    color: Theme.of(context).colorScheme.onSurface,
+                    fontSize: 14,
+                    color: Theme.of(context).hintColor,
                   ),
-                  decoration: InputDecoration(
-                    border: const OutlineInputBorder(),
-                    filled: true,
-                    fillColor: Theme.of(context).colorScheme.surface,
-                  ),
-                  onSubmitted: (v) {
-                    final seconds = int.tryParse(v) ?? 5;
-                    final clamped = seconds < 5 ? 5 : seconds;
-                    _intervalController.text = '$clamped';
-                    _setupAutoCheck(clamped);
-                  },
+                  overflow: TextOverflow.ellipsis,
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Text(
-            _lastUpdate == null
-                ? '最后更新：未检查'
-                : '最后更新：${_formatDateTime(_lastUpdate!)}',
-            style: TextStyle(
-              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+              ],
             ),
           ),
+          const SizedBox(width: 16),
+          status.isChecking
+              ? const SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : Icon(
+                  status.isHealthy ? Icons.check_circle : Icons.cancel,
+                  color: status.isHealthy ? Colors.green : Colors.red,
+                  size: 24,
+                ),
         ],
       ),
     );
@@ -388,230 +210,5 @@ class _CheckServicePageState extends State<CheckServicePage> {
   String _formatDateTime(DateTime dt) {
     String two(int n) => n.toString().padLeft(2, '0');
     return '${dt.year}-${two(dt.month)}-${two(dt.day)} ${two(dt.hour)}:${two(dt.minute)}:${two(dt.second)}';
-  }
-}
-
-class _ServiceCard extends StatelessWidget {
-  final String title;
-  final String urlText;
-  final ServiceState state;
-  final int responseTimeMs;
-  final Map<String, dynamic>? health;
-  final Color color;
-  final BuildContext context;
-
-  const _ServiceCard({
-    required this.title,
-    required this.urlText,
-    required this.state,
-    required this.responseTimeMs,
-    required this.health,
-    required this.color,
-    required this.context,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(this.context);
-    final isDark = Provider.of<ThemeProvider>(this.context).isDarkMode;
-    final borderColor = _borderColor(state);
-    final bgColor = _bgColor(state);
-    final statusText = _statusText(state, health);
-
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: bgColor,
-        borderRadius: BorderRadius.circular(8),
-        border: Border(left: BorderSide(color: borderColor, width: 4)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.05), 
-            blurRadius: 8, 
-            offset: const Offset(0, 2)
-          ),
-        ],
-      ),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text(
-          title, 
-          style: TextStyle(
-            fontSize: 18, 
-            fontWeight: FontWeight.bold,
-            color: theme.colorScheme.onSurface
-          )
-        ),
-        const SizedBox(height: 6),
-        Text(
-          urlText, 
-          style: TextStyle(
-            fontSize: 14, 
-            color: isDark ? Colors.white70 : Colors.grey
-          )
-        ),
-        const SizedBox(height: 10),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-          decoration: BoxDecoration(
-            color: _statusBg(state),
-            borderRadius: BorderRadius.circular(4),
-          ),
-          child: Text(
-            statusText, 
-            style: TextStyle(
-              fontSize: 14, 
-              fontWeight: FontWeight.bold, 
-              color: _statusFg(state)
-            )
-          ),
-        ),
-        const SizedBox(height: 6),
-        Text(
-          '响应时间：${responseTimeMs > 0 ? '$responseTimeMs ms' : '--'}', 
-          style: TextStyle(
-            fontSize: 14, 
-            color: isDark ? Colors.white70 : Colors.grey
-          )
-        ),
-        if (health != null) ...[
-          const SizedBox(height: 10),
-          Divider(
-            height: 1,
-            color: isDark ? Colors.white24 : Colors.black12,
-          ),
-          const SizedBox(height: 10),
-          _buildHealthDetailsWidget(health!),
-        ],
-      ]),
-    );
-  }
-
-  Color _borderColor(ServiceState s) {
-    switch (s) {
-      case ServiceState.running:
-        return const Color(0xFF4CAF50);
-      case ServiceState.stopped:
-        return const Color(0xFFF44336);
-      case ServiceState.checking:
-        return const Color(0xFFFFC107);
-    }
-  }
-
-  Color _bgColor(ServiceState s) {
-    final isDark = Provider.of<ThemeProvider>(context).isDarkMode;
-    
-    switch (s) {
-      case ServiceState.running:
-        return isDark ? const Color(0xFF1B3A2F) : const Color(0xFFE8F5E9);
-      case ServiceState.stopped:
-        return isDark ? const Color(0xFF3D1F1F) : const Color(0xFFFFEBEE);
-      case ServiceState.checking:
-        return isDark ? const Color(0xFF3D321F) : const Color(0xFFFFF8E1);
-    }
-  }
-
-  Color _statusBg(ServiceState s) {
-    switch (s) {
-      case ServiceState.running:
-        return const Color(0xFF4CAF50);
-      case ServiceState.stopped:
-        return const Color(0xFFF44336);
-      case ServiceState.checking:
-        return const Color(0xFFFFC107);
-    }
-  }
-
-  Color _statusFg(ServiceState s) {
-    switch (s) {
-      case ServiceState.running:
-        return Colors.white;
-      case ServiceState.stopped:
-        return Colors.white;
-      case ServiceState.checking:
-        return Colors.black87;
-    }
-  }
-
-  String _statusText(ServiceState s, Map<String, dynamic>? health) {
-    switch (s) {
-      case ServiceState.running:
-        return '运行正常';
-      case ServiceState.stopped:
-        final status = health != null ? health['status'] : null;
-        return status != 'OK' ? '状态异常' : '响应超时';
-      case ServiceState.checking:
-        return '检查中...';
-    }
-  }
-
-  Widget _buildHealthDetailsWidget(Map<String, dynamic> health) {
-    final isDark = Provider.of<ThemeProvider>(context).isDarkMode;
-    final textStyle = TextStyle(
-      fontSize: 13, 
-      color: isDark ? Colors.white70 : Colors.grey
-    );
-    final children = <Widget>[];
-
-    final version = health['version'];
-    if (version != null) children.add(Text('版本：$version', style: textStyle));
-
-    final uptimeRaw = health['uptime'];
-    if (uptimeRaw != null) {
-      final uptime = int.tryParse('$uptimeRaw') ?? 0;
-      final h = uptime ~/ 3600;
-      final m = (uptime % 3600) ~/ 60;
-      final s = uptime % 60;
-      children.add(Text('运行时间：$h时$m分$s秒', style: textStyle));
-    }
-
-    if (health['database'] != null) {
-      final db = health['database'] == 'healthy' ? '健康' : '${health['database']}';
-      children.add(Text('数据库：$db', style: textStyle));
-    } else if (health['services'] is Map && (health['services'] as Map)['database'] is Map) {
-      final dbMap = (health['services'] as Map)['database'] as Map;
-      final status = dbMap['status'];
-      final db = status == 'connected' ? '已连接' : '$status';
-      children.add(Text('数据库：$db', style: textStyle));
-    }
-
-    if (health['memory_usage'] is Map) {
-      final mu = health['memory_usage'] as Map;
-      final rssMb = mu['rss_mb'];
-      final rss = mu['rss'];
-      if (rssMb != null) {
-        children.add(Text('内存使用：$rssMb MB', style: textStyle));
-      } else if (rss != null) {
-        children.add(Text('内存使用：$rss B', style: textStyle));
-      }
-    } else if (health['resources'] is Map && (health['resources'] as Map)['memory'] is Map) {
-      final mem = (health['resources'] as Map)['memory'] as Map;
-      final heapUsed = mem['heapUsed'];
-      if (heapUsed != null) {
-        children.add(Text('内存使用：$heapUsed', style: textStyle));
-      }
-    }
-
-    if (health['service'] != null) {
-      children.add(Text('服务名称：${health['service']}', style: textStyle));
-    }
-
-    if (health['resources'] is Map && (health['resources'] as Map)['cpu'] is Map) {
-      final cpu = (health['resources'] as Map)['cpu'] as Map;
-      final usage = cpu['usagePercent'];
-      final model = cpu['model'];
-      final count = cpu['count'];
-      if (usage != null) {
-        children.add(Text('CPU使用率：$usage', style: textStyle));
-      }
-      if (model != null && count != null) {
-        children.add(Text('CPU型号：$model ($count核心)', style: textStyle));
-      } else if (model != null) {
-        children.add(Text('CPU型号：$model', style: textStyle));
-      } else if (count != null) {
-        children.add(Text('CPU核心数：$count', style: textStyle));
-      }
-    }
-
-    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: children);
   }
 }

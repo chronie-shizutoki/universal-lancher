@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import '../providers/theme_provider.dart';
 
 /// 设置页面
@@ -11,6 +12,55 @@ class SettingsPage extends StatefulWidget {
 }
 
 class _SettingsPageState extends State<SettingsPage> {
+  String _version = '加载中...';
+  String _buildTime = '加载中...';
+  
+  @override
+  void initState() {
+    super.initState();
+    _loadAppInfo();
+  }
+  
+  Future<void> _loadAppInfo() async {
+    try {
+      PackageInfo packageInfo = await PackageInfo.fromPlatform();
+      setState(() {
+        _version = packageInfo.version;
+        // 从版本号中提取构建时间信息
+        // 格式为：1.年月日.时分+时间戳
+        if (_version.contains('.')) {
+          List<String> parts = _version.split('.');
+          if (parts.length >= 2) {
+            String datePart = parts[1];
+            String timePart = parts.length >= 3 ? parts[2].split('+')[0] : '';
+            
+            // 解析日期部分 (YYYYMMDD)
+            if (datePart.length == 8) {
+              String year = datePart.substring(0, 4);
+              String month = datePart.substring(4, 6);
+              String day = datePart.substring(6, 8);
+              
+              // 解析时间部分 (HHMM)
+              String timeStr = '';
+              if (timePart.length >= 4) {
+                String hour = timePart.substring(0, 2);
+                String minute = timePart.substring(2, 4);
+                timeStr = '$hour:$minute';
+              }
+              
+              _buildTime = '$year年$month月$day日 $timeStr';
+            }
+          }
+        }
+      });
+    } catch (e) {
+      setState(() {
+        _version = '获取失败';
+        _buildTime = '获取失败';
+      });
+    }
+  }
+  
   @override
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
@@ -46,14 +96,14 @@ class _SettingsPageState extends State<SettingsPage> {
                   _buildInfoTile(
                     context,
                     '版本信息',
-                    '1.2.0',
+                    _version,
                     Icons.apps_outage,
                   ),
                   const Divider(height: 1),
                   _buildInfoTile(
                     context,
                     '构建时间',
-                    '2025年11月22日',
+                    _buildTime,
                     Icons.access_time,
                   ),
                 ],
