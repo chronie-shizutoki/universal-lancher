@@ -41,39 +41,42 @@ class _MainPageState extends State<MainPage> {
         elevation: 0,
       ),
       body: _pages[_currentIndex],
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _currentIndex,
-        onDestinationSelected: (index) {
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _currentIndex,
+        onTap: (index) {
           setState(() {
             _currentIndex = index;
           });
         },
+        type: BottomNavigationBarType.fixed,
         backgroundColor: Theme.of(context).colorScheme.surface,
         elevation: 8,
-        destinations: const [
-          NavigationDestination(
+        selectedItemColor: Theme.of(context).colorScheme.primary,
+        unselectedItemColor: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+        items: const [
+          BottomNavigationBarItem(
             icon: Icon(Icons.home_outlined),
-            selectedIcon: Icon(Icons.home),
-            label: '',
+            activeIcon: Icon(Icons.home),
+            label: '', // 空标签
           ),
-          NavigationDestination(
+          BottomNavigationBarItem(
             icon: Icon(Icons.health_and_safety_outlined),
-            selectedIcon: Icon(Icons.health_and_safety),
+            activeIcon: Icon(Icons.health_and_safety),
             label: '',
           ),
-          NavigationDestination(
+          BottomNavigationBarItem(
             icon: Icon(Icons.calculate_outlined),
-            selectedIcon: Icon(Icons.calculate),
+            activeIcon: Icon(Icons.calculate),
             label: '',
           ),
-          NavigationDestination(
+          BottomNavigationBarItem(
             icon: Icon(Icons.restaurant_outlined),
-            selectedIcon: Icon(Icons.restaurant),
+            activeIcon: Icon(Icons.restaurant),
             label: '',
           ),
-          NavigationDestination(
+          BottomNavigationBarItem(
             icon: Icon(Icons.settings_outlined),
-            selectedIcon: Icon(Icons.settings),
+            activeIcon: Icon(Icons.settings),
             label: '',
           ),
         ],
