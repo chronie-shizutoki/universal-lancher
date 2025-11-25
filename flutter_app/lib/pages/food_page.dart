@@ -3,7 +3,211 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/food_provider.dart';
 import '../models/food_item.dart';
-import '../models/food_category.dart';
+
+// 预定义渐变色列表
+final List<LinearGradient> _wheelGradients = [
+  LinearGradient(colors: [Colors.red.shade400, Colors.red.shade600]),
+  LinearGradient(colors: [Colors.orange.shade400, Colors.orange.shade600]),
+  LinearGradient(colors: [Colors.yellow.shade400, Colors.yellow.shade600]),
+  LinearGradient(colors: [Colors.green.shade400, Colors.green.shade600]),
+  LinearGradient(colors: [Colors.blue.shade400, Colors.blue.shade600]),
+  LinearGradient(colors: [Colors.purple.shade400, Colors.purple.shade600]),
+  LinearGradient(colors: [Colors.pink.shade400, Colors.pink.shade600]),
+  LinearGradient(colors: [Colors.teal.shade400, Colors.teal.shade600]),
+];
+
+// 自定义画笔，用于绘制转盘扇形分区
+class _WheelPainter extends CustomPainter {
+  final List<FoodItem> foodItems;
+  
+  _WheelPainter(this.foodItems);
+  
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (foodItems.isEmpty) {
+      // 如果没有食物，绘制一个简单的圆
+      final center = Offset(size.width / 2, size.height / 2);
+      final radius = size.width / 2;
+      
+      final paint = Paint()
+        ..color = Colors.grey.shade300
+        ..style = PaintingStyle.fill;
+      
+      canvas.drawCircle(center, radius, paint);
+      
+      // 绘制边框
+      final borderPaint = Paint()
+        ..color = Colors.black
+        ..strokeWidth = 2.0
+        ..style = PaintingStyle.stroke;
+      canvas.drawCircle(center, radius, borderPaint);
+      
+      // 绘制提示文字
+      final textSpan = const TextSpan(
+        text: '暂无食物',
+        style: TextStyle(color: Colors.black, fontSize: 16, fontWeight: FontWeight.bold),
+      );
+      final textPainter = TextPainter(
+        text: textSpan,
+        textDirection: TextDirection.ltr,
+        textAlign: TextAlign.center,
+      );
+      textPainter.layout(minWidth: 0, maxWidth: size.width);
+      textPainter.paint(
+        canvas,
+        Offset(center.dx - textPainter.width / 2, center.dy - textPainter.height / 2),
+      );
+      
+      return;
+    }
+    
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = size.width / 2;
+    
+    // 计算总权重
+    final totalWeight = foodItems.map((item) => item.weight).reduce((a, b) => a + b);
+    
+    // 计算每个食物对应的角度范围
+    double currentAngle = -pi / 2; // 从顶部开始（-90度）
+    
+    for (int i = 0; i < foodItems.length; i++) {
+      final food = foodItems[i];
+      final foodAngle = 2 * pi * (food.weight / totalWeight);
+      final startAngle = currentAngle;
+      final endAngle = currentAngle + foodAngle;
+      
+      // 获取或循环使用渐变色
+      final gradientIndex = i % _wheelGradients.length;
+      
+      // 使用渐变色填充扇形
+      final paint = Paint()
+        ..shader = _wheelGradients[gradientIndex]
+            .createShader(Rect.fromCircle(center: center, radius: radius))
+        ..style = PaintingStyle.fill;
+      
+      final path = Path()
+        ..moveTo(center.dx, center.dy)
+        ..arcTo(
+          Rect.fromCircle(center: center, radius: radius),
+          startAngle,
+          foodAngle,
+          false,
+        )
+        ..close();
+      
+      canvas.drawPath(path, paint);
+      
+      // 绘制精致的分区线
+      final linePaint = Paint()
+        ..color = Colors.white
+        ..strokeWidth = 2.0
+        ..style = PaintingStyle.stroke
+        ..strokeCap = StrokeCap.round;
+      
+      canvas.drawLine(
+        center,
+        Offset(
+          center.dx + radius * cos(startAngle),
+          center.dy + radius * sin(startAngle),
+        ),
+        linePaint,
+      );
+      
+      // 绘制食物名称
+      _drawFoodName(canvas, center, radius, startAngle, foodAngle, food.name, size.width);
+      
+      currentAngle = endAngle;
+    }
+    
+    // 绘制精致黑色边框
+    final borderPaint = Paint()
+      ..color = Colors.black
+      ..strokeWidth = 4.0
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round;
+    canvas.drawCircle(center, radius, borderPaint);
+    
+    // 添加金色边框装饰
+    final accentPaint = Paint()
+      ..color = Colors.amber.shade300
+      ..strokeWidth = 1.0
+      ..style = PaintingStyle.stroke;
+    canvas.drawCircle(center, radius - 2.0, accentPaint);
+  }
+  
+  // 绘制食物名称
+  void _drawFoodName(Canvas canvas, Offset center, double radius, double startAngle, double sweepAngle, String name, double wheelSize) {
+    // 计算文字位置（在扇形中间）
+    final textAngle = startAngle + sweepAngle / 2;
+    final textRadius = radius * 0.7; // 文字位置半径，小于转盘半径
+    
+    final textOffset = Offset(
+      center.dx + textRadius * cos(textAngle),
+      center.dy + textRadius * sin(textAngle),
+    );
+    
+    // 根据转盘大小调整字体大小
+    double fontSize = wheelSize < 150 ? 10.0 : (wheelSize < 200 ? 12.0 : 14.0);
+    
+    // 如果扇形角度太小，可能不适合显示文字
+    if (sweepAngle < pi / 8) { // 小于22.5度
+      return;
+    }
+    
+    // 创建文字样式
+    final textStyle = TextStyle(
+      color: Colors.white,
+      fontSize: fontSize,
+      fontWeight: FontWeight.bold,
+      shadows: const [
+        Shadow(
+          blurRadius: 3.0,
+          color: Colors.black,
+          offset: Offset(1.0, 1.0),
+        ),
+      ],
+    );
+    
+    // 创建TextSpan
+    final textSpan = TextSpan(
+      text: name,
+      style: textStyle,
+    );
+    
+    // 创建TextPainter
+    final textPainter = TextPainter(
+      text: textSpan,
+      textDirection: TextDirection.ltr,
+      textAlign: TextAlign.center,
+    );
+    
+    // 计算文字大小
+    textPainter.layout(minWidth: 0, maxWidth: radius * 1.5);
+    
+    // 保存当前画布状态
+    canvas.save();
+    
+    // 将画布原点移动到文字位置
+    canvas.translate(textOffset.dx, textOffset.dy);
+    
+    // 旋转画布，使文字朝向圆心
+    canvas.rotate(textAngle + pi / 2);
+    
+    // 绘制文字，居中显示
+    textPainter.paint(
+      canvas,
+      Offset(-textPainter.width / 2, -textPainter.height / 2),
+    );
+    
+    // 恢复画布状态
+    canvas.restore();
+  }
+  
+  @override
+  bool shouldRepaint(CustomPainter oldDelegate) {
+    return true;
+  }
+}
 
 class FoodPage extends StatefulWidget {
   const FoodPage({super.key});
@@ -20,8 +224,6 @@ class _FoodPageState extends State<FoodPage> with SingleTickerProviderStateMixin
   FoodItem? _selectedFood;
   bool _showWeeklyPlan = false;
   int _currentTab = 0;
-  List<Color> _wheelColors = [Colors.red, Colors.orange, Colors.yellow, Colors.green, Colors.blue, Colors.purple];
-  int _selectedIndex = 0;
 
   @override
   void initState() {
@@ -66,11 +268,19 @@ class _FoodPageState extends State<FoodPage> with SingleTickerProviderStateMixin
     _isSpinning = true;
     _selectedFood = null;
     
-    // 随机选择一个最终角度，使转盘看起来更自然且更震撼
+    // 先随机选择一个食物
+    final provider = Provider.of<FoodProvider>(context, listen: false);
+    final selectedFood = provider.getRandomFood();
+    _selectedFood = selectedFood; // 保存选择的食物
+    
+    // 计算这个食物在转盘中的角度位置
+    // 确保selectedFood不为null
+    final targetAngle = _calculateTargetAngle(selectedFood!, provider.foodItems);
+    
+    // 随机选择旋转圈数（4-6圈）
     final random = Random();
-    // 增加旋转圈数，使其更震撼（4-6圈）
     final rotationMultiplier = 4 + random.nextInt(3); // 4-6圈
-    final targetRotation = rotationMultiplier * 360.0 + (random.nextDouble() * 360.0);
+    final targetRotation = rotationMultiplier * 360.0 + targetAngle;
     
     // 重置动画并重新开始
     _controller.reset();
@@ -80,7 +290,6 @@ class _FoodPageState extends State<FoodPage> with SingleTickerProviderStateMixin
     ).animate(
       CurvedAnimation(
         parent: _controller,
-        // 使用更自然的曲线：先快后慢，有一个加速再减速的过程
         curve: Curves.elasticOut, // 使用弹性曲线增加震撼感
       ),
     );
@@ -93,23 +302,57 @@ class _FoodPageState extends State<FoodPage> with SingleTickerProviderStateMixin
     });
     
     _controller.forward().then((_) {
-      // 旋转结束后选择食物
-      _selectFood();
-    });
-    
-    _controller.forward().then((_) {
-      // 旋转结束后选择食物
-      _selectFood();
+      // 旋转结束后更新状态
+      setState(() {
+        _isSpinning = false;
+      });
     });
   }
 
-  void _selectFood() {
-    final provider = Provider.of<FoodProvider>(context, listen: false);
-    final food = provider.getRandomFood();
-    setState(() {
-      _selectedFood = food;
-      _isSpinning = false;
-    });
+  double _calculateTargetAngle(FoodItem selectedFood, List<FoodItem> foodItems) {
+    // 计算每个食物对应的角度范围
+    final totalWeight = foodItems.map((item) => item.weight).reduce((a, b) => a + b);
+    
+    // 与WheelPainter保持一致，从顶部开始计算角度（-90度）
+    // 使用角度单位
+    double currentAngle = -90.0;
+    
+    // 找到选中食物的扇形区域
+    for (final food in foodItems) {
+      final foodAngle = 360.0 * (food.weight / totalWeight);
+      
+      // 计算当前食物的角度范围
+      final startAngle = currentAngle;
+      final endAngle = currentAngle + foodAngle;
+      
+      // 检查是否是选中的食物
+      if (food.id == selectedFood.id) {
+        // 计算食物扇形中间的角度 - 这是指针应该指向的位置
+        final foodMiddleAngle = startAngle + foodAngle / 2;
+        
+        // 关键修复：确保旋转方向和角度计算正确
+        // 为了让指针精确指向食物中间，我们需要：
+        // 1. 计算食物中间与顶部的夹角差
+        // 2. 考虑旋转方向，确保最终指向正确
+        double targetAngle;
+        
+        if (foodMiddleAngle < 0) {
+          // 如果食物中间角度小于0度，需要特别处理
+          targetAngle = (-foodMiddleAngle + 360.0) % 360.0;
+        } else {
+          targetAngle = (360.0 - foodMiddleAngle) % 360.0;
+        }
+        
+        // 确保返回值在0-360度范围内
+        return targetAngle;
+      }
+      
+      // 移动到下一个食物的起始角度
+      currentAngle = endAngle;
+    }
+    
+    // 如果没找到食物，默认返回0度
+    return 0.0;
   }
 
   void _generateWeeklyPlan() {
@@ -126,14 +369,45 @@ class _FoodPageState extends State<FoodPage> with SingleTickerProviderStateMixin
       body: Consumer<FoodProvider>(builder: (context, provider, child) {
         return Column(
           children: [
-            // Tab切换 - 添加顶部内边距
+            // 顶部按钮区域 - 三个按钮在同一行
             Padding(
-              padding: const EdgeInsets.only(top: 48),
+              padding: const EdgeInsets.only(top: 16, left: 16, right: 16),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  _buildTabButton('随机选择', 0),
-                  _buildTabButton('周计划', 1),
+                  // 左侧的随机选择和周计划按钮
+                  Row(
+                    children: [
+                      _buildTabButton('随机选择', 0),
+                      const SizedBox(width: 8),
+                      _buildTabButton('周计划', 1),
+                    ],
+                  ),
+                  // 右侧的设置按钮
+                  Container(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.2),
+                          blurRadius: 6,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: ElevatedButton(
+                      onPressed: _showFoodManagementDialog,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue,
+                        foregroundColor: Colors.white,
+                        shape: const CircleBorder(),
+                        padding: const EdgeInsets.all(12),
+                        elevation: 4,
+                        shadowColor: Colors.black.withOpacity(0.3),
+                      ),
+                      child: const Icon(Icons.settings, size: 24),
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -146,18 +420,6 @@ class _FoodPageState extends State<FoodPage> with SingleTickerProviderStateMixin
       }),
       // 添加底部安全占位区域
       bottomNavigationBar: const SizedBox(height: 60),
-      // 右上角悬浮设置按钮
-      floatingActionButton: FloatingActionButton(
-        onPressed: _showFoodManagementDialog,
-        backgroundColor: Colors.blue,
-        foregroundColor: Colors.white,
-        mini: true,
-        shape: const CircleBorder(),
-        child: const Icon(Icons.settings),
-        elevation: 4.0,
-        tooltip: '食物管理',
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.endTop,
     );
   }
 
@@ -169,10 +431,22 @@ class _FoodPageState extends State<FoodPage> with SingleTickerProviderStateMixin
         });
       },
       style: ElevatedButton.styleFrom(
-        backgroundColor: _currentTab == index ? Colors.blue : Colors.grey[200],
+        backgroundColor: _currentTab == index ? Colors.blue : Colors.grey[100],
         foregroundColor: _currentTab == index ? Colors.white : Colors.black,
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(25),
+        ),
+        elevation: _currentTab == index ? 4 : 2,
+        shadowColor: Colors.black.withOpacity(0.3),
       ),
-      child: Text(title),
+      child: Text(
+        title,
+        style: const TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
     );
   }
 
@@ -206,115 +480,64 @@ class _FoodPageState extends State<FoodPage> with SingleTickerProviderStateMixin
                     ),
                   ),
                   
-                  // 旋转的转盘
+                  // 旋转的转盘 - 包含扇形分区
                   Transform.rotate(
-                    angle: _rotation * pi / 180,
+                    angle: _rotation * pi / 180, // 将角度转换为弧度
                     child: Container(
                       width: 200,
                       height: 200,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        gradient: RadialGradient(
-                          colors: [Colors.orange.shade400, Colors.red.shade600],
-                          radius: 0.8,
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.3),
-                            blurRadius: 12,
-                            offset: const Offset(0, 6),
+                      child: CustomPaint(
+                        painter: _WheelPainter(provider.foodItems),
+                      ),
+                    ),
+                  ),
+                  
+                  // 固定在中心的指示器
+                  Positioned(
+                    top: 0,
+                    child: Container(
+                      width: 200,
+                      height: 200,
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          // 中心装饰
+                          Container(
+                            width: 40,
+                            height: 40,
+                            decoration: const BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors.red,
+                              boxShadow: [
+                                BoxShadow(
+                                  blurRadius: 4,
+                                  offset: Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                          ),
+                          // 指针
+                          Positioned(
+                            top: 0,
+                            child: Container(
+                              width: 8,
+                              height: 40,
+                              decoration: const BoxDecoration(
+                                color: Colors.red,
+                                borderRadius: BorderRadius.only(
+                                  bottomLeft: Radius.circular(4),
+                                  bottomRight: Radius.circular(4),
+                                ),
+                              ),
+                            ),
                           ),
                         ],
                       ),
-                      child: _isSpinning
-                          ? const Center(
-                              child: CircularProgressIndicator(
-                                color: Colors.white,
-                                strokeWidth: 4,
-                              ),
-                            )
-                          : _selectedFood != null
-                              ? Center(
-                                  child: Container(
-                                    padding: const EdgeInsets.all(20),
-                                    decoration: BoxDecoration(
-                                      color: Colors.white.withOpacity(0.9),
-                                      borderRadius: BorderRadius.circular(20),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Colors.black.withOpacity(0.2),
-                                          blurRadius: 8,
-                                          offset: const Offset(0, 4),
-                                        ),
-                                      ],
-                                    ),
-                                    child: Text(
-                                      _selectedFood!.name,
-                                      style: const TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.red,
-                                      ),
-                                    ),
-                                  )
-                              )
-                                : Center(
-                                    child: Text(
-                                      '点击开始',
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.white,
-                                        shadows: [
-                                          const Shadow(
-                                            color: Colors.black,
-                                            blurRadius: 3,
-                                            offset: Offset(2, 2),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                    ),
-                  ),
-                  // 指示器
-                  Positioned(
-                    top: 20,
-                    child: Container(
-                      width: 30,
-                      height: 30,
-                      decoration: const BoxDecoration(
-                        color: Colors.red,
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        Icons.keyboard_arrow_down,
-                        color: Colors.white,
-                      )
                     ),
                   ),
                 ],
               ),
               
-              // 结果展示（选中后显示）
-              if (!_isSpinning && _selectedFood != null)
-                Container(
-                  margin: const EdgeInsets.only(top: 24),
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  decoration: BoxDecoration(
-                    color: Colors.green.shade100,
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: Colors.green.shade400, width: 2),
-                  ),
-                  child: Text(
-                    '今天就吃${_selectedFood!.name}吧！',
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.green,
-                    ),
-                  ),
-                )
             ],
           ),
         ),
@@ -324,49 +547,61 @@ class _FoodPageState extends State<FoodPage> with SingleTickerProviderStateMixin
           padding: const EdgeInsets.all(16.0),
           child: Column(
             children: [
-              ElevatedButton(
-                onPressed: _spinWheel,
-                style: ElevatedButton.styleFrom(
-                  minimumSize: const Size(double.infinity, 40),
-                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
-                  textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  backgroundColor: Colors.red,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(30),
-                  ),
-                  elevation: 5,
-                ),
-                child: _isSpinning
-                    ? const SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(
-                          color: Colors.white,
-                          strokeWidth: 3,
+              // 根据状态显示不同的按钮
+              (!_isSpinning && _selectedFood != null) 
+                ? ElevatedButton(
+                    onPressed: _spinWheel,
+                    style: ElevatedButton.styleFrom(
+                      minimumSize: const Size(double.infinity, 40),
+                      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                      textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      backgroundColor: Colors.orange,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30),
+                      ),
+                      elevation: 5,
+                    ),
+                    child: const Text('换一个', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, inherit: true),),
+                  )
+                : (!_isSpinning && _selectedFood == null)
+                    ? ElevatedButton(
+                        onPressed: _spinWheel,
+                        style: ElevatedButton.styleFrom(
+                          minimumSize: const Size(double.infinity, 40),
+                          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                          textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, inherit: true),
+                          backgroundColor: Colors.red,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(30),
+                          ),
+                          elevation: 5,
+                        ),
+                        child: const Text('今天吃什么？'),
+                      )
+                    : ElevatedButton(
+                        onPressed: null, // 旋转时禁用按钮
+                        style: ElevatedButton.styleFrom(
+                          minimumSize: const Size(double.infinity, 40),
+                          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                          textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, inherit: true),
+                          backgroundColor: Colors.red.shade700,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(30),
+                          ),
+                          elevation: 5,
+                        ),
+                        child: const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 3,
+                          ),
                         ),
                       )
-                    : const Text('今天吃什么？'),
-              ),
-              
-              const SizedBox(height: 14),
-              
-              // 重新选择按钮
-              if (!_isSpinning && _selectedFood != null)
-                ElevatedButton(
-                  onPressed: _spinWheel,
-                  style: ElevatedButton.styleFrom(
-                    minimumSize: const Size(double.infinity, 30),
-                    padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
-                    textStyle: const TextStyle(fontSize: 16),
-                    backgroundColor: Colors.orange,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(25),
-                    ),
-                  ),
-                  child: const Text('换一个'),
-                ),
             ],
           ),
         ),
@@ -545,9 +780,9 @@ class _FoodPageState extends State<FoodPage> with SingleTickerProviderStateMixin
     );
   }
 
-  // 格式化日期
+  // 格式化日期时间（包含时分秒）
   String _formatDate(DateTime date) {
-    return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+    return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')} ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}:${date.second.toString().padLeft(2, '0')}';
   }
 
   void _showFoodManagementDialog() {
