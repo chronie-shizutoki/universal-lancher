@@ -13,8 +13,18 @@ class SettingsPage extends StatefulWidget {
 }
 
 class _SettingsPageState extends State<SettingsPage> {
-  String _version = '加载中...';
-  String _buildTime = '加载中...';
+  // 常量定义，避免硬编码
+  static const String _loadingText = '加载中...';
+  static const String _fetchFailedText = '获取失败';
+  static const String _appStoreUrl = 'https://universal-launcher.netlify.app/app-store.html';
+  static const String _errorMessageCannotOpen = '无法打开应用商店';
+  static const String _errorMessageGeneric = '打开应用商店时出错';
+  static const String _formatYear = '年';
+  static const String _formatMonth = '月';
+  static const String _formatDay = '日';
+  
+  String _version = _loadingText;
+  String _buildTime = _loadingText;
   
   @override
   void initState() {
@@ -49,15 +59,15 @@ class _SettingsPageState extends State<SettingsPage> {
                 timeStr = '$hour:$minute';
               }
               
-              _buildTime = '$year年$month月$day日 $timeStr';
+              _buildTime = '$year$_formatYear$month$_formatMonth$day$_formatDay $timeStr';
             }
           }
         }
       });
     } catch (e) {
       setState(() {
-        _version = '获取失败';
-        _buildTime = '获取失败';
+        _version = _fetchFailedText;
+        _buildTime = _fetchFailedText;
       });
     }
   }
@@ -67,7 +77,7 @@ class _SettingsPageState extends State<SettingsPage> {
     final themeProvider = Provider.of<ThemeProvider>(context);
     
     return Consumer<ThemeProvider>(
-      builder: (context, themeProvider, _) {
+      builder: (context, _, __) {
         return ListView(
           padding: const EdgeInsets.all(16.0),
             children: [
@@ -88,9 +98,9 @@ class _SettingsPageState extends State<SettingsPage> {
                 '应用信息',
                 [
                   _buildInfoTile(
-                    context,
-                    '应用名称',
-                    '统一启动器',
+                      context,
+                      '应用名称',
+                      '统一启动器',
                     Icons.info_outline,
                   ),
                   const Divider(height: 1),
@@ -230,16 +240,31 @@ class _SettingsPageState extends State<SettingsPage> {
       },
     );
   }
-  
+
   /// 打开应用商店
   Future<void> _launchAppStore() async {
-    const appStoreUrl = 'https://universal-launcher.netlify.app/app-store.html';
-    if (await canLaunchUrlString(appStoreUrl)) {
-      await launchUrlString(appStoreUrl);
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('无法打开应用商店')),
+    try {
+      // 确保URL有协议前缀
+      final url = _appStoreUrl.startsWith(RegExp(r'https?://')) 
+        ? _appStoreUrl 
+        : 'https://$_appStoreUrl';
+
+      final bool launched = await launchUrlString(
+        url,
+        mode: LaunchMode.externalApplication, // 使用默认浏览器打开
       );
+
+      if (!launched && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(_errorMessageCannotOpen)),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('$_errorMessageGeneric: $e')),
+        );
+      }
     }
   }
 
