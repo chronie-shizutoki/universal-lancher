@@ -34,7 +34,6 @@ class ThemeProvider extends ChangeNotifier {
         primary: const Color(0xFF667eea),
         secondary: const Color(0xFF764ba2),
         surface: const Color(0xFFF8F9FA),
-        background: const Color(0xFFFFFFFF),
         error: const Color(0xFFDC3545),
       ),
       useMaterial3: true,
@@ -101,10 +100,8 @@ class ThemeProvider extends ChangeNotifier {
         primary: const Color(0xFF8B9AFF),
         secondary: const Color(0xFFA889FF),
         surface: const Color(0xFF1E1E1E),
-        background: const Color(0xFF121212),
         error: const Color(0xFFFF5252),
         onSurface: const Color(0xFFE0E0E0),
-        onBackground: const Color(0xFFFFFFFF),
       ),
       useMaterial3: true,
       appBarTheme: AppBarTheme(

@@ -40,7 +40,7 @@ class ServiceItem {
       'name': name,
       'url': url,
       'iconCode': icon.codePoint,
-      'colorValue': color.value,
+      'colorValue': color.toARGB32(),
       'description': description,
     };
   }
