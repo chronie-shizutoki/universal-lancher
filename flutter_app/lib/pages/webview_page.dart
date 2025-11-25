@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:webview_flutter/webview_flutter.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 
-/// WebView页面
+/// 使用默认浏览器打开链接的页面
 class WebViewPage extends StatefulWidget {
   final String title;
   final String url;
@@ -17,70 +17,49 @@ class WebViewPage extends StatefulWidget {
 }
 
 class _WebViewPageState extends State<WebViewPage> {
-  late final WebViewController _controller;
   bool _isLoading = true;
   String? _errorMessage;
-  bool _canGoBack = false;
-  bool _canGoForward = false;
+  bool _launched = false;
 
   @override
   void initState() {
     super.initState();
-    _initializeWebView();
+    _launchUrlInBrowser();
   }
 
-  void _initializeWebView() {
-    _controller = WebViewController()
-      ..setJavaScriptMode(JavaScriptMode.unrestricted)
-      ..setBackgroundColor(Colors.white)
-      ..setNavigationDelegate(
-        NavigationDelegate(
-          onPageStarted: (String url) {
-            setState(() {
-              _isLoading = true;
-              _errorMessage = null;
-            });
-          },
-          onPageFinished: (String url) {
-            setState(() {
-              _isLoading = false;
-              _updateNavigationState();
-            });
-          },
-          onWebResourceError: (WebResourceError error) {
-            setState(() {
-              _isLoading = false;
-              _errorMessage = '加载失败: ${error.description}';
-            });
-          },
-        ),
-      )
-      ..loadRequest(Uri.parse(widget.url));
+  Future<void> _launchUrlInBrowser() async {
+    try {
+      // 确保URL有协议前缀
+      final url = widget.url.startsWith(RegExp(r'https?://')) 
+        ? widget.url 
+        : 'http://${widget.url}';
 
-    // 初始化导航状态
-    _updateNavigationState();
-  }
+      final bool launched = await launchUrlString(
+        url,
+        mode: LaunchMode.externalApplication, // 使用默认浏览器打开
+      );
 
-  void _updateNavigationState() async {
-    final canGoBack = await _controller.canGoBack();
-    final canGoForward = await _controller.canGoForward();
-    setState(() {
-      _canGoBack = canGoBack;
-      _canGoForward = canGoForward;
-    });
-  }
+      setState(() {
+        _isLoading = false;
+        _launched = launched;
+        if (!launched) {
+          _errorMessage = '无法打开链接';
+        }
+      });
 
-  void _goBack() async {
-    if (await _controller.canGoBack()) {
-      await _controller.goBack();
-      _updateNavigationState();
-    }
-  }
-
-  void _goForward() async {
-    if (await _controller.canGoForward()) {
-      await _controller.goForward();
-      _updateNavigationState();
+      // 如果成功打开，延迟后自动返回上一页
+      if (launched) {
+        Future.delayed(const Duration(seconds: 1), () {
+          if (mounted) {
+            Navigator.of(context).pop();
+          }
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+        _errorMessage = '打开链接时出错: $e';
+      });
     }
   }
 
@@ -91,76 +70,67 @@ class _WebViewPageState extends State<WebViewPage> {
         title: Text(widget.title),
         backgroundColor: Theme.of(context).colorScheme.primary,
         foregroundColor: Colors.white,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.arrow_back),
-            onPressed: _canGoBack ? _goBack : null,
-            tooltip: '后退',
-          ),
-          IconButton(
-            icon: const Icon(Icons.arrow_forward),
-            onPressed: _canGoForward ? _goForward : null,
-            tooltip: '前进',
-          ),
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: () {
-              _controller.reload();
-            },
-            tooltip: '刷新',
-          ),
-        ],
       ),
       body: SafeArea(
-        child: Stack(
-          children: [
-            if (_errorMessage != null)
-              Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(24.0),
-                  child: Column(
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: _isLoading
+                ? Column(
                     mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(
-                        Icons.error_outline,
-                        size: 64,
-                        color: Colors.red,
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        _errorMessage!,
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(fontSize: 16),
-                      ),
-                      const SizedBox(height: 24),
-                      ElevatedButton.icon(
-                        onPressed: () {
-                          _controller.reload();
-                        },
-                        icon: const Icon(Icons.refresh),
-                        label: const Text('重试'),
-                      ),
-                      const SizedBox(height: 12),
-                      TextButton(
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                        },
-                        child: const Text('返回'),
-                      ),
+                    children: const [
+                      CircularProgressIndicator(),
+                      SizedBox(height: 16),
+                      Text('正在打开链接...'),
                     ],
-                  ),
-                ),
-              )
-            else
-              WebViewWidget(controller: _controller),
-            if (_isLoading)
-              Container(
-                color: Colors.white.withValues(alpha: 0.8),
-                child: const Center(
-                  child: CircularProgressIndicator(),
-                ),
-              ),
-          ],
+                  )
+                : _errorMessage != null
+                    ? Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(
+                            Icons.error_outline,
+                            size: 64,
+                            color: Colors.red,
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            _errorMessage!,
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(fontSize: 16),
+                          ),
+                          const SizedBox(height: 24),
+                          ElevatedButton.icon(
+                            onPressed: _launchUrlInBrowser,
+                            icon: const Icon(Icons.refresh),
+                            label: const Text('重试'),
+                          ),
+                          const SizedBox(height: 12),
+                          TextButton(
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                            },
+                            child: const Text('返回'),
+                          ),
+                        ],
+                      )
+                    : Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: const [
+                          Icon(
+                            Icons.check_circle,
+                            size: 64,
+                            color: Colors.green,
+                          ),
+                          SizedBox(height: 16),
+                          Text('正在打开默认浏览器...'),
+                          SizedBox(height: 8),
+                          Text('如果浏览器未自动打开，请点击下方按钮重试'),
+                          SizedBox(height: 24),
+                          // 这里不显示按钮，因为会自动返回
+                        ],
+                      ),
+          ),
         ),
       ),
     );
