@@ -106,12 +106,16 @@ jobs:
                               try:
                                   # 简单的CSV解析
                                   parts = re.split(r',(?=(?:[^"]*"[^"]*")*[^"]*$)', line.strip())
-                                  if len(parts) >= 6:
+                                  if len(parts) >= 5:
+                                      # 根据实际CSV格式：files, language, blank, comment, code
+                                      files = int(parts[0]) if parts[0].isdigit() else 0
                                       lang = parts[1].strip('"') if parts[1].startswith('"') else parts[1]
-                                      files = int(parts[2]) if parts[2].isdigit() else 0
-                                      blank = int(parts[3]) if parts[3].isdigit() else 0
-                                      comment = int(parts[4]) if parts[4].isdigit() else 0
-                                      code = int(parts[5]) if parts[5].isdigit() else 0
+                                      # 跳过SUM行
+                                      if lang == 'SUM':
+                                          continue
+                                      blank = int(parts[2]) if parts[2].isdigit() else 0
+                                      comment = int(parts[3]) if parts[3].isdigit() else 0
+                                      code = int(parts[4]) if parts[4].isdigit() else 0
                                       rows.append((lang, files, blank, comment, code))
                                       total_code += code
                               except Exception as e:
@@ -261,12 +265,16 @@ jobs:
                               try:
                                   # 简单的CSV解析
                                   parts = re.split(r',(?=(?:[^"]*"[^"]*")*[^"]*$)', line.strip())
-                                  if len(parts) >= 6:
+                                  if len(parts) >= 5:
+                                      # 根据实际CSV格式：files, language, blank, comment, code
+                                      files = int(parts[0]) if parts[0].isdigit() else 0
                                       lang = parts[1].strip('"') if parts[1].startswith('"') else parts[1]
-                                      files = int(parts[2]) if parts[2].isdigit() else 0
-                                      blank = int(parts[3]) if parts[3].isdigit() else 0
-                                      comment = int(parts[4]) if parts[4].isdigit() else 0
-                                      code = int(parts[5]) if parts[5].isdigit() else 0
+                                      # 跳过SUM行
+                                      if lang == 'SUM':
+                                          continue
+                                      blank = int(parts[2]) if parts[2].isdigit() else 0
+                                      comment = int(parts[3]) if parts[3].isdigit() else 0
+                                      code = int(parts[4]) if parts[4].isdigit() else 0
                                       rows.append((lang, files, blank, comment, code))
                                       total_code += code
                               except Exception as e:
