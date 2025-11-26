@@ -6,5 +6,13 @@
     "priority": "medium",
     "is_read": false,
     "created_at": "2025-11-26T10:42:18Z"
+  },
+  {
+    "id": "2",
+    "title": "金流兼容模式已上线！",
+    "content": "此版本大幅降低了性能要求，同时兼容旧版本浏览器，访问192.168.0.197:3101来查看",
+    "priority": "high",
+    "is_read": false,
+    "created_at": "2025-11-26T15:59:18Z"
   }
 ]
