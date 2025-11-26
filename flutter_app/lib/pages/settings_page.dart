@@ -402,43 +402,43 @@ class _SettingsPageState extends State<SettingsPage> {
                                   Theme.of(context).colorScheme.primary,
                                 ),
                               ),
-                              const SizedBox(height: 16),
+                              const SizedBox(height: 8),
                               Text(
-                                provider.isDownloading
-                                  ? '正在下载... ${(provider.downloadProgress * 100).toStringAsFixed(1)}%'
-                                  : provider.errorMessage ?? '准备下载...',
+                                '下载进度: ${(provider.downloadProgress * 100).toStringAsFixed(0)}%',
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                '系统下载管理器提供更稳定的下载体验',
+                                style: TextStyle(fontSize: 12, color: Colors.grey),
                               ),
                               if (provider.errorMessage != null) const SizedBox(height: 16),
                               if (provider.errorMessage != null)
-                                TextButton(
-                                  onPressed: () {
-                                    provider.clearError();
-                                    provider.downloadApk();
-                                  },
-                                  child: const Text('重试'),
+                                Text(
+                                  provider.errorMessage!,
+                                  style: TextStyle(color: Colors.red),
                                 ),
+                              if (!provider.isDownloading && !provider.isCheckingUpdate && provider.errorMessage == null) ...[
+                                const SizedBox(height: 16),
+                                Text('下载完成，准备安装...'),
+                              ],
                             ],
                           ),
-                          actions: provider.isDownloading
-                            ? [
-                                TextButton(
-                                  onPressed: () {
-                                    // 可以添加取消下载的逻辑
-                                    Navigator.pop(context);
-                                  },
-                                  child: const Text('取消'),
-                                ),
-                              ]
-                            : provider.errorMessage != null
-                              ? [
-                                  TextButton(
-                                    onPressed: () {
-                                      Navigator.pop(context);
-                                    },
-                                    child: const Text('关闭'),
-                                  ),
-                                ]
-                              : [],
+                          actions: [
+                            if (provider.isDownloading)
+                              TextButton(
+                                onPressed: () async {
+                                  await provider.cancelDownload();
+                                  Navigator.pop(context);
+                                },
+                                child: const Text('取消下载'),
+                              ),
+                            TextButton(
+                              onPressed: () {
+                                Navigator.pop(context);
+                              },
+                              child: provider.isDownloading ? const Text('后台下载') : const Text('关闭'),
+                            ),
+                          ],
                         );
                       },
                     );

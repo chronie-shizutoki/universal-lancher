@@ -69,6 +69,8 @@ class _MainPageState extends State<MainPage> {
             children: [
               Text('当前版本: ${updateProvider.localVersion}'),
               Text('最新版本: ${updateProvider.remoteVersion}'),
+              const SizedBox(height: 8),
+              const Text('使用系统下载管理器，下载更稳定'),
               const SizedBox(height: 16),
               const Text('是否立即更新应用？'),
             ],
@@ -81,6 +83,7 @@ class _MainPageState extends State<MainPage> {
             ElevatedButton(
               onPressed: () {
                 Navigator.pop(context);
+                _showDownloadProgressDialog(context);
                 updateProvider.downloadApk();
               },
               child: const Text('立即更新'),
@@ -88,6 +91,75 @@ class _MainPageState extends State<MainPage> {
           ],
         );
       }
+    );
+  }
+
+  void _showDownloadProgressDialog(BuildContext context) {
+    showDialog(
+      context: context, 
+      barrierDismissible: false,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('下载更新'),
+          content: Consumer<UpdateProvider>(
+            builder: (context, provider, child) {
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  LinearProgressIndicator(
+                    value: provider.downloadProgress,
+                    color: Theme.of(context).primaryColor,
+                  ),
+                  SizedBox(height: 16),
+                  Text('下载进度: ${(provider.downloadProgress * 100).toStringAsFixed(0)}%'),
+                  SizedBox(height: 4),
+                  Text(
+                    '使用系统下载管理器，支持后台下载和断点续传',
+                    style: TextStyle(fontSize: 12, color: Colors.grey),
+                  ),
+                  if (provider.errorMessage != null) ...[
+                    SizedBox(height: 8),
+                    Text(
+                      provider.errorMessage!,
+                      style: TextStyle(color: Colors.red),
+                    ),
+                  ],
+                  if (!provider.isDownloading && provider.errorMessage == null) ...[
+                    SizedBox(height: 8),
+                    Text('下载完成，准备安装...'),
+                  ],
+                ],
+              );
+            },
+          ),
+          actions: [
+            Consumer<UpdateProvider>(
+              builder: (context, provider, child) {
+                return Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    if (provider.isDownloading) ...[
+                      TextButton(
+                        onPressed: () async {
+                          await provider.cancelDownload();
+                          if (mounted) Navigator.of(context).pop();
+                        },
+                        child: Text('取消下载'),
+                      ),
+                    ],
+                    TextButton(
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                      child: provider.isDownloading ? Text('后台下载') : Text('关闭'),
+                    ),
+                  ],
+                );
+              },
+            ),
+          ],
+        );
+      },
     );
   }
 

@@ -1,12 +1,16 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:isolate';
+import 'dart:ui';
 import 'dart:math';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:flutter_downloader/flutter_downloader.dart';
 
 /// 更新管理Provider
 class UpdateProvider extends ChangeNotifier {
@@ -20,7 +24,12 @@ class UpdateProvider extends ChangeNotifier {
   String _remoteVersion = '';
   String _localVersion = '';
   String? _errorMessage;
-
+  String? _downloadTaskId;
+  String? _downloadPath;
+  
+  // 用于接收下载进度回调的端口
+  final ReceivePort _port = ReceivePort();
+  
   bool get isCheckingUpdate => _isCheckingUpdate;
   bool get isUpdateAvailable => _isUpdateAvailable;
   bool get isDownloading => _isDownloading;
@@ -32,13 +41,83 @@ class UpdateProvider extends ChangeNotifier {
   /// 初始化
   Future<void> initialize() async {
     try {
+      // 初始化FlutterDownloader
+      await FlutterDownloader.initialize(
+        debug: kDebugMode, // 开发模式下启用调试
+        ignoreSsl: true,   // 允许自签名SSL证书
+      );
+      
+      // 注册下载进度回调
+      _registerCallback();
+      
+      // 获取本地版本信息
       final packageInfo = await PackageInfo.fromPlatform();
       _localVersion = packageInfo.version;
+      
+      // 获取下载路径
+      final directory = await getExternalStorageDirectory();
+      if (directory != null) {
+        _downloadPath = directory.path;
+      }
+      
     } catch (e) {
       if (kDebugMode) {
-        debugPrint('获取本地版本信息失败: $e');
+        debugPrint('初始化失败: $e');
       }
     }
+  }
+  
+  /// 注册下载进度回调
+  void _registerCallback() {
+    // 创建唯一的端口名称
+    const String downloaderPortName = 'downloader_send_port';
+    
+    // 确保回调正确注册
+    IsolateNameServer.removePortNameMapping(downloaderPortName);
+    IsolateNameServer.registerPortWithName(
+      _port.sendPort,
+      downloaderPortName,
+    );
+    
+    // 监听下载进度
+    _port.listen((dynamic data) {
+      if (data is Map<String, dynamic>) {
+        final String taskId = data['task_id'] as String;
+        final int status = data['status'] as int;
+        final int progress = data['progress'] as int;
+        
+        // 只处理我们的下载任务
+        if (taskId == _downloadTaskId) {
+          _downloadProgress = progress / 100.0;
+          
+          if (status == DownloadTaskStatus.complete) {
+    _isDownloading = false;
+    if (kDebugMode) {
+      debugPrint('下载完成');
+    }
+    // 下载完成后安装
+    _installApk('$_downloadPath/com.chronie.universal_lancher.apk');
+  } else if (status == DownloadTaskStatus.failed) {
+    _isDownloading = false;
+    _errorMessage = '下载失败';
+    if (kDebugMode) {
+      debugPrint('下载失败: ${data['error']}');
+    }
+  }
+          
+          notifyListeners();
+        }
+      }
+    });
+    
+    // 设置下载回调
+    FlutterDownloader.registerCallback(_downloadCallback);
+  }
+  
+  /// 下载回调函数（必须是顶级函数或静态方法）
+  static void _downloadCallback(String id, int status, int progress) {
+    final SendPort send = IsolateNameServer.lookupPortByName('downloader_send_port')!;
+    send.send({'task_id': id, 'status': status, 'progress': progress});
   }
 
   /// 检查更新
@@ -108,7 +187,7 @@ class UpdateProvider extends ChangeNotifier {
     }
   }
 
-  /// 下载APK文件
+  /// 下载APK文件 - 使用FlutterDownloader库（原生下载管理器）
   Future<void> downloadApk() async {
     _isDownloading = true;
     _downloadProgress = 0.0;
@@ -116,59 +195,61 @@ class UpdateProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      // 获取存储目录
-      final directory = await getExternalStorageDirectory();
-      if (directory == null) {
-        throw Exception('无法访问存储目录');
-      }
-      
-      final filePath = '${directory.path}/universal_launcher.apk';
-      final file = File(filePath);
-      
-      // 确保目录存在
-      await directory.create(recursive: true);
-      
-      // 开始下载
-      final request = http.Request('GET', Uri.parse(_apkUrl));
-      final response = await request.send();
-      
-      if (response.statusCode == 200) {
-        final totalBytes = response.contentLength ?? 0;
-        int downloadedBytes = 0;
-        
-        final sink = file.openWrite();
-        await response.stream.listen(
-          (List<int> chunk) {
-            downloadedBytes += chunk.length;
-            _downloadProgress = totalBytes > 0 ? downloadedBytes / totalBytes : 0;
-            notifyListeners();
-            sink.add(chunk);
-          },
-          onDone: () async {
-            await sink.close();
-            _isDownloading = false;
-            notifyListeners();
-            // 下载完成后安装APK
-            await _installApk(filePath);
-          },
-          onError: (error) async {
-            await sink.close();
-            _isDownloading = false;
-            _errorMessage = '下载失败: $error';
-            if (kDebugMode) {
-              debugPrint(_errorMessage);
-            }
-            notifyListeners();
-          },
-        ).asFuture();
-      } else {
+      // 检查并请求存储权限
+      final status = await Permission.storage.request();
+      if (status.isDenied) {
         _isDownloading = false;
-        _errorMessage = '下载失败: ${response.statusCode}';
+        _errorMessage = '需要存储权限才能下载更新';
         if (kDebugMode) {
           debugPrint(_errorMessage);
         }
         notifyListeners();
+        return;
       }
+      
+      // 确保下载路径存在
+      if (_downloadPath == null) {
+        final directory = await getExternalStorageDirectory();
+        if (directory == null) {
+          throw Exception('无法访问存储目录');
+        }
+        _downloadPath = directory.path;
+      }
+      
+      final downloadDir = Directory(_downloadPath!);
+      if (!await downloadDir.exists()) {
+        await downloadDir.create(recursive: true);
+      }
+      
+      // 删除之前的下载文件
+      final previousFile = File('$_downloadPath/com.chronie.universal_lancher.apk');
+      if (await previousFile.exists()) {
+        await previousFile.delete();
+      }
+      
+      // 取消之前的下载任务
+      if (_downloadTaskId != null) {
+        await FlutterDownloader.cancel(taskId: _downloadTaskId!);
+      }
+      
+      // 开始新的下载任务
+      _downloadTaskId = await FlutterDownloader.enqueue(
+        url: _apkUrl,
+        savedDir: _downloadPath!,
+        fileName: 'com.chronie.universal_lancher.apk',
+        showNotification: true, // 显示系统下载通知
+        openFileFromNotification: false, // 不自动打开
+        saveInPublicStorage: true, // 保存到公共存储
+      );
+      
+      if (_downloadTaskId == null) {
+        throw Exception('创建下载任务失败');
+      }
+      
+      if (kDebugMode) {
+        debugPrint('开始下载: $_downloadTaskId');
+      }
+      
     } catch (e) {
       _isDownloading = false;
       _errorMessage = '下载时出错: $e';
@@ -178,20 +259,43 @@ class UpdateProvider extends ChangeNotifier {
       notifyListeners();
     }
   }
+  
+  /// 取消下载
+  Future<void> cancelDownload() async {
+    if (_downloadTaskId != null) {
+      await FlutterDownloader.cancel(taskId: _downloadTaskId!);
+      _downloadTaskId = null;
+      _isDownloading = false;
+      _downloadProgress = 0.0;
+      notifyListeners();
+    }
+  }
+  
+  /// 清理资源
+  @override
+  void dispose() {
+    // 移除回调
+    IsolateNameServer.removePortNameMapping('downloader_send_port');
+    super.dispose();
+  }
 
-  /// 安装APK
+  /// 安装APK - 使用原生安装器
   Future<void> _installApk(String filePath) async {
     try {
       if (Platform.isAndroid) {
         final file = File(filePath);
         if (!await file.exists()) {
-          throw Exception('APK文件不存在: $filePath');
+          _errorMessage = 'APK文件不存在: $filePath';
+          if (kDebugMode) {
+            debugPrint(_errorMessage);
+          }
+          notifyListeners();
+          return;
         }
         
-        // 尝试多种安装方式以提高兼容性
         bool installed = false;
         
-        // 方法1: 直接使用文件URI启动
+        // 直接使用文件路径安装APK
         try {
           final fileUri = Uri.file(filePath);
           if (await canLaunchUrl(fileUri)) {
@@ -201,65 +305,27 @@ class UpdateProvider extends ChangeNotifier {
               webViewConfiguration: const WebViewConfiguration(enableJavaScript: false),
             );
             installed = true;
+            if (kDebugMode) {
+              debugPrint('使用文件URI安装成功');
+            }
           }
-        } catch (e1) {
+        } catch (e) {
           if (kDebugMode) {
-            debugPrint('安装方法1失败: $e1');
+            debugPrint('使用文件URI安装失败: $e');
           }
         }
         
-        // 方法2: 使用ACTION_VIEW意图
+        // 如果安装失败
         if (!installed) {
-          try {
-            final intentUrl = 'intent:#Intent;action=android.intent.action.VIEW;scheme=file;path=$filePath;type=application/vnd.android.package-archive;end';
-            if (await canLaunchUrl(Uri.parse(intentUrl))) {
-              await launchUrl(
-                Uri.parse(intentUrl),
-                mode: LaunchMode.externalApplication,
-              );
-              installed = true;
-            }
-          } catch (e2) {
-            if (kDebugMode) {
-              debugPrint('安装方法2失败: $e2');
-            }
-          }
-        }
-        
-        // 方法3: 使用content:// URI（适用于Android 7+）
-        if (!installed) {
-          try {
-            final contentUrl = 'content://$filePath';
-            if (await canLaunchUrl(Uri.parse(contentUrl))) {
-              await launchUrl(
-                Uri.parse(contentUrl),
-                mode: LaunchMode.externalApplication,
-              );
-              installed = true;
-            }
-          } catch (e3) {
-            if (kDebugMode) {
-              debugPrint('安装方法3失败: $e3');
-            }
-          }
-        }
-        
-        if (!installed) {
-          _errorMessage = '无法启动安装程序，请手动安装APK文件';
+          _errorMessage = '无法安装更新，请手动安装';
           if (kDebugMode) {
             debugPrint(_errorMessage);
           }
           notifyListeners();
         }
-      } else {
-        _errorMessage = '当前平台不支持安装APK';
-        if (kDebugMode) {
-          debugPrint(_errorMessage);
-        }
-        notifyListeners();
       }
     } catch (e) {
-      _errorMessage = '安装APK时出错: $e';
+      _errorMessage = '安装APK失败: $e';
       if (kDebugMode) {
         debugPrint(_errorMessage);
       }
@@ -275,9 +341,5 @@ class UpdateProvider extends ChangeNotifier {
     }
   }
 
-  /// 清除错误信息
-  void clearError() {
-    _errorMessage = null;
-    notifyListeners();
-  }
+
 }

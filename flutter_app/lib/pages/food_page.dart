@@ -389,7 +389,7 @@ class _FoodPageState extends State<FoodPage> with SingleTickerProviderStateMixin
                       shape: BoxShape.circle,
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.2),
+                          color: Colors.black.withValues(alpha: 0.2),
                           blurRadius: 6,
                           offset: const Offset(0, 2),
                         ),
@@ -438,7 +438,7 @@ class _FoodPageState extends State<FoodPage> with SingleTickerProviderStateMixin
           borderRadius: BorderRadius.circular(25),
         ),
         elevation: _currentTab == index ? 4 : 2,
-        shadowColor: Colors.black.withOpacity(0.3),
+        shadowColor: Colors.black.withValues(alpha: 0.3),
       ),
       child: Text(
         title,
@@ -472,7 +472,7 @@ class _FoodPageState extends State<FoodPage> with SingleTickerProviderStateMixin
                       color: Colors.grey[100],
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
+                          color: Colors.black.withValues(alpha: 0.1),
                           blurRadius: 15,
                           offset: const Offset(0, 8),
                         ),
@@ -483,7 +483,7 @@ class _FoodPageState extends State<FoodPage> with SingleTickerProviderStateMixin
                   // 旋转的转盘 - 包含扇形分区
                   Transform.rotate(
                     angle: _rotation * pi / 180, // 将角度转换为弧度
-                    child: Container(
+                    child: SizedBox(
                       width: 200,
                       height: 200,
                       child: CustomPaint(
@@ -495,7 +495,7 @@ class _FoodPageState extends State<FoodPage> with SingleTickerProviderStateMixin
                   // 固定在中心的指示器
                   Positioned(
                     top: 0,
-                    child: Container(
+                    child: SizedBox(
                       width: 200,
                       height: 200,
                       child: Stack(
@@ -734,7 +734,7 @@ class _FoodPageState extends State<FoodPage> with SingleTickerProviderStateMixin
                         border: Border.all(color: dayBorderColors[index], width: 2),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.1),
+                            color: Colors.black.withValues(alpha: 0.1),
                             blurRadius: 6,
                             offset: const Offset(0, 3),
                           ),
@@ -764,7 +764,7 @@ class _FoodPageState extends State<FoodPage> with SingleTickerProviderStateMixin
                             ),
                           ),
                           Text(
-                            '${food.category}',
+                            food.category,
                             style: TextStyle(
                               color: Colors.grey.shade600,
                               fontSize: 14,

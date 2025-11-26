@@ -18,7 +18,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # of the product and file versions while build-number is used as the build suffix.
 # 注意：版本号会在构建时通过 generate_version.dart 脚本动态生成
 # 格式：1.年月日.时分+时间戳（秒）
-version: 1.20251127.0007+1764173237
+version: 1.20251127.0057+1764176270
 
 environment:
   sdk: ">=3.5.0 <4.0.0"
@@ -57,6 +57,15 @@ dependencies:
   
   # 获取应用版本信息
   package_info_plus: ^8.0.2
+  
+  # 下载管理库，使用原生下载管理器
+  flutter_downloader: ^1.12.0
+  
+  # 权限管理
+  permission_handler: ^11.3.1
+  
+  # 路径提供
+  path_provider: ^2.1.4
 
 dev_dependencies:
   flutter_test:

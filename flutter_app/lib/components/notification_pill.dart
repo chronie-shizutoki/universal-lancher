@@ -67,12 +67,12 @@ class NotificationPill extends StatelessWidget {
         decoration: BoxDecoration(
           color: notification!.isRead
               ? (isDarkMode ? Colors.grey.shade800 : Colors.grey.shade100)
-              : notification!.priority.color.withOpacity(0.1),
+              : notification!.priority.color.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
             color: notification!.isRead
                 ? (isDarkMode ? Colors.grey.shade700 : Colors.grey.shade300)
-                : notification!.priority.color.withOpacity(0.5),
+                : notification!.priority.color.withValues(alpha: 0.5),
           ),
         ),
         child: Row(

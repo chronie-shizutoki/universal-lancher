@@ -4,7 +4,6 @@ import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 import '../models/food_item.dart';
-import '../models/food_category.dart';
 
 class FoodProvider extends ChangeNotifier {
   List<FoodItem> _foodItems = [];

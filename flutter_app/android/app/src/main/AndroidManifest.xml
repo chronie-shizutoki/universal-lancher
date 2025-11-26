@@ -10,6 +10,29 @@
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
         android:usesCleartextTraffic="true">
+        <!-- Flutter Downloader 所需配置 -->
+        <provider
+            android:name="vn.hunghd.flutterdownloader.DownloadedFileProvider"
+            android:authorities="${applicationId}.flutter_downloader.provider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/provider_paths" />
+        </provider>
+        <!-- Flutter Downloader 下载服务 -->
+        <service
+            android:name="vn.hunghd.flutterdownloader.DownloadService"
+            android:enqueueWork="true"
+            android:exported="false" />
+        <!-- Flutter Downloader 接收器 -->
+        <receiver
+            android:name="vn.hunghd.flutterdownloader.DownloadReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.DOWNLOAD_COMPLETE" />
+            </intent-filter>
+        </receiver>
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -32,6 +55,15 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
+        <!-- Flutter Downloader 所需的 Job Service -->
+        <service
+            android:name="vn.hunghd.flutterdownloader.DownloadWorker"
+            android:exported="true"
+            android:permission="android.permission.BIND_JOB_SERVICE" />
+        <!-- 允许从存储访问文件 -->
+        <meta-data
+            android:name="flutter_downloader.notification.icon"
+            android:resource="@mipmap/ic_launcher" />
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
         <meta-data
