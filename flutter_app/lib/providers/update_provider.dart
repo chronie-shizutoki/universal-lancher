@@ -195,43 +195,27 @@ class UpdateProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      // 检查并请求存储权限
-      final status = await Permission.storage.request();
+      // 移除外部存储权限请求，使用应用专属目录下载更新
+      // 应用专属目录不需要请求外部存储权限，提高用户体验
       
-      if (status.isDenied) {
-        _isDownloading = false;
-        _errorMessage = '需要存储权限才能下载更新';
-        if (kDebugMode) {
-          debugPrint(_errorMessage);
-        }
-        notifyListeners();
-        return;
-      } else if (status.isPermanentlyDenied) {
-        _isDownloading = false;
-        _errorMessage = '存储权限已被永久拒绝，请在设置中手动授权';
-        if (kDebugMode) {
-          debugPrint(_errorMessage);
-        }
-        notifyListeners();
-        // 可以在UI层添加逻辑，引导用户去设置页面
-        return;
-      } else if (!status.isGranted) {
-        _isDownloading = false;
-        _errorMessage = '存储权限未授予，请允许访问存储';
-        if (kDebugMode) {
-          debugPrint(_errorMessage);
-        }
-        notifyListeners();
-        return;
-      }
-      
-      // 确保下载路径存在
+      // 确保下载路径存在 - 使用应用专属目录，不需要存储权限
       if (_downloadPath == null) {
-        final directory = await getExternalStorageDirectory();
-        if (directory == null) {
-          throw Exception('无法访问存储目录');
+        try {
+          // 优先使用应用专属目录，不需要存储权限
+          final directory = await getApplicationDocumentsDirectory();
+          if (directory == null) {
+            throw Exception('无法访问应用目录');
+          }
+          _downloadPath = '${directory.path}/updates';
+        } catch (e) {
+          _isDownloading = false;
+          _errorMessage = '初始化下载目录失败: $e';
+          if (kDebugMode) {
+            debugPrint(_errorMessage);
+          }
+          notifyListeners();
+          return;
         }
-        _downloadPath = directory.path;
       }
       
       final downloadDir = Directory(_downloadPath!);
@@ -257,7 +241,7 @@ class UpdateProvider extends ChangeNotifier {
         fileName: 'com.chronie.universal_lancher.apk',
         showNotification: true, // 显示系统下载通知
         openFileFromNotification: false, // 不自动打开
-        saveInPublicStorage: true, // 保存到公共存储
+        saveInPublicStorage: false, // 保存到应用专属目录，不需要外部存储权限
       );
       
       if (_downloadTaskId == null) {
