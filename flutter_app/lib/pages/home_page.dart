@@ -3,6 +3,9 @@ import 'package:provider/provider.dart';
 import '../models/service_item.dart';
 import '../providers/service_provider.dart';
 import '../providers/theme_provider.dart';
+import '../providers/notification_provider.dart';
+import '../components/notification_pill.dart';
+import '../components/notification_list.dart';
 import 'webview_page.dart';
 import 'edit_service_page.dart';
 
@@ -146,6 +149,36 @@ class HomePage extends StatelessWidget {
                     ],
                   ),
                 ),
+              ),
+              
+              // 通知胶囊
+              SliverToBoxAdapter(
+                child: Consumer<NotificationProvider>(
+                  builder: (context, notificationProvider, child) {
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      child: NotificationPill(
+                        notification: notificationProvider.latestNotification,
+                        onTap: () {
+                          showModalBottomSheet(
+                            context: context,
+                            isScrollControlled: true,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.only(
+                                topLeft: Radius.circular(20),
+                                topRight: Radius.circular(20),
+                              ),
+                            ),
+                            builder: (context) => NotificationList(),
+                          );
+                        },
+                      ),
+                    );
+                  },
+                ),
+              ),
+              const SliverToBoxAdapter(
+                child: SizedBox(height: 24),
               ),
               
               // 服务网格

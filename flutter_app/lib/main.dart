@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'providers/service_provider.dart';
 import 'providers/theme_provider.dart';
 import 'providers/food_provider.dart';
+import 'providers/notification_provider.dart';
 import 'pages/main_page.dart';
 
 void main() {
@@ -19,6 +20,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (context) => ServiceProvider()),
         ChangeNotifierProvider(create: (context) => ThemeProvider()),
         ChangeNotifierProvider(create: (context) => FoodProvider()),
+        ChangeNotifierProvider(create: (context) => NotificationProvider()),
       ],
       child: Consumer<ThemeProvider>(
         builder: (context, themeProvider, child) {
