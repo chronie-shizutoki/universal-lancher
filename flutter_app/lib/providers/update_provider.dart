@@ -54,12 +54,20 @@ class UpdateProvider extends ChangeNotifier {
       final packageInfo = await PackageInfo.fromPlatform();
       _localVersion = packageInfo.version;
       
-      // 获取下载路径
-      final directory = await getExternalStorageDirectory();
+      // 使用应用专属目录作为下载路径，与downloadApk方法保持一致
+      final directory = await getApplicationDocumentsDirectory();
       if (directory != null) {
-        _downloadPath = directory.path;
+        _downloadPath = '${directory.path}/updates';
+        // 确保目录存在
+        final downloadDir = Directory(_downloadPath!);
+        if (!await downloadDir.exists()) {
+          await downloadDir.create(recursive: true);
+        }
       }
       
+      if (kDebugMode) {
+        debugPrint('初始化完成，下载路径: $_downloadPath');
+      }
     } catch (e) {
       if (kDebugMode) {
         debugPrint('初始化失败: $e');
@@ -74,10 +82,14 @@ class UpdateProvider extends ChangeNotifier {
     
     // 确保回调正确注册
     IsolateNameServer.removePortNameMapping(downloaderPortName);
-    IsolateNameServer.registerPortWithName(
+    bool registered = IsolateNameServer.registerPortWithName(
       _port.sendPort,
       downloaderPortName,
     );
+    
+    if (kDebugMode) {
+      debugPrint('下载回调注册: $registered');
+    }
     
     // 监听下载进度
     _port.listen((dynamic data) {
@@ -85,6 +97,10 @@ class UpdateProvider extends ChangeNotifier {
         final String taskId = data['task_id'] as String;
         final int status = data['status'] as int;
         final int progress = data['progress'] as int;
+        
+        if (kDebugMode) {
+          debugPrint('收到下载进度: taskId=$taskId, status=$status, progress=$progress');
+        }
         
         // 只处理我们的下载任务
         if (taskId == _downloadTaskId) {
@@ -96,7 +112,11 @@ class UpdateProvider extends ChangeNotifier {
       debugPrint('下载完成');
     }
     // 下载完成后安装
-    _installApk('$_downloadPath/com.chronie.universal_lancher.apk');
+    final apkPath = '$_downloadPath/com.chronie.universal_lancher.apk';
+    if (kDebugMode) {
+      debugPrint('尝试安装APK: $apkPath');
+    }
+    _installApk(apkPath);
   } else if (status == DownloadTaskStatus.failed) {
     _isDownloading = false;
     _errorMessage = '下载失败';
@@ -105,6 +125,7 @@ class UpdateProvider extends ChangeNotifier {
     }
   }
           
+          // 强制通知所有监听者，确保UI更新
           notifyListeners();
         }
       }
@@ -207,6 +228,9 @@ class UpdateProvider extends ChangeNotifier {
             throw Exception('无法访问应用目录');
           }
           _downloadPath = '${directory.path}/updates';
+          if (kDebugMode) {
+            debugPrint('下载路径设置为: $_downloadPath');
+          }
         } catch (e) {
           _isDownloading = false;
           _errorMessage = '初始化下载目录失败: $e';
@@ -300,20 +324,41 @@ class UpdateProvider extends ChangeNotifier {
         // 直接使用文件路径安装APK
         try {
           final fileUri = Uri.file(filePath);
-          if (await canLaunchUrl(fileUri)) {
-            await launchUrl(
-              fileUri,
-              mode: LaunchMode.externalApplication,
-              webViewConfiguration: const WebViewConfiguration(enableJavaScript: false),
-            );
-            installed = true;
-            if (kDebugMode) {
-              debugPrint('使用文件URI安装成功');
-            }
+          if (kDebugMode) {
+            debugPrint('准备启动安装: $fileUri');
+          }
+          
+          // 使用try-catch包装launchUrl调用，确保异常被捕获
+          await launchUrl(
+            fileUri,
+            mode: LaunchMode.externalApplication,
+            webViewConfiguration: const WebViewConfiguration(enableJavaScript: false),
+          );
+          installed = true;
+          if (kDebugMode) {
+            debugPrint('使用文件URI安装成功');
           }
         } catch (e) {
           if (kDebugMode) {
             debugPrint('使用文件URI安装失败: $e');
+          }
+          // 尝试替代方法
+          try {
+            final urlString = file.path;
+            if (await canLaunchUrl(Uri.parse(urlString))) {
+              await launchUrl(
+                Uri.parse(urlString),
+                mode: LaunchMode.externalApplication,
+              );
+              installed = true;
+              if (kDebugMode) {
+                debugPrint('使用替代方法安装成功');
+              }
+            }
+          } catch (innerError) {
+            if (kDebugMode) {
+              debugPrint('替代安装方法失败: $innerError');
+            }
           }
         }
         
