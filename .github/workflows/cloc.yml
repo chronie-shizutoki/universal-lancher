@@ -1,0 +1,116 @@
+name: CLOC Code Statistics
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+  actions: read
+
+jobs:
+  cloc:
+    name: Count Lines of Code
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install cloc
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cloc
+
+      - name: Run cloc and generate reports
+        run: |
+          cloc \
+            --csv \
+            --out=cloc-report.csv \
+            --by-file \
+            --json \
+            --out=cloc-report.json \
+            --md \
+            --out=cloc-report.md \
+            --exclude-dir=.git,node_modules,__pycache__,.pytest_cache,dist,build \
+            .
+
+      - name: Upload cloc reports as artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: cloc-reports
+          path: |
+            cloc-report.csv
+            cloc-report.json
+            cloc-report.md
+
+      - name: Generate summary table for PR comment
+        if: github.event_name == 'pull_request'
+        id: summary
+        run: |
+          python3 <<'EOF'
+          import csv
+          import json
+          import os
+
+          # Read CSV for summary
+          summary = []
+          with open('cloc-report.csv', newline='') as f:
+              reader = csv.DictReader(f)
+              for row in reader:
+                  summary.append({
+                      'language': row['language'],
+                      'files': int(row['files']),
+                      'blank': int(row['blank']),
+                      'comment': int(row['comment']),
+                      'code': int(row['code'])
+                  })
+
+          # Build markdown table
+          headers = ['Language', 'Files', 'Blank', 'Comment', 'Code']
+          rows = [
+              f"| {h} |" for h in headers
+          ]
+          rows.append('|' + '|'.join(['---'] * len(headers)) + '|')
+          for lang in summary:
+              rows.append(
+                  f"| {lang['language']} | {lang['files']} | {lang['blank']} | {lang['comment']} | {lang['code']} |"
+              )
+          table = '\n'.join(rows)
+
+          # Write to environment file for next step
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
+              f.write(f"table<<EOF\n{table}\nEOF\n")
+
+          # Also write JSON for future extensibility
+          with open('cloc-summary.json', 'w') as f:
+              json.dump(summary, f, indent=2)
+          EOF
+
+      - name: Comment PR with cloc summary
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const table = `${{ steps.summary.outputs.table }}`;
+            const body = `## 📊 Lines of Code Report (cloc)\n\n${table}\n\n<details><summary>Full reports</summary>\n\nDownload artifacts from the [workflow run](../actions/runs/${{ github.run_id }}).\n\n</details>`;
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body
+            });
+
+      - name: Generate job summary
+        run: |
+          echo "## CLOC Report" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          cat cloc-report.md >> $GITHUB_STEP_SUMMARY
