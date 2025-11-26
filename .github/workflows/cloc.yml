@@ -35,7 +35,6 @@ jobs:
           cloc \
             --csv \
             --out=cloc-report.csv \
-            --by-file \
             --json \
             --out=cloc-report.json \
             --md \
