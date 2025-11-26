@@ -371,4 +371,3 @@ jobs:
           print("\n摘要内容预览:")
           print(summary_content[:1000] + "..." if len(summary_content) > 1000 else summary_content)
           EOF
-","}]}
