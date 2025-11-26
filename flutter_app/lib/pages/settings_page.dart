@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 import '../providers/theme_provider.dart';
+import '../providers/update_provider.dart';
 
 /// 设置页面
 class SettingsPage extends StatefulWidget {
@@ -125,6 +126,16 @@ class _SettingsPageState extends State<SettingsPage> {
                     Icons.store,
                     onTap: () {
                       _launchAppStore();
+                    },
+                  ),
+                  const Divider(height: 1),
+                  _buildInfoTile(
+                    context,
+                    '检查更新',
+                    '检查新版本',
+                    Icons.system_update_alt_outlined,
+                    onTap: () {
+                      _manualCheckUpdate();
                     },
                   ),
                 ],
@@ -295,6 +306,156 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   /// 显示重置确认对话框
+  Future<void> _manualCheckUpdate() async {
+    final updateProvider = Provider.of<UpdateProvider>(context, listen: false);
+    
+    // 显示加载对话框
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('检查更新'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const CircularProgressIndicator(),
+              const SizedBox(height: 16),
+              const Text('正在检查新版本...'),
+            ],
+          ),
+        );
+      },
+    );
+    
+    try {
+      // 确保初始化
+      if (updateProvider.localVersion.isEmpty) {
+        await updateProvider.initialize();
+      }
+      
+      await updateProvider.checkUpdate();
+      
+      // 关闭加载对话框
+      Navigator.pop(context);
+      
+      if (updateProvider.isUpdateAvailable) {
+        _showUpdateDialog(context, updateProvider);
+      } else {
+        // 显示已是最新版本的提示
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('当前已是最新版本')),
+        );
+      }
+    } catch (e) {
+      // 关闭加载对话框
+      Navigator.pop(context);
+      
+      // 显示错误提示
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('检查更新失败: $e')),
+      );
+    }
+  }
+
+  void _showUpdateDialog(BuildContext context, UpdateProvider updateProvider) {
+    showDialog(
+      context: context, 
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('发现新版本'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('当前版本: ${updateProvider.localVersion}'),
+              Text('最新版本: ${updateProvider.remoteVersion}'),
+              const SizedBox(height: 16),
+              const Text('是否立即更新应用？'),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('稍后'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                Navigator.pop(context);
+                
+                // 显示下载进度对话框
+                showDialog(
+                  context: context,
+                  barrierDismissible: false,
+                  builder: (context) {
+                    return Consumer<UpdateProvider>(
+                      builder: (context, provider, child) {
+                        return AlertDialog(
+                          title: const Text('下载更新'),
+                          content: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              LinearProgressIndicator(
+                                value: provider.downloadProgress,
+                                backgroundColor: Colors.grey.shade200,
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  Theme.of(context).colorScheme.primary,
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                provider.isDownloading
+                                  ? '正在下载... ${(provider.downloadProgress * 100).toStringAsFixed(1)}%'
+                                  : provider.errorMessage ?? '准备下载...',
+                              ),
+                              if (provider.errorMessage != null) const SizedBox(height: 16),
+                              if (provider.errorMessage != null)
+                                TextButton(
+                                  onPressed: () {
+                                    provider.clearError();
+                                    provider.downloadApk();
+                                  },
+                                  child: const Text('重试'),
+                                ),
+                            ],
+                          ),
+                          actions: provider.isDownloading
+                            ? [
+                                TextButton(
+                                  onPressed: () {
+                                    // 可以添加取消下载的逻辑
+                                    Navigator.pop(context);
+                                  },
+                                  child: const Text('取消'),
+                                ),
+                              ]
+                            : provider.errorMessage != null
+                              ? [
+                                  TextButton(
+                                    onPressed: () {
+                                      Navigator.pop(context);
+                                    },
+                                    child: const Text('关闭'),
+                                  ),
+                                ]
+                              : [],
+                        );
+                      },
+                    );
+                  },
+                );
+                
+                // 开始下载
+                await updateProvider.downloadApk();
+              },
+              child: const Text('立即更新'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   void _showResetDialog() {
     showDialog(
       context: context,

@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
+import 'package:provider/provider.dart';
 import 'home_page.dart';
 import 'check_service_page.dart';
 import 'rate_calculator_page.dart';
 import 'settings_page.dart';
 import 'food_page.dart';
+import '../providers/update_provider.dart';
 
 class MainPage extends StatefulWidget {
   const MainPage({super.key});
@@ -14,6 +17,79 @@ class MainPage extends StatefulWidget {
 
 class _MainPageState extends State<MainPage> {
   int _currentIndex = 0;
+  bool _hasCheckedUpdate = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // 初始化UpdateProvider并检查更新
+    _initializeAndCheckUpdate();
+  }
+
+  Future<void> _initializeAndCheckUpdate() async {
+    try {
+      final updateProvider = Provider.of<UpdateProvider>(context, listen: false);
+      await updateProvider.initialize();
+      
+      // 延迟一下再检查更新，让应用先完全加载
+      Future.delayed(const Duration(seconds: 2), () {
+        _checkUpdate();
+      });
+    } catch (e) {
+      if (kDebugMode) {
+        print('初始化更新检查失败: $e');
+      }
+    }
+  }
+
+  void _checkUpdate() {
+    if (_hasCheckedUpdate) return;
+    
+    final updateProvider = Provider.of<UpdateProvider>(context, listen: false);
+    updateProvider.checkUpdate().then((_) {
+      _hasCheckedUpdate = true;
+      if (updateProvider.isUpdateAvailable) {
+        // 在UI线程中显示更新对话框
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _showUpdateDialog(context, updateProvider);
+        });
+      }
+    });
+  }
+
+  void _showUpdateDialog(BuildContext context, UpdateProvider updateProvider) {
+    showDialog(
+      context: context, 
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('发现新版本'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('当前版本: ${updateProvider.localVersion}'),
+              Text('最新版本: ${updateProvider.remoteVersion}'),
+              const SizedBox(height: 16),
+              const Text('是否立即更新应用？'),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('稍后'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(context);
+                updateProvider.downloadApk();
+              },
+              child: const Text('立即更新'),
+            ),
+          ],
+        );
+      }
+    );
+  }
 
   final List<Widget> _pages = [
     const HomePage(),
