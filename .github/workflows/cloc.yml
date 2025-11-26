@@ -110,6 +110,59 @@ jobs:
 
       - name: Generate job summary
         run: |
-          echo "## CLOC Report" >> $GITHUB_STEP_SUMMARY
+          # 添加标题
+          echo "## 📊 CLOC Report" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          cat cloc-report.md >> $GITHUB_STEP_SUMMARY
+          
+          # 生成优化的表格显示
+          python3 <<'EOF'
+          import csv
+          import os
+          
+          # 读取CSV数据
+          summary = []
+          with open('cloc-report.csv', newline='') as f:
+              reader = csv.DictReader(f)
+              for row in reader:
+                  summary.append({
+                      'language': row['language'],
+                      'files': int(row['files']),
+                      'blank': int(row['blank']),
+                      'comment': int(row['comment']),
+                      'code': int(row['code'])
+                  })
+          
+          # 按代码行数降序排序
+          summary.sort(key=lambda x: x['code'], reverse=True)
+          
+          # 计算总计
+          total_files = sum(lang['files'] for lang in summary)
+          total_blank = sum(lang['blank'] for lang in summary)
+          total_comment = sum(lang['comment'] for lang in summary)
+          total_code = sum(lang['code'] for lang in summary)
+          
+          # 写入优化的表格到工作流摘要
+          with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as f:
+              f.write("### 代码统计摘要\n\n")
+              f.write("| 语言 | 文件数 | 空行数 | 注释行数 | 代码行数 | 占比 |\n")
+              f.write("|------|--------|--------|----------|----------|------|\n")
+              
+              # 写入每个语言的数据
+              for lang in summary:
+                  percentage = (lang['code'] / total_code * 100) if total_code > 0 else 0
+                  f.write(f"| {lang['language']} | {lang['files']:,} | {lang['blank']:,} | {lang['comment']:,} | {lang['code']:,} | {percentage:.1f}% |\n")
+              
+              # 写入总计行
+              f.write("| **总计** | **{:,}** | **{:,}** | **{:,}** | **{:,}** | **100.0%** |\n\n".format(total_files, total_blank, total_comment, total_code))
+              
+              # 添加一些额外的统计信息
+              f.write("### 项目统计信息\n\n")
+              f.write(f"- **总文件数**: {total_files:,}\n")
+              f.write(f"- **总代码行数**: {total_code:,}\n")
+              f.write(f"- **注释率**: {total_comment / (total_code + total_comment) * 100:.1f}%\n")
+              f.write(f"- **空白率**: {total_blank / (total_code + total_blank) * 100:.1f}%\n\n")
+          EOF
+          
+          # 添加完整报告的引用
+          echo "### 完整报告\n\n" >> $GITHUB_STEP_SUMMARY
+          echo "完整的代码统计报告可在[构建产物](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})中下载。" >> $GITHUB_STEP_SUMMARY
