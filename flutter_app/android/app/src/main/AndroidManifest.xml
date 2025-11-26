@@ -23,7 +23,6 @@
         <!-- Flutter Downloader 下载服务 -->
         <service
             android:name="vn.hunghd.flutterdownloader.DownloadService"
-            android:enqueueWork="true"
             android:exported="false" />
         <!-- Flutter Downloader 接收器 -->
         <receiver
@@ -55,11 +54,7 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
-        <!-- Flutter Downloader 所需的 Job Service -->
-        <service
-            android:name="vn.hunghd.flutterdownloader.DownloadWorker"
-            android:exported="true"
-            android:permission="android.permission.BIND_JOB_SERVICE" />
+        <!-- Flutter Downloader 相关配置已在插件内部处理 -->
         <!-- 允许从存储访问文件 -->
         <meta-data
             android:name="flutter_downloader.notification.icon"
