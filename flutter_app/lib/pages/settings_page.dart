@@ -395,20 +395,23 @@ class _SettingsPageState extends State<SettingsPage> {
                           content: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              LinearProgressIndicator(
-                                value: provider.downloadProgress,
-                                backgroundColor: Colors.grey.shade200,
-                                valueColor: AlwaysStoppedAnimation<Color>(
-                                  Theme.of(context).colorScheme.primary,
-                                ),
-                              ),
+                              provider.isDownloading
+                                  ? const Column(
+                                      children: [
+                                        CircularProgressIndicator(),
+                                        SizedBox(height: 8),
+                                        Text('正在启动系统下载器...'),
+                                      ],
+                                    )
+                                  : const SizedBox(),
                               const SizedBox(height: 8),
                               Text(
-                                '下载进度: ${(provider.downloadProgress * 100).toStringAsFixed(0)}%',
+                                '系统下载管理器提供更稳定的下载体验',
+                                style: TextStyle(fontSize: 12, color: Colors.grey),
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                '系统下载管理器提供更稳定的下载体验',
+                                '请在系统通知栏查看下载进度',
                                 style: TextStyle(fontSize: 12, color: Colors.grey),
                               ),
                               if (provider.errorMessage != null) const SizedBox(height: 16),
@@ -417,9 +420,9 @@ class _SettingsPageState extends State<SettingsPage> {
                                   provider.errorMessage!,
                                   style: TextStyle(color: Colors.red),
                                 ),
-                              if (!provider.isDownloading && !provider.isCheckingUpdate && provider.errorMessage == null) ...[
+                              if (!provider.isDownloading && !provider.isCheckingUpdate) ...[
                                 const SizedBox(height: 16),
-                                Text('下载完成，准备安装...'),
+                                Text('下载已开始，点击下方按钮打开下载文件夹安装'),
                               ],
                             ],
                           ),
@@ -428,15 +431,23 @@ class _SettingsPageState extends State<SettingsPage> {
                               TextButton(
                                 onPressed: () async {
                                   await provider.cancelDownload();
-                                  Navigator.pop(context);
+                                  // 不立即关闭对话框，让用户看到取消提示
                                 },
                                 child: const Text('取消下载'),
+                              ),
+                            if (!provider.isDownloading && !provider.isCheckingUpdate)
+                              ElevatedButton(
+                                onPressed: () async {
+                                  await provider.openFileManagerToInstall();
+                                  Navigator.pop(context);
+                                },
+                                child: const Text('打开下载文件夹'),
                               ),
                             TextButton(
                               onPressed: () {
                                 Navigator.pop(context);
                               },
-                              child: provider.isDownloading ? const Text('后台下载') : const Text('关闭'),
+                              child: const Text('关闭'),
                             ),
                           ],
                         );

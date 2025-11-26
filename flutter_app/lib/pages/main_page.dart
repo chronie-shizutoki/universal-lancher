@@ -106,15 +106,23 @@ class _MainPageState extends State<MainPage> {
               return Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  LinearProgressIndicator(
-                    value: provider.downloadProgress,
-                    color: Theme.of(context).primaryColor,
-                  ),
-                  SizedBox(height: 16),
-                  Text('下载进度: ${(provider.downloadProgress * 100).toStringAsFixed(0)}%'),
-                  SizedBox(height: 4),
+                  provider.isDownloading
+                      ? const Column(
+                          children: [
+                            CircularProgressIndicator(),
+                            SizedBox(height: 8),
+                            Text('正在启动系统下载器...'),
+                          ],
+                        )
+                      : const SizedBox(),
+                  const SizedBox(height: 8),
                   Text(
-                    '使用系统下载管理器，支持后台下载和断点续传',
+                    '系统下载管理器提供更稳定的下载体验',
+                    style: TextStyle(fontSize: 12, color: Colors.grey),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    '请在系统通知栏查看下载进度',
                     style: TextStyle(fontSize: 12, color: Colors.grey),
                   ),
                   if (provider.errorMessage != null) ...[
@@ -124,9 +132,9 @@ class _MainPageState extends State<MainPage> {
                       style: TextStyle(color: Colors.red),
                     ),
                   ],
-                  if (!provider.isDownloading && provider.errorMessage == null) ...[
+                  if (!provider.isDownloading) ...[
                     SizedBox(height: 8),
-                    Text('下载完成，准备安装...'),
+                    Text('下载已开始，点击下方按钮打开下载文件夹安装'),
                   ],
                 ],
               );
