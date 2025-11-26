@@ -84,7 +84,7 @@ class NotificationItem {
       title: json['title'] ?? '',
       content: json['content'] ?? '',
       priority: NotificationPriority.fromString(json['priority'] ?? 'medium'),
-      createdAt: DateTime.parse(json['createdAt'] ?? DateTime.now().toIso8601String()),
+      createdAt: DateTime.parse(json['created_at'] ?? DateTime.now().toIso8601String()),
       isRead: json['isRead'] ?? false,
     );
   }

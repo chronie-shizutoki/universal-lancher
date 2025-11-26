@@ -90,8 +90,7 @@ class NotificationCard extends StatelessWidget {
                     color: isDarkMode ? Colors.grey[300] : Colors.grey[700],
                     height: 1.4,
                   ),
-                  maxLines: 3,
-                  overflow: TextOverflow.ellipsis,
+                  // 移除行数限制，让内容完整显示
                 ),
               ),
               
