@@ -197,9 +197,27 @@ class UpdateProvider extends ChangeNotifier {
     try {
       // 检查并请求存储权限
       final status = await Permission.storage.request();
+      
       if (status.isDenied) {
         _isDownloading = false;
         _errorMessage = '需要存储权限才能下载更新';
+        if (kDebugMode) {
+          debugPrint(_errorMessage);
+        }
+        notifyListeners();
+        return;
+      } else if (status.isPermanentlyDenied) {
+        _isDownloading = false;
+        _errorMessage = '存储权限已被永久拒绝，请在设置中手动授权';
+        if (kDebugMode) {
+          debugPrint(_errorMessage);
+        }
+        notifyListeners();
+        // 可以在UI层添加逻辑，引导用户去设置页面
+        return;
+      } else if (!status.isGranted) {
+        _isDownloading = false;
+        _errorMessage = '存储权限未授予，请允许访问存储';
         if (kDebugMode) {
           debugPrint(_errorMessage);
         }

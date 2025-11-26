@@ -413,9 +413,41 @@ class _SettingsPageState extends State<SettingsPage> {
                               ),
                               if (provider.errorMessage != null) const SizedBox(height: 16),
                               if (provider.errorMessage != null)
-                                Text(
-                                  provider.errorMessage!,
-                                  style: TextStyle(color: Colors.red),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      provider.errorMessage!,
+                                      style: TextStyle(color: Colors.red),
+                                    ),
+                                    // 当错误消息包含"设置"或"永久拒绝"时，显示前往设置页面的按钮
+                                    if (provider.errorMessage!.contains('设置') || 
+                                        provider.errorMessage!.contains('永久拒绝'))
+                                      const SizedBox(height: 16),
+                                    if (provider.errorMessage!.contains('设置') || 
+                                        provider.errorMessage!.contains('永久拒绝'))
+                                      ElevatedButton(
+                                        onPressed: () async {
+                                          // 打开应用设置页面
+                                          try {
+                                            await launchUrlString(
+                                              'app-settings:',
+                                              mode: LaunchMode.externalApplication,
+                                            );
+                                          } catch (e) {
+                                            if (mounted) {
+                                              ScaffoldMessenger.of(context).showSnackBar(
+                                                SnackBar(content: Text('无法打开设置页面: $e')),
+                                              );
+                                            }
+                                          }
+                                        },
+                                        child: const Text('前往设置'),
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: Theme.of(context).colorScheme.primary,
+                                        ),
+                                      ),
+                                  ],
                                 ),
                               if (!provider.isDownloading && !provider.isCheckingUpdate && provider.errorMessage == null) ...[
                                 const SizedBox(height: 16),
