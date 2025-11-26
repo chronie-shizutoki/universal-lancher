@@ -4,8 +4,27 @@ import '../providers/notification_provider.dart';
 import 'notification_card.dart';
 
 /// 通知列表组件
-class NotificationList extends StatelessWidget {
+class NotificationList extends StatefulWidget {
   const NotificationList({super.key});
+
+  @override
+  State<NotificationList> createState() => _NotificationListState();
+}
+
+class _NotificationListState extends State<NotificationList> {
+  // 通知API URL
+  static const String NOTIFICATIONS_URL = 'https://universal-launcher.netlify.app/notifications.json';
+
+  @override
+  void initState() {
+    super.initState();
+    
+    // 组件初始化时自动加载通知数据
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final notificationProvider = Provider.of<NotificationProvider>(context, listen: false);
+      notificationProvider.loadNotifications(NOTIFICATIONS_URL);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -76,8 +95,7 @@ class NotificationList extends StatelessWidget {
                     ElevatedButton(
                       onPressed: () {
                         // 重新加载通知
-                        // 这里需要一个URL，可以从配置或常量中获取
-                        notificationProvider.loadNotifications('https://universal-launcher.netlify.app/notifications.json');
+                        notificationProvider.loadNotifications(NOTIFICATIONS_URL);
                       },
                       child: Text('重试'),
                     ),

@@ -153,29 +153,7 @@ class HomePage extends StatelessWidget {
               
               // 通知胶囊
               SliverToBoxAdapter(
-                child: Consumer<NotificationProvider>(
-                  builder: (context, notificationProvider, child) {
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 24),
-                      child: NotificationPill(
-                        notification: notificationProvider.latestNotification,
-                        onTap: () {
-                          showModalBottomSheet(
-                            context: context,
-                            isScrollControlled: true,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.only(
-                                topLeft: Radius.circular(20),
-                                topRight: Radius.circular(20),
-                              ),
-                            ),
-                            builder: (context) => NotificationList(),
-                          );
-                        },
-                      ),
-                    );
-                  },
-                ),
+                child: NotificationCapsuleSection(),
               ),
               const SliverToBoxAdapter(
                 child: SizedBox(height: 24),
@@ -258,6 +236,63 @@ class HomePage extends StatelessWidget {
     ),
   ),
 );
+  }
+}
+
+/// 通知胶囊区域组件
+class NotificationCapsuleSection extends StatefulWidget {
+  @override
+  _NotificationCapsuleSectionState createState() => _NotificationCapsuleSectionState();
+}
+
+class _NotificationCapsuleSectionState extends State<NotificationCapsuleSection> {
+  // 通知API URL
+  static const String NOTIFICATIONS_URL = 'https://universal-launcher.netlify.app/notifications.json';
+
+  @override
+  void initState() {
+    super.initState();
+    
+    // 组件初始化时自动加载通知数据
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final notificationProvider = Provider.of<NotificationProvider>(context, listen: false);
+      // 只有当没有通知时才加载，避免重复加载
+      if (notificationProvider.latestNotification == null) {
+        notificationProvider.loadNotifications(NOTIFICATIONS_URL);
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<NotificationProvider>(
+      builder: (context, notificationProvider, child) {
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: NotificationPill(
+            notification: notificationProvider.latestNotification,
+            onTap: () {
+              // 点击时确保数据已加载（如果还没有加载的话）
+              if (notificationProvider.notifications.isEmpty && !notificationProvider.isLoading) {
+                notificationProvider.loadNotifications(NOTIFICATIONS_URL);
+              }
+              
+              showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(20),
+                    topRight: Radius.circular(20),
+                  ),
+                ),
+                builder: (context) => NotificationList(),
+              );
+            },
+          ),
+        );
+      },
+    );
   }
 }
 
