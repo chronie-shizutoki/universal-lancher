@@ -1,0 +1,45 @@
+name: windows-build
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+    paths:
+      - 'flutter_app/**'
+      - '.github/workflows/windows.yml'
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+          cache-key: 'flutter-:os:-:channel:-:version:-:hash:'
+          cache-path: '${{ runner.tool_cache }}/flutter:os::channel:'
+      - name: Flutter version
+        run: flutter --version
+      - name: Check Windows SDK version
+        run: |
+          echo "检查Windows SDK版本..."
+          cl
+          echo "检查Visual Studio环境..."
+          where msbuild
+      - name: Install dependencies
+        run: flutter pub get
+        working-directory: flutter_app
+      - name: Enable Windows desktop support
+        run: flutter config --enable-windows-desktop
+      - name: Build Windows release
+        run: |
+          echo "开始Windows构建..."
+          flutter build windows --release -v
+          echo "构建完成，检查输出目录..."
+          ls -la flutter_app/build/windows/runner/Release/
+        working-directory: flutter_app
+      - name: Upload Windows build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-release
+          path: flutter_app/build/windows/runner/Release/
+          retention-days: 14
