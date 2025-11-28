@@ -37,6 +37,10 @@ class ThemeProvider extends ChangeNotifier {
         error: const Color(0xFFDC3545),
       ),
       useMaterial3: true,
+      fontFamily: 'system-ui', // 使用系统字体
+      textTheme: ThemeData.light().textTheme.apply(
+        fontFamily: 'system-ui',
+      ),
       appBarTheme: const AppBarTheme(
         centerTitle: true,
         elevation: 0,
@@ -104,6 +108,10 @@ class ThemeProvider extends ChangeNotifier {
         onSurface: const Color(0xFFE0E0E0),
       ),
       useMaterial3: true,
+      fontFamily: 'system-ui', // 使用系统字体
+      textTheme: ThemeData.dark().textTheme.apply(
+        fontFamily: 'system-ui',
+      ),
       appBarTheme: AppBarTheme(
         centerTitle: true,
         elevation: 0,
