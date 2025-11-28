@@ -40,7 +40,12 @@ jobs:
           echo "开始Windows构建..."
           flutter build windows --release -v
           echo "构建完成，检查输出目录..."
-          ls -la flutter_app/build/windows/runner/Release/
+          if (Test-Path -Path flutter_app/build/windows/runner/Release/) {
+            echo "输出目录存在，列出文件："
+            Get-ChildItem -Path flutter_app/build/windows/runner/Release/ | Format-Table -AutoSize
+          } else {
+            echo "警告：输出目录不存在"
+          }
         working-directory: flutter_app
       - name: Upload Windows build artifact
         uses: actions/upload-artifact@v4
