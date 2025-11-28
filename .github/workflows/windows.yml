@@ -40,9 +40,9 @@ jobs:
           echo "开始Windows构建..."
           flutter build windows --release -v
           echo "构建完成，检查输出目录..."
-          if (Test-Path -Path flutter_app/build/windows/runner/Release/) {
+          if (Test-Path -Path build/windows/x64/runner/Release/) {
             echo "输出目录存在，列出文件："
-            Get-ChildItem -Path flutter_app/build/windows/runner/Release/ | Format-Table -AutoSize
+            Get-ChildItem -Path build/windows/x64/runner/Release/ | Format-Table -AutoSize
           } else {
             echo "警告：输出目录不存在"
           }
@@ -51,5 +51,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: windows-release
-          path: flutter_app/build/windows/runner/Release/
+          path: flutter_app/build/windows/x64/runner/Release/
           retention-days: 14
