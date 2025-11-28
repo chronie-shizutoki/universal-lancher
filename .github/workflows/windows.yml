@@ -11,6 +11,10 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v1
+      - name: Setup Visual Studio shell
+        uses: ilammy/msvc-dev-cmd@v1
       - uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
@@ -19,12 +23,13 @@ jobs:
           cache-path: '${{ runner.tool_cache }}/flutter:os::channel:'
       - name: Flutter version
         run: flutter --version
-      - name: Check Windows SDK version
+      - name: Check Windows build environment
         run: |
-          echo "检查Windows SDK版本..."
-          cl
-          echo "检查Visual Studio环境..."
-          where msbuild
+          echo "检查Windows构建环境..."
+          echo "检查MSBuild..."
+          where msbuild 2>null || echo "MSBuild not found in PATH"
+          echo "检查PowerShell版本..."
+          $PSVersionTable.PSVersion
       - name: Install dependencies
         run: flutter pub get
         working-directory: flutter_app
