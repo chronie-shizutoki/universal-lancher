@@ -81,7 +81,7 @@ class _RateCalculatorPageState extends State<RateCalculatorPage> {
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         if (data['success'] == true) {
-          final tokenRate = data['rate']['rate'] as double;
+          final tokenRate = data['data']['rate'] as double;
           setState(() {
             _tokenRateController.text = tokenRate.toString();
             _tokenRate = tokenRate;
