@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
 import '../providers/theme_provider.dart';
 
 class RateCalculatorPage extends StatefulWidget {
@@ -19,6 +22,14 @@ class _RateCalculatorPageState extends State<RateCalculatorPage> {
   double? _tokenRate;
   double? _cnyRate;
   bool _updating = false;
+  bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSavedRates();
+    _fetchLatestRates();
+  }
 
   @override
   void dispose() {
@@ -28,6 +39,72 @@ class _RateCalculatorPageState extends State<RateCalculatorPage> {
     _tokenController.dispose();
     _cnyController.dispose();
     super.dispose();
+  }
+
+  // 从本地存储加载汇率
+  Future<void> _loadSavedRates() async {
+    final prefs = await SharedPreferences.getInstance();
+    final savedTokenRate = prefs.getDouble('tokenRate');
+    final savedCnyRate = prefs.getDouble('cnyRate');
+    
+    if (savedTokenRate != null && savedCnyRate != null) {
+      setState(() {
+        _tokenRate = savedTokenRate;
+        _cnyRate = savedCnyRate;
+        _tokenRateController.text = savedTokenRate.toString();
+        _cnyRateController.text = savedCnyRate.toString();
+      });
+    }
+  }
+
+  // 保存汇率到本地存储
+  Future<void> _saveRates(double tokenRate, double cnyRate) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setDouble('tokenRate', tokenRate);
+    await prefs.setDouble('cnyRate', cnyRate);
+  }
+
+  // 从API获取最新汇率
+  Future<void> _fetchLatestRates() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final response = await http.get(
+        Uri.parse('http://192.168.0.197:3200/api/exchange-rates/latest'),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['success'] == true) {
+          final tokenRate = data['rate']['rate'] as double;
+          setState(() {
+            _tokenRateController.text = tokenRate.toString();
+            _tokenRate = tokenRate;
+          });
+          
+          // 同时保存到本地存储
+          if (_cnyRate != null) {
+            await _saveRates(tokenRate, _cnyRate!);
+          }
+          
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('已获取最新汇率：1美元 = $tokenRate 金流')),
+          );
+        }
+      }
+    } catch (e) {
+      // API请求失败，不做任何操作，保持现有汇率
+      print('获取汇率失败: $e');
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
   }
 
   void _setRates() {
@@ -55,6 +132,9 @@ class _RateCalculatorPageState extends State<RateCalculatorPage> {
       _tokenController.clear();
       _cnyController.clear();
     });
+
+    // 保存汇率到本地存储
+    _saveRates(tokenRate, cnyRate);
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('汇率设置成功：1美元 = $_tokenRate 金流，1美元 = $_cnyRate 人民币')),
@@ -166,7 +246,9 @@ class _RateCalculatorPageState extends State<RateCalculatorPage> {
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 12),
                     ),
-                    child: const Text('设置汇率'),
+                    child: _isLoading 
+                        ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white))
+                        : const Text('设置汇率'),
                   ),
                 ),
               ]),
