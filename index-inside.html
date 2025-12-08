@@ -6,20 +6,186 @@
 </head>
 <body>
   <style>
-:root{--glass-bg:rgba(255,255,255,.2);--glass-border:rgba(255,255,255,.3);--glass-shadow:rgba(0,0,0,.1);--text-primary:#333;--text-secondary:#555;--accent-gradient:linear-gradient(135deg,#b8e0ff 0%,#7f5af0 100%);--blur-strength:10px;}*{margin:0;padding:0;box-sizing:border-box;}body{font-family:system-ui,sans-serif;background:linear-gradient(135deg,#f5f7fa 0%,#c3cfe2 100%);color:var(--text-primary);padding:2rem;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;text-align:center;}.glass-container{background:var(--glass-bg);backdrop-filter:blur(var(--blur-strength));-webkit-backdrop-filter:blur(var(--blur-strength));border:1px solid var(--glass-border);border-radius:16px;box-shadow:0 8px 32px var(--glass-shadow);padding:2rem;margin-bottom:2rem;width:100%;max-width:600px;}.button-group{display:flex;gap:1rem;flex-wrap:wrap;justify-content:center;}.btn{padding:1rem 2rem;border-radius:12px;text-decoration:none;font-weight:600;font-size:1rem;border:1px solid rgba(255,255,255,.2);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);transition:transform .3s,box-shadow .3s;}.btn:hover{transform:translateY(-3px);box-shadow:0 10px 20px rgba(0,0,0,.15);}.btn.primary{background:var(--accent-gradient);color:#fff;}.btn.secondary{background:rgba(255,255,255,.3);color:var(--text-primary);}.custom-modal{display:flex;position:fixed;inset:0;background:var(--glass-bg);backdrop-filter:blur(5px);z-index:10000;justify-content:center;align-items:center;opacity:0;pointer-events:none;transition:opacity .3s;}.custom-modal.show{opacity:1;pointer-events:auto;}.custom-modal-content{background:var(--glass-bg);backdrop-filter:blur(var(--blur-strength));border:1px solid var(--glass-border);border-radius:16px;padding:2rem;width:90%;max-width:400px;box-shadow:0 8px 32px var(--glass-shadow);transform:translateY(-20px);transition:transform .3s;}.custom-modal.show .custom-modal-content{transform:translateY(0);}.custom-modal-footer{display:flex;gap:1rem;justify-content:center;margin-top:1.5rem;}.custom-modal-button{padding:.8rem 1.5rem;border-radius:12px;border:none;font-weight:600;background:var(--accent-gradient);color:#fff;cursor:pointer;transition:transform .3s;}.custom-modal-button:hover{transform:translateY(-2px);}@media (prefers-color-scheme:dark){:root{--glass-bg:rgba(20,30,40,.7);--glass-border:rgba(255,255,255,.1);--glass-shadow:rgba(0,0,0,.3);--text-primary:#fff;--text-secondary:#e0e0e0;}body{background:linear-gradient(135deg,#1a1a2e 0%,#16213e 100%);}}@media (max-width:768px){body{padding:1rem;}.glass-container{padding:1.5rem;}.button-group{flex-direction:column;align-items:center;}.btn{width:100%;max-width:300px;}}
+    :root {
+      --glass-bg: rgba(255, 255, 255, .2);
+      --glass-border: rgba(255, 255, 255, .3);
+      --glass-shadow: rgba(0, 0, 0, .1);
+      --text-primary: #333;
+      --text-secondary: #555;
+      --accent-gradient: linear-gradient(135deg, #b8e0ff 0%, #7f5af0 100%);
+      --blur-strength: 10px;
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: system-ui, sans-serif;
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      color: var(--text-primary);
+      padding: 2rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      text-align: center;
+    }
+    
+    .glass-container {
+      background: var(--glass-bg);
+      backdrop-filter: blur(var(--blur-strength));
+      -webkit-backdrop-filter: blur(var(--blur-strength));
+      border: 1px solid var(--glass-border);
+      border-radius: 16px;
+      box-shadow: 0 8px 32px var(--glass-shadow);
+      padding: 2rem;
+      margin-bottom: 2rem;
+      width: 100%;
+      max-width: 600px;
+    }
+    
+    .button-group {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    
+    .btn {
+      padding: 1rem 2rem;
+      border-radius: 12px;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 1rem;
+      border: 1px solid rgba(255, 255, 255, .2);
+      backdrop-filter: blur(5px);
+      -webkit-backdrop-filter: blur(5px);
+      transition: transform .3s, box-shadow .3s;
+    }
+    
+    .btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 10px 20px rgba(0, 0, 0, .15);
+    }
+    
+    .btn.primary {
+      background: var(--accent-gradient);
+      color: #fff;
+    }
+    
+    .btn.secondary {
+      background: rgba(255, 255, 255, .3);
+      color: var(--text-primary);
+    }
+    
+    .custom-modal {
+      display: flex;
+      position: fixed;
+      inset: 0;
+      background: var(--glass-bg);
+      backdrop-filter: blur(5px);
+      z-index: 10000;
+      justify-content: center;
+      align-items: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .3s;
+    }
+    
+    .custom-modal.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    
+    .custom-modal-content {
+      background: var(--glass-bg);
+      backdrop-filter: blur(var(--blur-strength));
+      border: 1px solid var(--glass-border);
+      border-radius: 16px;
+      padding: 2rem;
+      width: 90%;
+      max-width: 400px;
+      box-shadow: 0 8px 32px var(--glass-shadow);
+      transform: translateY(-20px);
+      transition: transform .3s;
+    }
+    
+    .custom-modal.show .custom-modal-content {
+      transform: translateY(0);
+    }
+    
+    .custom-modal-footer {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      margin-top: 1.5rem;
+    }
+    
+    .custom-modal-button {
+      padding: .8rem 1.5rem;
+      border-radius: 12px;
+      border: none;
+      font-weight: 600;
+      background: var(--accent-gradient);
+      color: #fff;
+      cursor: pointer;
+      transition: transform .3s;
+    }
+    
+    .custom-modal-button:hover {
+      transform: translateY(-2px);
+    }
+    
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --glass-bg: rgba(20, 30, 40, .7);
+        --glass-border: rgba(255, 255, 255, .1);
+        --glass-shadow: rgba(0, 0, 0, .3);
+        --text-primary: #fff;
+        --text-secondary: #e0e0e0;
+      }
+      
+      body {
+        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      }
+    }
+    
+    @media (max-width: 768px) {
+      body {
+        padding: 1rem;
+      }
+      
+      .glass-container {
+        padding: 1.5rem;
+      }
+      
+      .button-group {
+        flex-direction: column;
+        align-items: center;
+      }
+      
+      .btn {
+        width: 100%;
+        max-width: 300px;
+      }
+    }
   </style>
 <!-- 主要内容容器 - 液态玻璃效果 -->
 <div class="glass-container">
   <div class="welcome">
-<div class="header-flex" style="display: flex; align-items: center; justify-content: center; gap: 1rem;">
-
-  <div class="button-group main">
+    <div class="header-flex" style="display: flex; align-items: center; justify-content: center; gap: 1rem;">
+      <div class="button-group main">
     <a class="btn primary" href="http://192.168.0.197:3010">记账</a>
     <a class="btn primary" href="http://192.168.0.197:3000">记账（国际版）</a>
     <button class="btn primary" onclick="showFinanceVersionSelection()">金流</button>
     <a class="btn primary" href="http://192.168.0.197:5000">库存</a>
+      </div>
+    </div>
   </div>
-</div>
 
 <!-- 自定义弹窗HTML结构 -->
 <div id="customModal" class="custom-modal">
@@ -55,7 +221,7 @@
     
     // 设置弹窗内容
     modalTitle.textContent = '金流版本选择';
-    modalMessage.textContent = '请选择要访问的金流服务版本：';
+    modalMessage.textContent = '点击空白处以关闭';
     
     // 清空并重新创建底部按钮
     modalFooter.innerHTML = '';
@@ -63,7 +229,7 @@
     // 创建标准版本按钮
     const standardBtn = document.createElement('button');
     standardBtn.className = 'custom-modal-button';
-    standardBtn.textContent = '标准版本';
+    standardBtn.textContent = '标准';
     standardBtn.onclick = function() {
       window.location.href = 'http://192.168.0.197:3100';
     };
@@ -72,13 +238,71 @@
     // 创建兼容版本按钮
     const compatibleBtn = document.createElement('button');
     compatibleBtn.className = 'custom-modal-button';
-    compatibleBtn.textContent = '兼容版本';
+    compatibleBtn.textContent = '兼容';
     compatibleBtn.onclick = function() {
       window.location.href = 'http://192.168.0.197:4173';
     };
     modalFooter.appendChild(compatibleBtn);
     
-const cancelBtn=document.createElement('button');cancelBtn.className='custom-modal-button';cancelBtn.textContent='取消';cancelBtn.onclick=()=>closeModal(modal);modalFooter.appendChild(cancelBtn);showModal(modal);document.addEventListener('keydown',escHandler);modal.addEventListener('click',bgClickHandler);}function showModal(title,message){const modal=document.getElementById('customModal');const modalTitle=document.getElementById('modalTitle');const modalMessage=document.getElementById('modalMessage');const modalCloseBtn=document.getElementById('modalCloseBtn');if(!modal||!modalTitle||!modalMessage||!modalCloseBtn)return;modalTitle.textContent=title||'提示';modalMessage.textContent=message||'';showModal(modal);modalCloseBtn.onclick=()=>closeModal(modal);modal.onclick=e=>e.target===modal&&closeModal(modal);document.addEventListener('keydown',escHandler);}function closeModal(modal){modal.classList.remove('show');modal.classList.add('hide');setTimeout(()=>{modal.style.display='none';document.body.style.overflow='';},300);}function showModal(modal){modal.style.display='flex';modal.classList.remove('hide','show');document.body.style.overflow='hidden';void modal.offsetWidth;modal.classList.add('show');}function escHandler(e){if(e.key==='Escape'){const modal=document.getElementById('customModal');closeModal(modal);document.removeEventListener('keydown',escHandler);}}function bgClickHandler(e){if(e.target===e.currentTarget){closeModal(e.currentTarget);e.currentTarget.removeEventListener('click',bgClickHandler);}}function outdate(event){event.preventDefault();showModal('提示','抱歉，此服务已下线');}
+    showModalElement(modal);
+    document.addEventListener('keydown', escHandler);
+    modal.addEventListener('click', bgClickHandler);
+  }
+  
+  function showModal(title, message) {
+    const modal = document.getElementById('customModal');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalMessage = document.getElementById('modalMessage');
+    const modalCloseBtn = document.getElementById('modalCloseBtn');
+    
+    if (!modal || !modalTitle || !modalMessage || !modalCloseBtn) return;
+    
+    modalTitle.textContent = title || '提示';
+    modalMessage.textContent = message || '';
+    
+    showModalElement(modal);
+    
+    modalCloseBtn.onclick = () => closeModal(modal);
+    modal.onclick = e => e.target === modal && closeModal(modal);
+    document.addEventListener('keydown', escHandler);
+  }
+  
+  function closeModal(modal) {
+    modal.classList.remove('show');
+    modal.classList.add('hide');
+    setTimeout(() => {
+      modal.style.display = 'none';
+      document.body.style.overflow = '';
+    }, 300);
+  }
+  
+  function showModalElement(modal) {
+    modal.style.display = 'flex';
+    modal.classList.remove('hide', 'show');
+    document.body.style.overflow = 'hidden';
+    void modal.offsetWidth;
+    modal.classList.add('show');
+  }
+  
+  function escHandler(e) {
+    if (e.key === 'Escape') {
+      const modal = document.getElementById('customModal');
+      closeModal(modal);
+      document.removeEventListener('keydown', escHandler);
+    }
+  }
+  
+  function bgClickHandler(e) {
+    if (e.target === e.currentTarget) {
+      closeModal(e.currentTarget);
+      e.currentTarget.removeEventListener('click', bgClickHandler);
+    }
+  }
+  
+  function outdate(event) {
+    event.preventDefault();
+    showModal('提示', '抱歉，此服务已下线');
+  }
 
   // 处理快捷方式URL参数
   function handleShortcuts() {
