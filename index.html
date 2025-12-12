@@ -17,7 +17,8 @@
   <img src="icons/icon.png" alt="统一启动器图标" width="128" height="128">
   <h1>统一启动器</h1>
 </div>
-    <p>请选择一个服务开始</p>
+<br>
+<br>
   </div>
 
   <div class="button-group main">
@@ -31,7 +32,6 @@
 <!-- 工具容器 - 液态玻璃效果 -->
 <div class="glass-container">
   <div class="button-group primary">
-    <button class="btn primary" id="check-service" onclick="window.location.href='./component/check-service/index.html'">服务可用性</button>
     <button class="btn primary" id="check-compatibility" onclick="window.location.href='./component/compatibility-check/browser.html'">检查兼容性</button>
     <button class="btn primary" id="rate" onclick="window.location.href='./component/exchange-rate/rate.html'">汇率计算器</button>
     <button class="btn primary" id="store" onclick="window.location.href='app-store.html'">安卓应用商店</button>
@@ -77,7 +77,7 @@
     
     // 设置弹窗内容
     modalTitle.textContent = '金流版本选择';
-    modalMessage.textContent = '请选择要访问的金流服务版本：';
+    modalMessage.textContent = '';
     
     // 清空并重新创建底部按钮
     modalFooter.innerHTML = '';
@@ -99,22 +99,7 @@
       window.location.href = 'http://192.168.0.197:4173';
     };
     modalFooter.appendChild(compatibleBtn);
-    
-    // 创建取消按钮
-    const cancelBtn = document.createElement('button');
-    cancelBtn.className = 'custom-modal-button';
-    cancelBtn.textContent = '取消';
-    cancelBtn.onclick = function() {
-      // 关闭弹窗
-      modal.classList.remove('show');
-      modal.classList.add('hide');
-      setTimeout(() => {
-        modal.style.display = 'none';
-        document.body.style.overflow = '';
-      }, 300);
-    };
-    modalFooter.appendChild(cancelBtn);
-    
+        
     // 重置状态
     modal.style.display = 'flex';
     modal.classList.remove('hide', 'show');
