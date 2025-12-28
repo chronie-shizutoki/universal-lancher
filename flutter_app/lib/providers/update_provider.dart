@@ -17,7 +17,8 @@ class UpdateProvider extends ChangeNotifier {
   String _remoteVersion = '';
   String _localVersion = '';
   String? _errorMessage;
-  String? _downloadPath;
+  // 移除未使用的_downloadPath字段
+  // String? _downloadPath;
   
   bool get isCheckingUpdate => _isCheckingUpdate;
   bool get isUpdateAvailable => _isUpdateAvailable;
@@ -238,3 +239,4 @@ class UpdateProvider extends ChangeNotifier {
 
 
 }
+
