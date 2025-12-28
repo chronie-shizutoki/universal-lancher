@@ -365,95 +365,171 @@ class _FoodPageState extends State<FoodPage> with SingleTickerProviderStateMixin
 
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    
     return Scaffold(
-      body: Consumer<FoodProvider>(builder: (context, provider, child) {
-        return Column(
-          children: [
-            // 顶部按钮区域 - 三个按钮在同一行
-            Padding(
-              padding: const EdgeInsets.only(top: 16, left: 16, right: 16),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  // 左侧的随机选择和周计划按钮
-                  Row(
-                    children: [
-                      _buildTabButton('随机选择', 0),
-                      const SizedBox(width: 8),
-                      _buildTabButton('周计划', 1),
-                    ],
-                  ),
-                  // 右侧的设置按钮
-                  Container(
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.2),
-                          blurRadius: 6,
-                          offset: const Offset(0, 2),
-                        ),
+      backgroundColor: Colors.transparent,
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: isDarkMode
+                ? [
+                    Colors.purple.shade900,
+                    Colors.blue.shade900,
+                    Colors.green.shade900,
+                  ]
+                : [
+                    Colors.purple.shade100,
+                    Colors.blue.shade100,
+                    Colors.green.shade100,
+                  ],
+            stops: const [0.0, 0.5, 1.0],
+          ),
+        ),
+        child: Consumer<FoodProvider>(builder: (context, provider, child) {
+          return Column(
+            children: [
+              // 顶部按钮区域 - 三个按钮在同一行
+              Padding(
+                padding: const EdgeInsets.only(top: 16, left: 16, right: 16),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    // 左侧的随机选择和周计划按钮
+                    Row(
+                      children: [
+                        _buildGlassTabButton('随机选择', 0),
+                        const SizedBox(width: 8),
+                        _buildGlassTabButton('周计划', 1),
                       ],
                     ),
-                    child: ElevatedButton(
-                      onPressed: _showFoodManagementDialog,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue,
-                        foregroundColor: Colors.white,
-                        shape: const CircleBorder(),
-                        padding: const EdgeInsets.all(12),
-                        elevation: 4,
-                        shadowColor: Colors.black.withOpacity(0.3),
-                      ),
-                      child: const Icon(Icons.settings, size: 24),
-                    ),
-                  ),
-                ],
+                    // 右侧的设置按钮
+                    _buildGlassSettingButton(),
+                  ],
+                ),
               ),
-            ),
 
-            Expanded(
-              child: _currentTab == 0 ? _buildRandomSelection(provider) : _buildWeeklyPlan(provider),
-            ),
-          ],
-        );
-      }),
+              Expanded(
+                child: _currentTab == 0 ? _buildRandomSelection(provider) : _buildWeeklyPlan(provider),
+              ),
+            ],
+          );
+        }),
+      ),
       // 添加底部安全占位区域
       bottomNavigationBar: const SizedBox(height: 60),
     );
   }
 
-  Widget _buildTabButton(String title, int index) {
-    return ElevatedButton(
-      onPressed: () {
-        setState(() {
-          _currentTab = index;
-        });
-      },
-      style: ElevatedButton.styleFrom(
-        backgroundColor: _currentTab == index ? Colors.blue : Colors.grey[100],
-        foregroundColor: _currentTab == index ? Colors.white : Colors.black,
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(25),
-        ),
-        elevation: _currentTab == index ? 4 : 2,
-        shadowColor: Colors.black.withValues(alpha: 0.3),
+  // 构建玻璃风格的标签按钮
+  Widget _buildGlassTabButton(String title, int index) {
+    final isSelected = _currentTab == index;
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(25),
+        gradient: isSelected
+            ? LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Colors.blue.withOpacity(0.8),
+                  Colors.purple.withOpacity(0.8),
+                ],
+              )
+            : LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Colors.white.withOpacity(0.7),
+                  Colors.white.withOpacity(0.5),
+                ],
+              ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.2),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+          BoxShadow(
+            color: Colors.white.withOpacity(0.5),
+            blurRadius: 10,
+            offset: const Offset(0, -2),
+          ),
+        ],
       ),
-      child: Text(
-        title,
-        style: const TextStyle(
-          fontSize: 16,
-          fontWeight: FontWeight.bold,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () {
+            setState(() {
+              _currentTab = index;
+            });
+          },
+          borderRadius: BorderRadius.circular(25),
+          splashColor: isSelected ? Colors.white.withOpacity(0.3) : Colors.blue.withOpacity(0.3),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            child: Text(
+              title,
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: isSelected ? Colors.white : Colors.black87,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // 构建玻璃风格的设置按钮
+  Widget _buildGlassSettingButton() {
+    return Container(
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Colors.white.withOpacity(0.8),
+            Colors.white.withOpacity(0.6),
+          ],
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.2),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+          BoxShadow(
+            color: Colors.white.withOpacity(0.5),
+            blurRadius: 10,
+            offset: const Offset(0, -2),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: _showFoodManagementDialog,
+          borderRadius: BorderRadius.circular(30),
+          splashColor: Colors.blue.withOpacity(0.3),
+          child: Container(
+            padding: const EdgeInsets.all(12),
+            child: const Icon(Icons.settings, size: 24, color: Colors.black87),
+          ),
         ),
       ),
     );
   }
 
   Widget _buildRandomSelection(FoodProvider provider) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     return Column(
       children: [
-
         // 转盘和结果展示
         Expanded(
           child: Column(
@@ -463,18 +539,35 @@ class _FoodPageState extends State<FoodPage> with SingleTickerProviderStateMixin
               Stack(
                 alignment: Alignment.center,
                 children: [
-                  // 背景装饰
+                  // 背景装饰 - 玻璃效果
                   Container(
-                    width: 200,
-                    height: 200,
+                    width: 240,
+                    height: 240,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: Colors.grey[100],
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: isDarkMode
+                            ? [
+                                Colors.white.withOpacity(0.1),
+                                Colors.white.withOpacity(0.05),
+                              ]
+                            : [
+                                Colors.white.withOpacity(0.2),
+                                Colors.white.withOpacity(0.1),
+                              ],
+                      ),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.1),
+                          color: Colors.black.withOpacity(0.1),
                           blurRadius: 15,
                           offset: const Offset(0, 8),
+                        ),
+                        BoxShadow(
+                          color: Colors.white.withOpacity(isDarkMode ? 0.05 : 0.3),
+                          blurRadius: 15,
+                          offset: const Offset(0, -8),
                         ),
                       ],
                     ),
@@ -505,9 +598,16 @@ class _FoodPageState extends State<FoodPage> with SingleTickerProviderStateMixin
                           Container(
                             width: 40,
                             height: 40,
-                            decoration: const BoxDecoration(
+                            decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              color: Colors.red,
+                              gradient: LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: [
+                                  Colors.red.shade500,
+                                  Colors.red.shade700,
+                                ],
+                              ),
                               boxShadow: [
                                 BoxShadow(
                                   blurRadius: 4,
@@ -522,8 +622,15 @@ class _FoodPageState extends State<FoodPage> with SingleTickerProviderStateMixin
                             child: Container(
                               width: 8,
                               height: 40,
-                              decoration: const BoxDecoration(
-                                color: Colors.red,
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  begin: Alignment.topCenter,
+                                  end: Alignment.bottomCenter,
+                                  colors: [
+                                    Colors.red.shade500,
+                                    Colors.red.shade700,
+                                  ],
+                                ),
                                 borderRadius: BorderRadius.only(
                                   bottomLeft: Radius.circular(4),
                                   bottomRight: Radius.circular(4),
@@ -538,6 +645,12 @@ class _FoodPageState extends State<FoodPage> with SingleTickerProviderStateMixin
                 ],
               ),
               
+              // 显示选中的食物
+              if (!_isSpinning && _selectedFood != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 32, bottom: 16),
+                  child: _buildGlassResultCard(_selectedFood!),
+                ),
             ],
           ),
         ),
@@ -549,59 +662,10 @@ class _FoodPageState extends State<FoodPage> with SingleTickerProviderStateMixin
             children: [
               // 根据状态显示不同的按钮
               (!_isSpinning && _selectedFood != null) 
-                ? ElevatedButton(
-                    onPressed: _spinWheel,
-                    style: ElevatedButton.styleFrom(
-                      minimumSize: const Size(double.infinity, 40),
-                      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
-                      textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                      backgroundColor: Colors.orange,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(30),
-                      ),
-                      elevation: 5,
-                    ),
-                    child: const Text('换一个', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, inherit: true),),
-                  )
+                ? _buildGlassButton('换一个', Colors.orange, _spinWheel)
                 : (!_isSpinning && _selectedFood == null)
-                    ? ElevatedButton(
-                        onPressed: _spinWheel,
-                        style: ElevatedButton.styleFrom(
-                          minimumSize: const Size(double.infinity, 40),
-                          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
-                          textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, inherit: true),
-                          backgroundColor: Colors.red,
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(30),
-                          ),
-                          elevation: 5,
-                        ),
-                        child: const Text('今天吃什么？'),
-                      )
-                    : ElevatedButton(
-                        onPressed: null, // 旋转时禁用按钮
-                        style: ElevatedButton.styleFrom(
-                          minimumSize: const Size(double.infinity, 40),
-                          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
-                          textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, inherit: true),
-                          backgroundColor: Colors.red.shade700,
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(30),
-                          ),
-                          elevation: 5,
-                        ),
-                        child: const SizedBox(
-                          width: 16,
-                          height: 16,
-                          child: CircularProgressIndicator(
-                            color: Colors.white,
-                            strokeWidth: 3,
-                          ),
-                        ),
-                      )
+                    ? _buildGlassButton('今天吃什么？', Colors.red, _spinWheel)
+                    : _buildGlassButton('旋转中...', Colors.red.shade700, null, isLoading: true)
             ],
           ),
         ),
@@ -609,16 +673,142 @@ class _FoodPageState extends State<FoodPage> with SingleTickerProviderStateMixin
     );
   }
 
+  // 构建玻璃风格的结果卡片
+  Widget _buildGlassResultCard(FoodItem food) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
+      margin: const EdgeInsets.symmetric(horizontal: 32),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: isDarkMode
+              ? [
+                  Colors.white.withOpacity(0.2),
+                  Colors.white.withOpacity(0.1),
+                ]
+              : [
+                  Colors.white.withOpacity(0.8),
+                  Colors.white.withOpacity(0.6),
+                ],
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.2),
+            blurRadius: 15,
+            offset: const Offset(0, 8),
+          ),
+          BoxShadow(
+            color: Colors.white.withOpacity(isDarkMode ? 0.05 : 0.5),
+            blurRadius: 15,
+            offset: const Offset(0, -4),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            '推荐',
+            style: TextStyle(
+              fontSize: 14,
+              color: isDarkMode ? Colors.grey.shade400 : Colors.grey,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            food.name,
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: isDarkMode ? Colors.white : Colors.black87,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          if (food.category.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: Text(
+                food.category,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.blue,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  // 构建玻璃风格的按钮
+  Widget _buildGlassButton(String text, Color primaryColor, VoidCallback? onPressed, {bool isLoading = false, double fontSize = 16}) {
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(30),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            primaryColor.withOpacity(0.9),
+            primaryColor.withOpacity(0.7),
+          ],
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: primaryColor.withOpacity(0.3),
+            blurRadius: 15,
+            offset: const Offset(0, 8),
+          ),
+          BoxShadow(
+            color: primaryColor.withOpacity(0.2),
+            blurRadius: 15,
+            offset: const Offset(0, -4),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onPressed,
+          borderRadius: BorderRadius.circular(30),
+          splashColor: Colors.white.withOpacity(0.3),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+            width: double.infinity,
+            child: isLoading
+                ? const Center(
+                    child: SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: CircularProgressIndicator(
+                        color: Colors.white,
+                        strokeWidth: 3,
+                      ),
+                    ),
+                  )
+                : Text(
+                    text,
+                    style: TextStyle(
+                      fontSize: fontSize,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildWeeklyPlan(FoodProvider provider) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     final days = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
-    final dayColors = [
-      Colors.red.shade100, Colors.orange.shade100, Colors.yellow.shade100,
-      Colors.green.shade100, Colors.blue.shade100, Colors.indigo.shade100, Colors.purple.shade100
-    ];
-    final dayBorderColors = [
-      Colors.red.shade400, Colors.orange.shade400, Colors.yellow.shade400,
-      Colors.green.shade400, Colors.blue.shade400, Colors.indigo.shade400, Colors.purple.shade400
-    ];
 
     return Column(
       children: [
@@ -633,8 +823,22 @@ class _FoodPageState extends State<FoodPage> with SingleTickerProviderStateMixin
                   margin: const EdgeInsets.only(bottom: 12),
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   decoration: BoxDecoration(
-                    color: Colors.blue.shade50,
                     borderRadius: BorderRadius.circular(12),
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        Colors.blue.withOpacity(0.3),
+                        Colors.blue.withOpacity(0.1),
+                      ],
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 5,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
                   ),
                   child: Text(
                     '上次生成时间：${_formatDate(provider.lastPlanDate!)}',
@@ -647,38 +851,16 @@ class _FoodPageState extends State<FoodPage> with SingleTickerProviderStateMixin
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Expanded(
-                    child: ElevatedButton(
-                      onPressed: _generateWeeklyPlan,
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                        textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                        backgroundColor: Colors.green,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(25),
-                        ),
-                        elevation: 3,
-                      ),
-                      child: const Text('生成周计划'),
-                    ),
+                    child: _buildGlassButton('生成周计划', Colors.green, _generateWeeklyPlan),
                   ),
                   const SizedBox(width: 12),
                   if (provider.weeklyPlan.isNotEmpty)
-                    ElevatedButton(
-                      onPressed: () {
+                    Container(
+                      width: 100,
+                      child: _buildGlassButton('重置', Colors.red, () {
                         final provider = Provider.of<FoodProvider>(context, listen: false);
                         provider.resetWeeklyPlan();
-                      },
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                        textStyle: const TextStyle(fontSize: 16),
-                        backgroundColor: Colors.red,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(25),
-                        ),
-                      ),
-                      child: const Text('重置'),
+                      }),
                     ),
                 ],
               ),
@@ -689,32 +871,7 @@ class _FoodPageState extends State<FoodPage> with SingleTickerProviderStateMixin
         // 周计划网格
         Expanded(
           child: provider.weeklyPlan.isEmpty
-              ? Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.calendar_today_outlined,
-                      size: 80,
-                      color: Colors.grey.shade300,
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      '还没有周计划',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.grey.shade500,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      '点击上方按钮生成一周的饮食计划',
-                      style: TextStyle(
-                        color: Colors.grey.shade400,
-                      ),
-                    ),
-                  ],
-                )
+              ? _buildEmptyState()
               : GridView.builder(
                   padding: const EdgeInsets.all(16),
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -726,17 +883,37 @@ class _FoodPageState extends State<FoodPage> with SingleTickerProviderStateMixin
                   itemCount: provider.weeklyPlan.length,
                   itemBuilder: (context, index) {
                     final food = provider.weeklyPlan[index];
+                    final gradientColors = [
+                      Colors.red.withOpacity(0.2), Colors.red.withOpacity(0.1),
+                      Colors.orange.withOpacity(0.2), Colors.orange.withOpacity(0.1),
+                      Colors.yellow.withOpacity(0.2), Colors.yellow.withOpacity(0.1),
+                      Colors.green.withOpacity(0.2), Colors.green.withOpacity(0.1),
+                      Colors.blue.withOpacity(0.2), Colors.blue.withOpacity(0.1),
+                      Colors.indigo.withOpacity(0.2), Colors.indigo.withOpacity(0.1),
+                      Colors.purple.withOpacity(0.2), Colors.purple.withOpacity(0.1),
+                    ];
                     
                     return AnimatedContainer(
                       decoration: BoxDecoration(
-                        color: dayColors[index],
                         borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: dayBorderColors[index], width: 2),
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            gradientColors[index * 2],
+                            gradientColors[index * 2 + 1],
+                          ],
+                        ),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.1),
-                            blurRadius: 6,
-                            offset: const Offset(0, 3),
+                            color: Colors.black.withOpacity(0.1),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
+                          ),
+                          BoxShadow(
+                            color: Colors.white.withOpacity(isDarkMode ? 0.05 : 0.5),
+                            blurRadius: 10,
+                            offset: const Offset(0, -2),
                           ),
                         ],
                       ),
@@ -750,26 +927,27 @@ class _FoodPageState extends State<FoodPage> with SingleTickerProviderStateMixin
                           Text(
                             days[index],
                             style: TextStyle(
-                              fontSize: 18,
+                              fontSize: 16,
                               fontWeight: FontWeight.bold,
-                              color: dayBorderColors[index],
+                              color: isDarkMode ? Colors.white70 : Colors.black87,
                             ),
                           ),
                           Text(
                             food.name,
-                            style: const TextStyle(
-                              fontSize: 22,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black87,
-                            ),
-                          ),
-                          Text(
-                            food.category,
                             style: TextStyle(
-                              color: Colors.grey.shade600,
-                              fontSize: 14,
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: isDarkMode ? Colors.white : Colors.black87,
                             ),
                           ),
+                          if (food.category.isNotEmpty)
+                            Text(
+                              food.category,
+                              style: TextStyle(
+                                color: isDarkMode ? Colors.grey.shade300 : Colors.grey.shade600,
+                                fontSize: 12,
+                              ),
+                            ),
                         ],
                       ),
                     );
@@ -780,164 +958,471 @@ class _FoodPageState extends State<FoodPage> with SingleTickerProviderStateMixin
     );
   }
 
+  // 构建空状态
+  Widget _buildEmptyState() {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    return Container(
+      margin: const EdgeInsets.all(32),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: isDarkMode
+              ? [
+                  Colors.white.withOpacity(0.2),
+                  Colors.white.withOpacity(0.1),
+                ]
+              : [
+                  Colors.white.withOpacity(0.7),
+                  Colors.white.withOpacity(0.5),
+                ],
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 15,
+            offset: const Offset(0, 8),
+          ),
+          BoxShadow(
+            color: Colors.white.withOpacity(isDarkMode ? 0.05 : 0.5),
+            blurRadius: 15,
+            offset: const Offset(0, -4),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.calendar_today_outlined,
+            size: 80,
+            color: isDarkMode ? Colors.grey.shade700 : Colors.grey.shade400,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            '还没有周计划',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: isDarkMode ? Colors.grey.shade300 : Colors.grey.shade600,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            '点击上方按钮生成一周的饮食计划',
+            style: TextStyle(
+              color: isDarkMode ? Colors.grey.shade400 : Colors.grey.shade500,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   // 格式化日期时间（包含时分秒）
   String _formatDate(DateTime date) {
     return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')} ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}:${date.second.toString().padLeft(2, '0')}';
   }
 
   void _showFoodManagementDialog() {
-    // 简化版的食物管理对话框
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    // 玻璃风格的食物管理对话框
     showDialog(
       context: context, 
       builder: (context) {
-        return AlertDialog(
-          title: const Text('食物管理'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ListTile(
-                leading: const Icon(Icons.add),
-                title: const Text('添加食物'),
-                onTap: () {
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          child: Container(
+            margin: const EdgeInsets.all(32),
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: isDarkMode
+                    ? [
+                        Colors.white.withOpacity(0.2),
+                        Colors.white.withOpacity(0.1),
+                      ]
+                    : [
+                        Colors.white.withOpacity(0.8),
+                        Colors.white.withOpacity(0.6),
+                      ],
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.2),
+                  blurRadius: 20,
+                  offset: const Offset(0, 10),
+                ),
+                BoxShadow(
+                  color: Colors.white.withOpacity(isDarkMode ? 0.05 : 0.5),
+                  blurRadius: 20,
+                  offset: const Offset(0, -5),
+                ),
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  '食物管理',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: isDarkMode ? Colors.white : Colors.black87,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                _buildGlassDialogButton('添加食物', Icons.add, () {
                   Navigator.pop(context);
                   _showAddFoodDialog();
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.list),
-                title: const Text('查看所有食物'),
-                onTap: () {
+                }),
+                const SizedBox(height: 12),
+                _buildGlassDialogButton('查看所有食物', Icons.list, () {
                   Navigator.pop(context);
                   _showFoodListDialog();
-                },
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              child: const Text('关闭'),
+                }),
+                const SizedBox(height: 24),
+                _buildGlassButton('关闭', Colors.grey, () {
+                  Navigator.pop(context);
+                }, fontSize: 14),
+              ],
             ),
-          ],
+          ),
         );
       },
     );
   }
 
+  // 构建玻璃风格的对话框按钮
+  Widget _buildGlassDialogButton(String text, IconData icon, VoidCallback onPressed) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(15),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: isDarkMode
+              ? [
+                  Colors.white.withOpacity(0.2),
+                  Colors.white.withOpacity(0.1),
+                ]
+              : [
+                  Colors.white.withOpacity(0.8),
+                  Colors.white.withOpacity(0.6),
+                ],
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onPressed,
+          borderRadius: BorderRadius.circular(15),
+          splashColor: Colors.blue.withOpacity(0.3),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            child: Row(
+              children: [
+                Icon(icon, color: Colors.blue),
+                const SizedBox(width: 12),
+                Text(
+                  text,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                    color: isDarkMode ? Colors.white70 : Colors.black87,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   void _showAddFoodDialog() {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     final TextEditingController nameController = TextEditingController();
     final TextEditingController weightController = TextEditingController(text: '1.0');
     
     showDialog(
       context: context, 
       builder: (context) {
-        return AlertDialog(
-          title: const Text('添加菜品'),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(
-                  controller: nameController,
-                  decoration: const InputDecoration(
-                    labelText: '菜品名称',
-                    border: OutlineInputBorder(),
-                  ),
-                  autofocus: true,
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          child: Container(
+            margin: const EdgeInsets.all(32),
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: isDarkMode
+                    ? [
+                        Colors.white.withOpacity(0.2),
+                        Colors.white.withOpacity(0.1),
+                      ]
+                    : [
+                        Colors.white.withOpacity(0.8),
+                        Colors.white.withOpacity(0.6),
+                      ],
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.2),
+                  blurRadius: 20,
+                  offset: const Offset(0, 10),
                 ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: weightController,
-                  decoration: const InputDecoration(
-                    labelText: '权重',
-                    border: OutlineInputBorder(),
-                    helperText: '数字越大，被选中的概率越高',
-                  ),
-                  keyboardType: TextInputType.numberWithOptions(decimal: true),
+                BoxShadow(
+                  color: Colors.white.withOpacity(isDarkMode ? 0.05 : 0.5),
+                  blurRadius: 20,
+                  offset: const Offset(0, -5),
                 ),
               ],
             ),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    '添加菜品',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: isDarkMode ? Colors.white : Colors.black87,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  _buildGlassTextField(nameController, '菜品名称'),
+                  const SizedBox(height: 16),
+                  _buildGlassTextField(weightController, '权重', 
+                    keyboardType: TextInputType.numberWithOptions(decimal: true),
+                    helperText: '数字越大，被选中的概率越高',
+                  ),
+                  const SizedBox(height: 24),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: _buildGlassButton('取消', Colors.grey, () {
+                          Navigator.pop(context);
+                        }, fontSize: 12),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _buildGlassButton('添加', Colors.blue, () {
+                          final String name = nameController.text.trim();
+                          final String weightText = weightController.text.trim();
+                          
+                          if (name.isNotEmpty) {
+                            double weight = 1.0;
+                            if (weightText.isNotEmpty) {
+                              try {
+                                weight = double.parse(weightText);
+                                if (weight <= 0) weight = 1.0;
+                              } catch (e) {
+                                // 解析失败，使用默认值
+                              }
+                            }
+                            
+                            final provider = Provider.of<FoodProvider>(context, listen: false);
+                            final int newId = provider.foodItems.isNotEmpty 
+                                ? provider.foodItems.map((item) => item.id).reduce((a, b) => a > b ? a : b) + 1
+                                : 1;
+                            
+                            provider.addFoodItem(FoodItem(
+                              id: newId,
+                              name: name,
+                              category: '', // 不再需要分类
+                              weight: weight,
+                            ));
+                            
+                            Navigator.pop(context);
+                          }
+                        }, fontSize: 12),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
           ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              child: const Text('取消'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                final String name = nameController.text.trim();
-                final String weightText = weightController.text.trim();
-                
-                if (name.isNotEmpty) {
-                  double weight = 1.0;
-                  if (weightText.isNotEmpty) {
-                    try {
-                      weight = double.parse(weightText);
-                      if (weight <= 0) weight = 1.0;
-                    } catch (e) {
-                      // 解析失败，使用默认值
-                    }
-                  }
-                  
-                  final provider = Provider.of<FoodProvider>(context, listen: false);
-                  final int newId = provider.foodItems.isNotEmpty 
-                      ? provider.foodItems.map((item) => item.id).reduce((a, b) => a > b ? a : b) + 1
-                      : 1;
-                  
-                  provider.addFoodItem(FoodItem(
-                    id: newId,
-                    name: name,
-                    category: '', // 不再需要分类
-                    weight: weight,
-                  ));
-                  
-                  Navigator.pop(context);
-                }
-              },
-              child: const Text('添加'),
-            ),
-          ],
         );
       },
     );
   }
 
+  // 构建玻璃风格的文本输入框
+  Widget _buildGlassTextField(TextEditingController controller, String labelText, {
+    TextInputType keyboardType = TextInputType.text,
+    String? helperText,
+  }) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(15),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: isDarkMode
+              ? [
+                  Colors.white.withOpacity(0.2),
+                  Colors.white.withOpacity(0.1),
+                ]
+              : [
+                  Colors.white.withOpacity(0.7),
+                  Colors.white.withOpacity(0.5),
+                ],
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 5,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: TextField(
+        controller: controller,
+        keyboardType: keyboardType,
+        style: TextStyle(color: isDarkMode ? Colors.white70 : Colors.black87),
+        decoration: InputDecoration(
+          labelText: labelText,
+          labelStyle: TextStyle(color: isDarkMode ? Colors.grey.shade400 : Colors.grey.shade600),
+          helperText: helperText,
+          helperStyle: TextStyle(color: isDarkMode ? Colors.grey.shade500 : Colors.grey.shade500),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(15),
+            borderSide: BorderSide.none,
+          ),
+          filled: false,
+          contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        ),
+      ),
+    );
+  }
+
   void _showFoodListDialog() {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     final provider = Provider.of<FoodProvider>(context, listen: false);
     
     showDialog(
       context: context, 
       builder: (context) {
-        return AlertDialog(
-          title: const Text('所有食物'),
-          content: SizedBox(
-            width: double.maxFinite,
-            height: 300,
-            child: ListView.builder(
-              itemCount: provider.foodItems.length,
-              itemBuilder: (context, index) {
-                final food = provider.foodItems[index];
-                  return ListTile(
-                  title: Text(food.name),
-                  trailing: Text('权重: ${food.weight}'),
-                );
-              },
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          child: Container(
+            margin: const EdgeInsets.all(32),
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: isDarkMode
+                    ? [
+                        Colors.white.withOpacity(0.2),
+                        Colors.white.withOpacity(0.1),
+                      ]
+                    : [
+                        Colors.white.withOpacity(0.8),
+                        Colors.white.withOpacity(0.6),
+                      ],
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.2),
+                  blurRadius: 20,
+                  offset: const Offset(0, 10),
+                ),
+                BoxShadow(
+                  color: Colors.white.withOpacity(isDarkMode ? 0.05 : 0.5),
+                  blurRadius: 20,
+                  offset: const Offset(0, -5),
+                ),
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  '所有食物',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: isDarkMode ? Colors.white : Colors.black87,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                SizedBox(
+                  width: double.maxFinite,
+                  height: 300,
+                  child: ListView.builder(
+                    itemCount: provider.foodItems.length,
+                    itemBuilder: (context, index) {
+                      final food = provider.foodItems[index];
+                      return _buildFoodListItem(food);
+                    },
+                  ),
+                ),
+                const SizedBox(height: 16),
+                _buildGlassButton('关闭', Colors.grey, () {
+                  Navigator.pop(context);
+                }),
+              ],
             ),
           ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              child: const Text('关闭'),
-            ),
-          ],
         );
       },
+    );
+  }
+
+  // 构建食物列表项
+  Widget _buildFoodListItem(FoodItem food) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 4),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: isDarkMode
+              ? [
+                  Colors.white.withOpacity(0.2),
+                  Colors.white.withOpacity(0.1),
+                ]
+              : [
+                  Colors.white.withOpacity(0.7),
+                  Colors.white.withOpacity(0.5),
+                ],
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 5,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: ListTile(
+        title: Text(food.name, style: TextStyle(color: isDarkMode ? Colors.white70 : Colors.black87)),
+        trailing: Text('权重: ${food.weight}', style: TextStyle(color: isDarkMode ? Colors.grey.shade400 : Colors.grey.shade600)),
+        tileColor: Colors.transparent,
+      ),
     );
   }
 }
