@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
+import 'dart:ui';
 import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -92,8 +94,9 @@ class _RateCalculatorPageState extends State<RateCalculatorPage> {
             await _saveRates(tokenRate, _cnyRate!);
           }
           
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('已获取最新汇率：1美元 = $tokenRate 金流')),
+          ToastManager.showToast(
+            context, 
+            '已获取最新汇率：1美元 = $tokenRate 金流'
           );
         }
       }
@@ -136,8 +139,9 @@ class _RateCalculatorPageState extends State<RateCalculatorPage> {
     // 保存汇率到本地存储
     _saveRates(tokenRate, cnyRate);
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('汇率设置成功：1美元 = $_tokenRate 金流，1美元 = $_cnyRate 人民币')),
+    ToastManager.showToast(
+      context, 
+      '汇率设置成功：1美元 = $_tokenRate 金流，1美元 = $_cnyRate 人民币'
     );
   }
 
@@ -146,7 +150,7 @@ class _RateCalculatorPageState extends State<RateCalculatorPage> {
     final rateT = _tokenRate;
     final rateC = _cnyRate;
     if (rateT == null || rateC == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('请先设置汇率')));
+      ToastManager.showToast(context, '请先设置汇率');
       _usdController.clear();
       return;
     }
@@ -169,7 +173,7 @@ class _RateCalculatorPageState extends State<RateCalculatorPage> {
     final rateT = _tokenRate;
     final rateC = _cnyRate;
     if (rateT == null || rateC == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('请先设置汇率')));
+      ToastManager.showToast(context, '请先设置汇率');
       _tokenController.clear();
       return;
     }
@@ -193,7 +197,7 @@ class _RateCalculatorPageState extends State<RateCalculatorPage> {
     final rateT = _tokenRate;
     final rateC = _cnyRate;
     if (rateT == null || rateC == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('请先设置汇率')));
+      ToastManager.showToast(context, '请先设置汇率');
       _cnyController.clear();
       return;
     }
@@ -216,83 +220,302 @@ class _RateCalculatorPageState extends State<RateCalculatorPage> {
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
     final isDark = themeProvider.isDarkMode;
-    return ListView(
-      padding: const EdgeInsets.all(16),
-          children: [
-            Container(
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surface,
-                borderRadius: BorderRadius.circular(8),
-                boxShadow: [
-                  BoxShadow(color: isDark ? Colors.white.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.08), blurRadius: 10, offset: const Offset(0, 2)),
-                ],
-              ),
-              padding: const EdgeInsets.all(16),
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text('汇率设置', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600, color: Theme.of(context).colorScheme.primary)),
-                const SizedBox(height: 16),
-                Row(children: [
-                  Expanded(child: _LabeledField(label: '1美元 = ? 金流', controller: _tokenRateController, hint: '输入金流数量')),
-                  const SizedBox(width: 16),
-                  Expanded(child: _LabeledField(label: '1美元 = ? 人民币', controller: _cnyRateController, hint: '输入人民币数量')),
-                ]),
-                const SizedBox(height: 12),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: _setRates,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Theme.of(context).colorScheme.primary,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                    ),
-                    child: _isLoading 
-                        ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white))
-                        : const Text('设置汇率'),
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: isDark
+              ? [const Color(0xFF2d2d2d), const Color(0xFF1a1a1a)]
+              : [const Color(0xFFf5f7fa), const Color(0xFFc3cfe2)],
+        ),
+      ),
+      child: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          // 主容器 - 液态玻璃效果
+          _GlassContainer(
+            padding: const EdgeInsets.all(25),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Text(
+                  '货币兑换计算器',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.w700,
+                    color: Theme.of(context).colorScheme.primary,
+                    shadows: [
+                      Shadow(
+                        color: Colors.black.withOpacity(0.1),
+                        offset: const Offset(0, 2),
+                        blurRadius: 4,
+                      ),
+                    ],
                   ),
                 ),
-              ]),
+                const SizedBox(height: 25),
+                
+                // 汇率设置部分
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '汇率设置',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                        color: Theme.of(context).colorScheme.primary,
+                        shadows: [
+                          Shadow(
+                            color: Colors.black.withOpacity(0.1),
+                            offset: const Offset(0, 2),
+                            blurRadius: 4,
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _LabeledField(
+                            label: '1美元 = ? 金流',
+                            controller: _tokenRateController,
+                            hint: '输入金流数量',
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: _LabeledField(
+                            label: '1美元 = ? 人民币',
+                            controller: _cnyRateController,
+                            hint: '输入人民币数量',
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+                    SizedBox(
+                      width: double.infinity,
+                      child: _GlassButton(
+                        onPressed: _setRates,
+                        isLoading: _isLoading,
+                        text: '设置汇率',
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 25),
+                Divider(
+                  color: isDark
+                      ? Colors.white.withOpacity(0.1)
+                      : Colors.black.withOpacity(0.1),
+                  thickness: 1,
+                ),
+                const SizedBox(height: 25),
+                
+                // 货币兑换部分
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '货币兑换',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                        color: Theme.of(context).colorScheme.primary,
+                        shadows: [
+                          Shadow(
+                            color: Colors.black.withOpacity(0.1),
+                            offset: const Offset(0, 2),
+                            blurRadius: 4,
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    _CurrencyRow(
+                      label: '美元 (USD)',
+                      symbol: '\$',
+                      controller: _usdController,
+                      onChanged: _onUsdChanged,
+                    ),
+                    const SizedBox(height: 15),
+                    _CurrencyRow(
+                      label: '金流',
+                      symbol: 'T',
+                      controller: _tokenController,
+                      onChanged: _onTokenChanged,
+                    ),
+                    const SizedBox(height: 15),
+                    _CurrencyRow(
+                      label: '人民币 (CNY)',
+                      symbol: '¥',
+                      controller: _cnyController,
+                      onChanged: _onCnyChanged,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 25),
+                Divider(
+                  color: isDark
+                      ? Colors.white.withOpacity(0.1)
+                      : Colors.black.withOpacity(0.1),
+                  thickness: 1,
+                ),
+                const SizedBox(height: 25),
+                
+                // 使用说明部分
+                _GlassContainer(
+                  padding: const EdgeInsets.all(15),
+                  borderRadius: 12,
+                  borderColor: Theme.of(context).colorScheme.primary.withOpacity(0.5),
+                  backgroundColor: isDark
+                      ? const Color(0xFF304159).withOpacity(0.7)
+                      : const Color(0xFFE8F4FC).withOpacity(0.7),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '使用说明：',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        '1. 首先在"汇率设置"区域输入1美元兑换的金流数量和人民币数量',
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.8),
+                        ),
+                      ),
+                      Text(
+                        '2. 点击"设置汇率"按钮确认汇率',
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.8),
+                        ),
+                      ),
+                      Text(
+                        '3. 在"货币兑换"区域的任意一个输入框中输入金额，其他两个输入框会自动计算对应的金额',
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.8),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: 16),
-            Container(
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surface,
-                borderRadius: BorderRadius.circular(8),
-                boxShadow: [
-                  BoxShadow(color: isDark ? Colors.white.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.08), blurRadius: 10, offset: const Offset(0, 2)),
-                ],
-              ),
-              padding: const EdgeInsets.all(16),
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text('货币兑换', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600, color: Theme.of(context).colorScheme.primary)),
-                const SizedBox(height: 16),
-                _CurrencyRow(label: '美元 (USD)', symbol: '\$', controller: _usdController, onChanged: _onUsdChanged),
-                const SizedBox(height: 12),
-                _CurrencyRow(label: '金流', symbol: 'T', controller: _tokenController, onChanged: _onTokenChanged),
-                const SizedBox(height: 12),
-                _CurrencyRow(label: '人民币 (CNY)', symbol: '¥', controller: _cnyController, onChanged: _onCnyChanged),
-              ]),
+          ),
+          // 底部安全占位区域
+          const SizedBox(height: 60),
+        ],
+      ),
+    );
+  }
+}
+
+// 液态玻璃容器组件
+class _GlassContainer extends StatelessWidget {
+  final Widget child;
+  final EdgeInsets padding;
+  final double borderRadius;
+  final Color? backgroundColor;
+  final Color? borderColor;
+
+  const _GlassContainer({
+    required this.child,
+    this.padding = const EdgeInsets.all(16),
+    this.borderRadius = 16,
+    this.backgroundColor,
+    this.borderColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isDark = themeProvider.isDarkMode;
+
+    return Container(
+      padding: padding,
+      decoration: BoxDecoration(
+        color: backgroundColor ?? (isDark
+            ? const Color(0xFF1a1a1a).withOpacity(0.7)
+            : const Color(0xFFFFFFFF).withOpacity(0.7)),
+        borderRadius: BorderRadius.circular(borderRadius),
+        border: Border.all(
+          color: borderColor ?? (isDark
+              ? const Color(0xFF555555).withOpacity(0.5)
+              : const Color(0xFFe1e5e9).withOpacity(0.5)),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: isDark
+                ? Colors.black.withOpacity(0.3)
+                : Colors.black.withOpacity(0.1),
+            blurRadius: 32,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: child,
+    );
+  }
+}
+
+// 液态玻璃按钮组件
+class _GlassButton extends StatelessWidget {
+  final VoidCallback onPressed;
+  final bool isLoading;
+  final String text;
+
+  const _GlassButton({
+    required this.onPressed,
+    required this.isLoading,
+    required this.text,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onPressed,
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.primary.withOpacity(0.8),
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.15),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
             ),
-            const SizedBox(height: 16),
-            Container(
-              decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF1A2B3C) : const Color(0xFFE8F4FC),
-                borderRadius: BorderRadius.circular(8),
-                border: Border(left: BorderSide(color: Theme.of(context).colorScheme.primary, width: 3)),
-              ),
-              padding: const EdgeInsets.all(16),
-              child: const Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text('使用说明：', style: TextStyle(fontWeight: FontWeight.w600)),
-                SizedBox(height: 8),
-                Text('1. 先输入并设置汇率'),
-                Text('2. 点击“设置汇率”确认'),
-                Text('3. 在任意一个输入框输入金额，其他两项自动计算'),
-              ]),
-            ),
-            // 底部安全占位区域，确保内容不被底部导航栏遮挡
-            const SizedBox(height: 60)
           ],
-        );
+        ),
+        child: Center(
+          child: isLoading
+              ? const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    color: Colors.white,
+                    strokeWidth: 2,
+                  ),
+                )
+              : Text(
+                  text,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+        ),
+      ),
+    );
   }
 }
 
@@ -305,19 +528,46 @@ class _LabeledField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isDark = themeProvider.isDarkMode;
+
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Text(label, style: const TextStyle(fontWeight: FontWeight.w500)),
+      Text(
+        label,
+        style: TextStyle(
+          fontWeight: FontWeight.w500,
+          color: Theme.of(context).colorScheme.onSurface,
+        ),
+      ),
       const SizedBox(height: 8),
-      TextField(
-        controller: controller,
-        style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
-        keyboardType: const TextInputType.numberWithOptions(decimal: true),
-        decoration: InputDecoration(
-          hintText: hint,
-          hintStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6)),
-          filled: true,
-          fillColor: Theme.of(context).colorScheme.surface,
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(6)),
+      Container(
+        decoration: BoxDecoration(
+          color: isDark
+              ? const Color(0xFF2d2d2d).withOpacity(0.7)
+              : const Color(0xFFFFFFFF).withOpacity(0.7),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isDark
+                ? const Color(0xFF555555).withOpacity(0.5)
+                : const Color(0xFFe1e5e9).withOpacity(0.5),
+            width: 1,
+          ),
+        ),
+        child: TextField(
+          controller: controller,
+          style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          decoration: InputDecoration(
+            hintText: hint,
+            hintStyle: TextStyle(
+              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+            ),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide.none,
+            ),
+            contentPadding: const EdgeInsets.all(15),
+          ),
         ),
       ),
     ]);
@@ -339,29 +589,177 @@ class _CurrencyRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isDark = themeProvider.isDarkMode;
+
     return Container(
-      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(6),
+        color: isDark
+            ? const Color(0xFF2d2d2d).withOpacity(0.7)
+            : const Color(0xFFFFFFFF).withOpacity(0.7),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: isDark
+              ? const Color(0xFF555555).withOpacity(0.5)
+              : const Color(0xFFe1e5e9).withOpacity(0.5),
+          width: 1,
+        ),
       ),
+      padding: const EdgeInsets.all(15),
       child: Row(children: [
         SizedBox(
-          width: 120,
-          child: Text(label, style: const TextStyle(fontSize: 14)),
+          width: 100,
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: 14,
+              color: Theme.of(context).colorScheme.onSurface,
+            ),
+          ),
         ),
         const SizedBox(width: 12),
-        Text(symbol, style: TextStyle(color: Theme.of(context).colorScheme.primary, fontWeight: FontWeight.w600)),
+        Text(
+          symbol,
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.primary,
+            fontWeight: FontWeight.w600,
+            fontSize: 18,
+          ),
+        ),
         const SizedBox(width: 12),
         Expanded(
           child: TextField(
             controller: controller,
             onChanged: onChanged,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            decoration: const InputDecoration(border: OutlineInputBorder()),
+            decoration: InputDecoration(
+              border: OutlineInputBorder(borderSide: BorderSide.none),
+              contentPadding: EdgeInsets.zero,
+            ),
+            style: TextStyle(
+              fontSize: 16,
+              color: Theme.of(context).colorScheme.onSurface,
+            ),
           ),
         ),
       ]),
     );
+  }
+}
+
+// 自定义Toast组件
+class _CustomToast extends StatefulWidget {
+  final String message;
+  final Duration duration;
+  final VoidCallback onDismissed;
+
+  const _CustomToast({required this.message, required this.duration, required this.onDismissed});
+
+  @override
+  State<_CustomToast> createState() => _CustomToastState();
+}
+
+class _CustomToastState extends State<_CustomToast> with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _opacityAnimation;
+  late Animation<Offset> _slideAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    
+    // 初始化动画控制器
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 300),
+      vsync: this,
+    );
+
+    // 淡入淡出动画
+    _opacityAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeOut),
+    );
+
+    // 滑动动画
+    _slideAnimation = Tween<Offset>(begin: const Offset(0, 1), end: Offset.zero).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeOut),
+    );
+
+    // 启动进入动画
+    _controller.forward();
+
+    // 显示一段时间后开始退出动画
+    Future.delayed(widget.duration - const Duration(milliseconds: 300), () {
+      if (mounted) {
+        _controller.reverse().then((_) {
+          if (mounted) {
+            widget.onDismissed();
+          }
+        });
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isDark = themeProvider.isDarkMode;
+
+    return Material(
+      color: Colors.transparent,
+      child: Align(
+        alignment: Alignment.bottomCenter,
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: SlideTransition(
+            position: _slideAnimation,
+            child: FadeTransition(
+              opacity: _opacityAnimation,
+              child: _GlassContainer(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                borderRadius: 12,
+                backgroundColor: isDark
+                    ? const Color(0xFF333333).withOpacity(0.8)
+                    : const Color(0xFFFFFFFF).withOpacity(0.8),
+                borderColor: Theme.of(context).colorScheme.primary.withOpacity(0.5),
+                child: Text(
+                  widget.message,
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// Toast工具类
+class ToastManager {
+  static void showToast(BuildContext context, String message, {
+    Duration duration = const Duration(seconds: 3),
+  }) {
+    final overlay = Overlay.of(context);
+    late OverlayEntry overlayEntry;
+
+    overlayEntry = OverlayEntry(
+      builder: (context) => _CustomToast(
+        message: message, 
+        duration: duration,
+        onDismissed: () => overlayEntry.remove(),
+      ),
+    );
+
+    overlay.insert(overlayEntry);
   }
 }
