@@ -1,6 +1,24 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:webview_flutter/webview_flutter.dart';
+import 'package:provider/provider.dart';
 import './webview_page.dart';
+import '../providers/theme_provider.dart';
+
+// 颜色常量
+const Color _lightPrimaryGradientStart = Color(0xFFf5f7fa);
+const Color _lightPrimaryGradientEnd = Color(0xFFc3cfe2);
+const Color _darkPrimaryGradientStart = Color(0xFF1a1a2e);
+const Color _darkPrimaryGradientEnd = Color(0xFF16213e);
+
+const Color _lightButtonGradientStart = Color(0xFFb8e0ff);
+const Color _lightButtonGradientEnd = Color(0xFF7f5af0);
+const Color _darkButtonGradientStart = Color(0xFF4a5568);
+const Color _darkButtonGradientEnd = Color(0xFF2d3748);
+
+const Color _lightTextPrimary = Color(0xFF333333);
+const Color _lightTextSecondary = Color(0xFF555555);
+const Color _darkTextPrimary = Color(0xFFe2e8f0);
+const Color _darkTextSecondary = Color(0xFFa0aec0);
 
 /// 主页面
 class HomePage extends StatefulWidget {
@@ -11,54 +29,416 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  late final WebViewController _controller;
-  // 内置HTML内容
-  final String _htmlContent = '''
-<!DOCTYPE html><html lang="zh-CN"><head>  <meta charset="UTF-8">  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0, user-scalable=no"></head><body>  <style>    :root {      --glass-bg: rgba(255, 255, 255, .2);      --glass-border: rgba(255, 255, 255, .3);      --glass-shadow: rgba(0, 0, 0, .1);      --text-primary: #333;      --text-secondary: #555;      --accent-gradient: linear-gradient(135deg, #b8e0ff 0%, #7f5af0 100%);      --blur-strength: 10px;    }        * {      margin: 0;      padding: 0;      box-sizing: border-box;    }        body {      font-family: system-ui, sans-serif;      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);      color: var(--text-primary);      padding: 2rem;      display: flex;      flex-direction: column;      align-items: center;      justify-content: center;      min-height: 100vh;      text-align: center;    }        .glass-container {      background: var(--glass-bg);      backdrop-filter: blur(var(--blur-strength));      -webkit-backdrop-filter: blur(var(--blur-strength));      border: 1px solid var(--glass-border);      border-radius: 16px;      box-shadow: 0 8px 32px var(--glass-shadow);      padding: 2rem;      margin-bottom: 2rem;      width: 100%;      max-width: 600px;    }        .button-group {      display: flex;      gap: 1rem;      flex-wrap: wrap;      justify-content: center;    }        .btn {      padding: 1rem 2rem;      border-radius: 12px;      text-decoration: none;      font-weight: 600;      font-size: 1rem;      border: 1px solid rgba(255, 255, 255, .2);      backdrop-filter: blur(5px);      -webkit-backdrop-filter: blur(5px);      transition: transform .3s, box-shadow .3s;    }        .btn:hover {      transform: translateY(-3px);      box-shadow: 0 10px 20px rgba(0, 0, 0, .15);    }        .btn.primary {      background: var(--accent-gradient);    }        .btn.secondary {      background: rgba(255, 255, 255, .3);      color: var(--text-primary);    }        .custom-modal {      display: flex;      position: fixed;      inset: 0;      background: var(--glass-bg);      backdrop-filter: blur(5px);      z-index: 10000;      justify-content: center;      align-items: center;      opacity: 0;      pointer-events: none;      transition: opacity .3s;    }        .custom-modal.show {      opacity: 1;      pointer-events: auto;    }        .custom-modal-content {      background: var(--glass-bg);      backdrop-filter: blur(var(--blur-strength));      border: 1px solid var(--glass-border);      border-radius: 16px;      padding: 2rem;      width: 90%;      max-width: 400px;      box-shadow: 0 8px 32px var(--glass-shadow);      transform: translateY(-20px);      transition: transform .3s;    }        .custom-modal.show .custom-modal-content {      transform: translateY(0);    }        .custom-modal-footer {      display: flex;      gap: 1rem;      justify-content: center;      margin-top: 1.5rem;    }        .custom-modal-button {      padding: .8rem 1.5rem;      border-radius: 12px;      border: none;      font-weight: 600;      background: var(--accent-gradient);      cursor: pointer;      transition: transform .3s;    }        .custom-modal-button:hover {      transform: translateY(-2px);    }        @media (prefers-color-scheme: dark) {      :root {        --glass-bg: rgba(20, 30, 40, .7);        --glass-border: rgba(255, 255, 255, .1);        --glass-shadow: rgba(0, 0, 0, .3);        --text-primary: #fff;        --text-secondary: #e0e0e0;      }            body {        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);      }    }        @media (max-width: 768px) {      body {        padding: 1rem;      }            .glass-container {        padding: 1.5rem;      }            .button-group {        flex-direction: column;        align-items: center;      }            .btn {        width: 100%;        max-width: 300px;      }    }  </style><!-- 主要内容容器 - 液态玻璃效果 --><div class="glass-container">  <div class="welcome">    <div class="header-flex" style="display: flex; align-items: center; justify-content: center; gap: 1rem;">      <div class="button-group main">    <a class="btn primary" href="http://192.168.0.197:3010">记账</a>    <button class="btn primary" onclick="showFinanceVersionSelection()">金流</button>    <a class="btn primary" href="http://192.168.0.197:5000">库存</a>      </div>    </div>  </div><!-- 自定义弹窗HTML结构 --><div id="customModal" class="custom-modal">  <div class="custom-modal-content">    <div class="custom-modal-header">      <h3 class="custom-modal-title" id="modalTitle">提示</h3>    </div>    <div class="custom-modal-body">      <p id="modalMessage">消息内容</p>    </div>    <div class="custom-modal-footer">      <button id="modalCloseBtn" class="custom-modal-button">确定</button>    </div>  </div></div><script>    document.getElementById('user-agent').textContent = navigator.userAgent;    // 金流版本选择函数  function showFinanceVersionSelection() {    const modal = document.getElementById('customModal');    const modalTitle = document.getElementById('modalTitle');    const modalMessage = document.getElementById('modalMessage');    const modalFooter = modal.querySelector('.custom-modal-footer');        // 确保弹窗元素存在    if (!modal || !modalTitle || !modalMessage || !modalFooter) {      console.error('弹窗元素未找到');      return;    }        // 设置弹窗内容    modalTitle.textContent = '金流版本选择';    modalMessage.textContent = '点击空白处以关闭';        // 清空并重新创建底部按钮    modalFooter.innerHTML = '';        // 创建标准版本按钮    const standardBtn = document.createElement('button');    standardBtn.className = 'custom-modal-button';    standardBtn.textContent = '标准';    standardBtn.onclick = function() {      window.location.href = 'http://192.168.0.197:3100';    };    modalFooter.appendChild(standardBtn);        // 创建兼容版本按钮    const compatibleBtn = document.createElement('button');    compatibleBtn.className = 'custom-modal-button';    compatibleBtn.textContent = '兼容';    compatibleBtn.onclick = function() {      window.location.href = 'http://192.168.0.197:4173';    };    modalFooter.appendChild(compatibleBtn);        showModalElement(modal);    document.addEventListener('keydown', escHandler);    modal.addEventListener('click', bgClickHandler);  }    function showModal(title, message) {    const modal = document.getElementById('customModal');    const modalTitle = document.getElementById('modalTitle');    const modalMessage = document.getElementById('modalMessage');    const modalCloseBtn = document.getElementById('modalCloseBtn');        if (!modal || !modalTitle || !modalMessage || !modalCloseBtn) return;        modalTitle.textContent = title || '提示';    modalMessage.textContent = message || '';        showModalElement(modal);        modalCloseBtn.onclick = () => closeModal(modal);    modal.onclick = e => e.target === modal && closeModal(modal);    document.addEventListener('keydown', escHandler);  }    function closeModal(modal) {    modal.classList.remove('show');    modal.classList.add('hide');    setTimeout(() => {      modal.style.display = 'none';      document.body.style.overflow = '';    }, 300);  }    function showModalElement(modal) {    modal.style.display = 'flex';    modal.classList.remove('hide', 'show');    document.body.style.overflow = 'hidden';    void modal.offsetWidth;    modal.classList.add('show');  }    function escHandler(e) {    if (e.key === 'Escape') {      const modal = document.getElementById('customModal');      closeModal(modal);      document.removeEventListener('keydown', escHandler);    }  }    function bgClickHandler(e) {    if (e.target === e.currentTarget) {      closeModal(e.currentTarget);      e.currentTarget.removeEventListener('click', bgClickHandler);    }  }    function outdate(event) {    event.preventDefault();    showModal('提示', '抱歉，此服务已下线');  }  // 处理快捷方式URL参数  function handleShortcuts() {    const urlParams = new URLSearchParams(window.location.search);    const app = urlParams.get('app');        if (app === 'homemoney') {      window.open('http://192.168.0.197:3010', '_blank');    } else if (app === 'chrysorrhoe') {      window.open('http://192.168.0.197:3100', '_blank');    } else if (app === 'inventory') {      window.open('http://192.168.0.197:5000', '_blank');    }  }</script></body></html>
-''';
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = WebViewController()
-      ..setJavaScriptMode(JavaScriptMode.unrestricted)
-      ..setNavigationDelegate(
-        NavigationDelegate(
-          onProgress: (int progress) {
-            // Update loading bar
-          },
-          onPageStarted: (String url) {},
-          onPageFinished: (String url) {},
-          onWebResourceError: (WebResourceError error) {},
-          onNavigationRequest: (NavigationRequest request) {
-            // 拦截所有导航请求，传递给webview_page.dart用默认浏览器打开
-            if (request.url.startsWith('http://') || request.url.startsWith('https://')) {
-              // 不是本地资源，用默认浏览器打开
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => WebViewPage(
-                    title: '外部链接',
-                    url: request.url,
-                  ),
-                ),
-              );
-              return NavigationDecision.prevent;
-            }
-            // 本地资源允许加载
-            return NavigationDecision.navigate;
-          },
-        ),
-      )
-      // 加载内置HTML
-      ..loadHtmlString(_htmlContent);
-  }
+  bool _isModalVisible = false;
 
   @override
   Widget build(BuildContext context) {
+    // 获取主题Provider
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    // 根据主题Provider确定是否是深色模式
+    final bool isDarkMode = themeProvider.isDarkMode;
+    
+    // 根据主题模式选择颜色
+    final Color primaryGradientStart = isDarkMode ? _darkPrimaryGradientStart : _lightPrimaryGradientStart;
+    final Color primaryGradientEnd = isDarkMode ? _darkPrimaryGradientEnd : _lightPrimaryGradientEnd;
+    final Color buttonGradientStart = isDarkMode ? _darkButtonGradientStart : _lightButtonGradientStart;
+    final Color buttonGradientEnd = isDarkMode ? _darkButtonGradientEnd : _lightButtonGradientEnd;
+    final Color textPrimary = isDarkMode ? _darkTextPrimary : _lightTextPrimary;
+    final Color textSecondary = isDarkMode ? _darkTextSecondary : _lightTextSecondary;
+    
     return Scaffold(
-      body: SafeArea(
-        child: WebViewWidget(controller: _controller),
+      body: Container(
+        // 渐变背景
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              primaryGradientStart,
+              primaryGradientEnd,
+            ],
+          ),
+        ),
+        child: SafeArea(
+          child: Stack(
+            children: [
+              // 主要内容
+              Center(
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      // 玻璃态容器
+                      Container(
+                        margin: const EdgeInsets.all(16.0),
+                        padding: const EdgeInsets.all(32.0),
+                        decoration: BoxDecoration(
+                          color: isDarkMode 
+                              ? Colors.black.withOpacity(0.3)
+                              : Colors.white.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(16.0),
+                          border: Border.all(
+                            color: isDarkMode 
+                                ? Colors.white.withOpacity(0.1)
+                                : Colors.white.withOpacity(0.3),
+                            width: 1.0,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: isDarkMode 
+                                  ? Colors.black.withOpacity(0.3)
+                                  : Colors.black.withOpacity(0.1),
+                              blurRadius: 32.0,
+                              spreadRadius: 8.0,
+                            ),
+                          ],
+                        ),
+                        child: BackdropFilter(
+                          filter: ImageFilter.blur(sigmaX: 20.0, sigmaY: 20.0),
+                          child: Column(
+                            children: [
+                              // 按钮组
+                              Wrap(
+                                spacing: 16.0,
+                                runSpacing: 16.0,
+                                children: [
+                                  _buildButton(
+                                    text: '记账',
+                                    isPrimary: true,
+                                    onPressed: () {
+                                      _navigateToUrl('http://192.168.0.197:3010');
+                                    },
+                                    buttonGradientStart: buttonGradientStart,
+                                    buttonGradientEnd: buttonGradientEnd,
+                                    textPrimary: textPrimary,
+                                    isDarkMode: isDarkMode,
+                                  ),
+                                  _buildButton(
+                                    text: '金流',
+                                    isPrimary: true,
+                                    onPressed: () {
+                                      setState(() {
+                                        _isModalVisible = true;
+                                      });
+                                    },
+                                    buttonGradientStart: buttonGradientStart,
+                                    buttonGradientEnd: buttonGradientEnd,
+                                    textPrimary: textPrimary,
+                                    isDarkMode: isDarkMode,
+                                  ),
+                                  _buildButton(
+                                    text: '库存',
+                                    isPrimary: true,
+                                    onPressed: () {
+                                      _navigateToUrl('http://192.168.0.197:5000');
+                                    },
+                                    buttonGradientStart: buttonGradientStart,
+                                    buttonGradientEnd: buttonGradientEnd,
+                                    textPrimary: textPrimary,
+                                    isDarkMode: isDarkMode,
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              // 模态框
+              AnimatedOpacity(
+                opacity: _isModalVisible ? 1.0 : 0.0,
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeInOut,
+                child: AnimatedScale(
+                  scale: _isModalVisible ? 1.0 : 0.9,
+                  duration: const Duration(milliseconds: 300),
+                  curve: Curves.easeInOut,
+                  child: IgnorePointer(
+                    ignoring: !_isModalVisible,
+                    child: _buildModal(
+                      buttonGradientStart: buttonGradientStart,
+                      buttonGradientEnd: buttonGradientEnd,
+                      textPrimary: textPrimary,
+                      textSecondary: textSecondary,
+                      isDarkMode: isDarkMode,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // 构建按钮
+  Widget _buildButton({
+    required String text,
+    required bool isPrimary,
+    required VoidCallback onPressed,
+    required Color buttonGradientStart,
+    required Color buttonGradientEnd,
+    required Color textPrimary,
+    required bool isDarkMode,
+  }) {
+    if (isPrimary) {
+      return Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              buttonGradientStart,
+              buttonGradientEnd,
+            ],
+          ),
+          borderRadius: BorderRadius.circular(12.0),
+          boxShadow: [
+            BoxShadow(
+              color: isDarkMode 
+                  ? Colors.black.withOpacity(0.3)
+                  : Colors.black.withOpacity(0.15),
+              blurRadius: 10.0,
+              spreadRadius: 2.0,
+            ),
+          ],
+        ),
+        child: ElevatedButton(
+          onPressed: onPressed,
+          style: ElevatedButton.styleFrom(
+            padding: const EdgeInsets.symmetric(horizontal: 32.0, vertical: 16.0),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12.0),
+            ),
+            backgroundColor: Colors.transparent,
+            foregroundColor: Colors.white,
+            elevation: 0,
+            shadowColor: Colors.transparent,
+            surfaceTintColor: Colors.transparent,
+            side: BorderSide(
+              color: Colors.white.withOpacity(isDarkMode ? 0.1 : 0.2),
+              width: 1.0,
+            ),
+          ),
+          child: Text(
+            text,
+            style: TextStyle(
+              fontWeight: FontWeight.w600,
+              fontSize: 16.0,
+              color: Colors.white,
+            ),
+          ),
+        ),
+      );
+    }
+    return ElevatedButton(
+      onPressed: onPressed,
+      style: ElevatedButton.styleFrom(
+        padding: const EdgeInsets.symmetric(horizontal: 32.0, vertical: 16.0),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12.0),
+        ),
+        backgroundColor: isDarkMode 
+            ? Colors.black.withOpacity(0.4)
+            : Colors.white.withOpacity(0.3),
+        foregroundColor: textPrimary,
+        elevation: 0,
+        shadowColor: Colors.transparent,
+        surfaceTintColor: Colors.transparent,
+        side: BorderSide(
+          color: Colors.white.withOpacity(isDarkMode ? 0.1 : 0.2),
+          width: 1.0,
+        ),
+      ),
+      child: Text(
+        text,
+        style: TextStyle(
+          fontWeight: FontWeight.w600,
+          fontSize: 16.0,
+        ),
+      ),
+    );
+  }
+
+  // 构建模态框
+  Widget _buildModal({
+    required Color buttonGradientStart,
+    required Color buttonGradientEnd,
+    required Color textPrimary,
+    required Color textSecondary,
+    required bool isDarkMode,
+  }) {
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _isModalVisible = false;
+        });
+      },
+      child: Container(
+        width: double.infinity,
+        height: double.infinity,
+        color: isDarkMode 
+            ? Colors.black.withOpacity(0.3)
+            : Colors.white.withOpacity(0.2),
+        child: Center(
+          child: Container(
+            margin: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.all(32.0),
+            decoration: BoxDecoration(
+              color: isDarkMode 
+                  ? Colors.black.withOpacity(0.3)
+                  : Colors.white.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(16.0),
+              border: Border.all(
+                color: isDarkMode 
+                    ? Colors.white.withOpacity(0.1)
+                    : Colors.white.withOpacity(0.3),
+                width: 1.0,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: isDarkMode 
+                      ? Colors.black.withOpacity(0.3)
+                      : Colors.black.withOpacity(0.1),
+                  blurRadius: 32.0,
+                  spreadRadius: 8.0,
+                ),
+              ],
+            ),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 20.0, sigmaY: 20.0),
+              child: GestureDetector(
+                  onTap: () {
+                    // 阻止点击事件传递到父容器
+                  },
+                  behavior: HitTestBehavior.opaque, // 添加这个属性来确保内部点击不触发外部关闭
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      '金流版本选择',
+                      style: TextStyle(
+                        fontSize: 20.0,
+                        fontWeight: FontWeight.w600,
+                        color: textPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 8.0),
+                    Text(
+                      '点击空白处以关闭',
+                      style: TextStyle(
+                        fontSize: 14.0,
+                        color: textSecondary,
+                      ),
+                    ),
+                    const SizedBox(height: 24.0),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        _buildModalButton(
+                          text: '标准',
+                          onPressed: () {
+                            _navigateToUrl('http://192.168.0.197:3100');
+                            setState(() {
+                              _isModalVisible = false;
+                            });
+                          },
+                          buttonGradientStart: buttonGradientStart,
+                          buttonGradientEnd: buttonGradientEnd,
+                          isDarkMode: isDarkMode,
+                        ),
+                        const SizedBox(width: 16.0),
+                        _buildModalButton(
+                          text: '兼容',
+                          onPressed: () {
+                            _navigateToUrl('http://192.168.0.197:4173');
+                            setState(() {
+                              _isModalVisible = false;
+                            });
+                          },
+                          buttonGradientStart: buttonGradientStart,
+                          buttonGradientEnd: buttonGradientEnd,
+                          isDarkMode: isDarkMode,
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // 构建模态框按钮
+  Widget _buildModalButton({
+    required String text,
+    required VoidCallback onPressed,
+    required Color buttonGradientStart,
+    required Color buttonGradientEnd,
+    required bool isDarkMode,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            buttonGradientStart,
+            buttonGradientEnd,
+          ],
+        ),
+        borderRadius: BorderRadius.circular(12.0),
+        boxShadow: [
+          BoxShadow(
+            color: isDarkMode 
+                ? Colors.black.withOpacity(0.3)
+                : Colors.black.withOpacity(0.15),
+            blurRadius: 10.0,
+            spreadRadius: 2.0,
+          ),
+        ],
+      ),
+      child: ElevatedButton(
+        onPressed: onPressed,
+        style: ElevatedButton.styleFrom(
+          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12.0),
+          ),
+          backgroundColor: Colors.transparent,
+          foregroundColor: Colors.white,
+          elevation: 0,
+          shadowColor: Colors.transparent,
+          surfaceTintColor: Colors.transparent,
+        ),
+        child: Text(
+          text,
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            fontSize: 16.0,
+            color: Colors.white,
+          ),
+        ),
+      ),
+    );
+  }
+
+  // 导航到URL
+  void _navigateToUrl(String url) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => WebViewPage(
+          title: '外部链接',
+          url: url,
+        ),
       ),
     );
   }
