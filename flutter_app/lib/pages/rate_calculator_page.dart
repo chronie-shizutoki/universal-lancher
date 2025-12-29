@@ -247,7 +247,7 @@ class _RateCalculatorPageState extends State<RateCalculatorPage> {
                     color: Theme.of(context).colorScheme.primary,
                     shadows: [
                       Shadow(
-                        color: Colors.black.withOpacity(0.1),
+                        color: Colors.black.withValues(alpha: 0.1),
                         offset: const Offset(0, 2),
                         blurRadius: 4,
                       ),
@@ -268,7 +268,7 @@ class _RateCalculatorPageState extends State<RateCalculatorPage> {
                         color: Theme.of(context).colorScheme.primary,
                         shadows: [
                           Shadow(
-                            color: Colors.black.withOpacity(0.1),
+                            color: Colors.black.withValues(alpha: 0.1),
                             offset: const Offset(0, 2),
                             blurRadius: 4,
                           ),
@@ -309,8 +309,8 @@ class _RateCalculatorPageState extends State<RateCalculatorPage> {
                 const SizedBox(height: 25),
                 Divider(
                   color: isDark
-                      ? Colors.white.withOpacity(0.1)
-                      : Colors.black.withOpacity(0.1),
+                      ? Colors.white.withValues(alpha: 0.1)
+                      : Colors.black.withValues(alpha: 0.1),
                   thickness: 1,
                 ),
                 const SizedBox(height: 25),
@@ -327,7 +327,7 @@ class _RateCalculatorPageState extends State<RateCalculatorPage> {
                         color: Theme.of(context).colorScheme.primary,
                         shadows: [
                           Shadow(
-                            color: Colors.black.withOpacity(0.1),
+                            color: Colors.black.withValues(alpha: 0.1),
                             offset: const Offset(0, 2),
                             blurRadius: 4,
                           ),
@@ -360,8 +360,8 @@ class _RateCalculatorPageState extends State<RateCalculatorPage> {
                 const SizedBox(height: 25),
                 Divider(
                   color: isDark
-                      ? Colors.white.withOpacity(0.1)
-                      : Colors.black.withOpacity(0.1),
+                      ? Colors.white.withValues(alpha: 0.1)
+                      : Colors.black.withValues(alpha: 0.1),
                   thickness: 1,
                 ),
                 const SizedBox(height: 25),
@@ -370,10 +370,10 @@ class _RateCalculatorPageState extends State<RateCalculatorPage> {
                 _GlassContainer(
                   padding: const EdgeInsets.all(15),
                   borderRadius: 12,
-                  borderColor: Theme.of(context).colorScheme.primary.withOpacity(0.5),
+                  borderColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
                   backgroundColor: isDark
-                      ? const Color(0xFF304159).withOpacity(0.7)
-                      : const Color(0xFFE8F4FC).withOpacity(0.7),
+                      ? const Color(0xFF304159).withValues(alpha: 0.7)
+                      : const Color(0xFFE8F4FC).withValues(alpha: 0.7),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -388,19 +388,19 @@ class _RateCalculatorPageState extends State<RateCalculatorPage> {
                       Text(
                         '1. 首先在"汇率设置"区域输入1美元兑换的金流数量和人民币数量',
                         style: TextStyle(
-                          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.8),
+                          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.8),
                         ),
                       ),
                       Text(
                         '2. 点击"设置汇率"按钮确认汇率',
                         style: TextStyle(
-                          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.8),
+                          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.8),
                         ),
                       ),
                       Text(
                         '3. 在"货币兑换"区域的任意一个输入框中输入金额，其他两个输入框会自动计算对应的金额',
                         style: TextStyle(
-                          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.8),
+                          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.8),
                         ),
                       ),
                     ],
@@ -442,20 +442,20 @@ class _GlassContainer extends StatelessWidget {
       padding: padding,
       decoration: BoxDecoration(
         color: backgroundColor ?? (isDark
-            ? const Color(0xFF1a1a1a).withOpacity(0.7)
-            : const Color(0xFFFFFFFF).withOpacity(0.7)),
+            ? const Color(0xFF1a1a1a).withValues(alpha: 0.7)
+            : const Color(0xFFFFFFFF).withValues(alpha: 0.7)),
         borderRadius: BorderRadius.circular(borderRadius),
         border: Border.all(
           color: borderColor ?? (isDark
-              ? const Color(0xFF555555).withOpacity(0.5)
-              : const Color(0xFFe1e5e9).withOpacity(0.5)),
+              ? const Color(0xFF555555).withValues(alpha: 0.5)
+              : const Color(0xFFe1e5e9).withValues(alpha: 0.5)),
           width: 1,
         ),
         boxShadow: [
           BoxShadow(
             color: isDark
-                ? Colors.black.withOpacity(0.3)
-                : Colors.black.withOpacity(0.1),
+                ? Colors.black.withValues(alpha: 0.3)
+                : Colors.black.withValues(alpha: 0.1),
             blurRadius: 32,
             offset: const Offset(0, 8),
           ),
@@ -485,11 +485,11 @@ class _GlassButton extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.primary.withOpacity(0.8),
+          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.8),
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.15),
+              color: Colors.black.withValues(alpha: 0.15),
               blurRadius: 12,
               offset: const Offset(0, 4),
             ),
@@ -543,13 +543,13 @@ class _LabeledField extends StatelessWidget {
       Container(
         decoration: BoxDecoration(
           color: isDark
-              ? const Color(0xFF2d2d2d).withOpacity(0.7)
-              : const Color(0xFFFFFFFF).withOpacity(0.7),
+              ? const Color(0xFF2d2d2d).withValues(alpha: 0.7)
+              : const Color(0xFFFFFFFF).withValues(alpha: 0.7),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: isDark
-                ? const Color(0xFF555555).withOpacity(0.5)
-                : const Color(0xFFe1e5e9).withOpacity(0.5),
+                ? const Color(0xFF555555).withValues(alpha: 0.5)
+                : const Color(0xFFe1e5e9).withValues(alpha: 0.5),
             width: 1,
           ),
         ),
@@ -560,7 +560,7 @@ class _LabeledField extends StatelessWidget {
           decoration: InputDecoration(
             hintText: hint,
             hintStyle: TextStyle(
-              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
             ),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
@@ -595,13 +595,13 @@ class _CurrencyRow extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: isDark
-            ? const Color(0xFF2d2d2d).withOpacity(0.7)
-            : const Color(0xFFFFFFFF).withOpacity(0.7),
+            ? const Color(0xFF2d2d2d).withValues(alpha: 0.7)
+            : const Color(0xFFFFFFFF).withValues(alpha: 0.7),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: isDark
-              ? const Color(0xFF555555).withOpacity(0.5)
-              : const Color(0xFFe1e5e9).withOpacity(0.5),
+              ? const Color(0xFF555555).withValues(alpha: 0.5)
+              : const Color(0xFFe1e5e9).withValues(alpha: 0.5),
           width: 1,
         ),
       ),
@@ -724,9 +724,9 @@ class _CustomToastState extends State<_CustomToast> with SingleTickerProviderSta
                 padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                 borderRadius: 12,
                 backgroundColor: isDark
-                    ? const Color(0xFF333333).withOpacity(0.8)
-                    : const Color(0xFFFFFFFF).withOpacity(0.8),
-                borderColor: Theme.of(context).colorScheme.primary.withOpacity(0.5),
+                    ? const Color(0xFF333333).withValues(alpha: 0.8)
+                    : const Color(0xFFFFFFFF).withValues(alpha: 0.8),
+                borderColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
                 child: Text(
                   widget.message,
                   style: TextStyle(

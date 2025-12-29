@@ -19,7 +19,6 @@ class WebViewPage extends StatefulWidget {
 class _WebViewPageState extends State<WebViewPage> {
   bool _isLoading = true;
   String? _errorMessage;
-  bool _launched = false;
 
   @override
   void initState() {
@@ -41,7 +40,6 @@ class _WebViewPageState extends State<WebViewPage> {
 
       setState(() {
         _isLoading = false;
-        _launched = launched;
         if (!launched) {
           _errorMessage = '无法打开链接';
         }

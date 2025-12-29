@@ -222,7 +222,6 @@ class _FoodPageState extends State<FoodPage> with SingleTickerProviderStateMixin
   double _rotation = 0.0;
   bool _isSpinning = false;
   FoodItem? _selectedFood;
-  bool _showWeeklyPlan = false;
   int _currentTab = 0;
 
   @override
@@ -358,9 +357,6 @@ class _FoodPageState extends State<FoodPage> with SingleTickerProviderStateMixin
   void _generateWeeklyPlan() {
     final provider = Provider.of<FoodProvider>(context, listen: false);
     provider.generateWeeklyPlan();
-    setState(() {
-      _showWeeklyPlan = true;
-    });
   }
 
   @override
@@ -434,26 +430,26 @@ class _FoodPageState extends State<FoodPage> with SingleTickerProviderStateMixin
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  Colors.blue.withOpacity(0.8),
-                  Colors.purple.withOpacity(0.8),
+                  Colors.blue.withValues(alpha: 0.8),
+                  Colors.purple.withValues(alpha: 0.8),
                 ],
               )
             : LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  Colors.white.withOpacity(0.7),
-                  Colors.white.withOpacity(0.5),
+                  Colors.white.withValues(alpha: 0.7),
+                  Colors.white.withValues(alpha: 0.5),
                 ],
               ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.2),
+            color: Colors.black.withValues(alpha: 0.2),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
           BoxShadow(
-            color: Colors.white.withOpacity(0.5),
+            color: Colors.white.withValues(alpha: 0.5),
             blurRadius: 10,
             offset: const Offset(0, -2),
           ),
@@ -468,7 +464,7 @@ class _FoodPageState extends State<FoodPage> with SingleTickerProviderStateMixin
             });
           },
           borderRadius: BorderRadius.circular(25),
-          splashColor: isSelected ? Colors.white.withOpacity(0.3) : Colors.blue.withOpacity(0.3),
+          splashColor: isSelected ? Colors.white.withValues(alpha: 0.3) : Colors.blue.withValues(alpha: 0.3),
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
             child: Text(
@@ -494,18 +490,18 @@ class _FoodPageState extends State<FoodPage> with SingleTickerProviderStateMixin
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            Colors.white.withOpacity(0.8),
-            Colors.white.withOpacity(0.6),
+            Colors.white.withValues(alpha: 0.8),
+            Colors.white.withValues(alpha: 0.6),
           ],
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.2),
+            color: Colors.black.withValues(alpha: 0.2),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
           BoxShadow(
-            color: Colors.white.withOpacity(0.5),
+            color: Colors.white.withValues(alpha: 0.5),
             blurRadius: 10,
             offset: const Offset(0, -2),
           ),
@@ -516,7 +512,7 @@ class _FoodPageState extends State<FoodPage> with SingleTickerProviderStateMixin
         child: InkWell(
           onTap: _showFoodManagementDialog,
           borderRadius: BorderRadius.circular(30),
-          splashColor: Colors.blue.withOpacity(0.3),
+          splashColor: Colors.blue.withValues(alpha: 0.3),
           child: Container(
             padding: const EdgeInsets.all(12),
             child: const Icon(Icons.settings, size: 24, color: Colors.black87),
@@ -550,22 +546,22 @@ class _FoodPageState extends State<FoodPage> with SingleTickerProviderStateMixin
                         end: Alignment.bottomRight,
                         colors: isDarkMode
                             ? [
-                                Colors.white.withOpacity(0.1),
-                                Colors.white.withOpacity(0.05),
+                                Colors.white.withValues(alpha: 0.1),
+                                Colors.white.withValues(alpha: 0.05),
                               ]
                             : [
-                                Colors.white.withOpacity(0.2),
-                                Colors.white.withOpacity(0.1),
+                                Colors.white.withValues(alpha: 0.2),
+                                Colors.white.withValues(alpha: 0.1),
                               ],
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
+                          color: Colors.black.withValues(alpha: 0.1),
                           blurRadius: 15,
                           offset: const Offset(0, 8),
                         ),
                         BoxShadow(
-                          color: Colors.white.withOpacity(isDarkMode ? 0.05 : 0.3),
+                          color: Colors.white.withValues(alpha: isDarkMode ? 0.05 : 0.3),
                           blurRadius: 15,
                           offset: const Offset(0, -8),
                         ),
@@ -686,22 +682,22 @@ class _FoodPageState extends State<FoodPage> with SingleTickerProviderStateMixin
           end: Alignment.bottomRight,
           colors: isDarkMode
               ? [
-                  Colors.white.withOpacity(0.2),
-                  Colors.white.withOpacity(0.1),
+                  Colors.white.withValues(alpha: 0.2),
+                  Colors.white.withValues(alpha: 0.1),
                 ]
               : [
-                  Colors.white.withOpacity(0.8),
-                  Colors.white.withOpacity(0.6),
+                  Colors.white.withValues(alpha: 0.8),
+                  Colors.white.withValues(alpha: 0.6),
                 ],
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.2),
+            color: Colors.black.withValues(alpha: 0.2),
             blurRadius: 15,
             offset: const Offset(0, 8),
           ),
           BoxShadow(
-            color: Colors.white.withOpacity(isDarkMode ? 0.05 : 0.5),
+            color: Colors.white.withValues(alpha: isDarkMode ? 0.05 : 0.5),
             blurRadius: 15,
             offset: const Offset(0, -4),
           ),
@@ -754,18 +750,18 @@ class _FoodPageState extends State<FoodPage> with SingleTickerProviderStateMixin
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            primaryColor.withOpacity(0.9),
-            primaryColor.withOpacity(0.7),
+            primaryColor.withValues(alpha: 0.9),
+            primaryColor.withValues(alpha: 0.7),
           ],
         ),
         boxShadow: [
           BoxShadow(
-            color: primaryColor.withOpacity(0.3),
+            color: primaryColor.withValues(alpha: 0.3),
             blurRadius: 15,
             offset: const Offset(0, 8),
           ),
           BoxShadow(
-            color: primaryColor.withOpacity(0.2),
+            color: primaryColor.withValues(alpha: 0.2),
             blurRadius: 15,
             offset: const Offset(0, -4),
           ),
@@ -776,7 +772,7 @@ class _FoodPageState extends State<FoodPage> with SingleTickerProviderStateMixin
         child: InkWell(
           onTap: onPressed,
           borderRadius: BorderRadius.circular(30),
-          splashColor: Colors.white.withOpacity(0.3),
+          splashColor: Colors.white.withValues(alpha: 0.3),
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
             width: double.infinity,
@@ -828,13 +824,13 @@ class _FoodPageState extends State<FoodPage> with SingleTickerProviderStateMixin
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                       colors: [
-                        Colors.blue.withOpacity(0.3),
-                        Colors.blue.withOpacity(0.1),
+                        Colors.blue.withValues(alpha: 0.3),
+                        Colors.blue.withValues(alpha: 0.1),
                       ],
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
+                        color: Colors.black.withValues(alpha: 0.1),
                         blurRadius: 5,
                         offset: const Offset(0, 2),
                       ),
@@ -884,13 +880,13 @@ class _FoodPageState extends State<FoodPage> with SingleTickerProviderStateMixin
                   itemBuilder: (context, index) {
                     final food = provider.weeklyPlan[index];
                     final gradientColors = [
-                      Colors.red.withOpacity(0.2), Colors.red.withOpacity(0.1),
-                      Colors.orange.withOpacity(0.2), Colors.orange.withOpacity(0.1),
-                      Colors.yellow.withOpacity(0.2), Colors.yellow.withOpacity(0.1),
-                      Colors.green.withOpacity(0.2), Colors.green.withOpacity(0.1),
-                      Colors.blue.withOpacity(0.2), Colors.blue.withOpacity(0.1),
-                      Colors.indigo.withOpacity(0.2), Colors.indigo.withOpacity(0.1),
-                      Colors.purple.withOpacity(0.2), Colors.purple.withOpacity(0.1),
+                      Colors.red.withValues(alpha: 0.2), Colors.red.withValues(alpha: 0.1),
+                      Colors.orange.withValues(alpha: 0.2), Colors.orange.withValues(alpha: 0.1),
+                      Colors.yellow.withValues(alpha: 0.2), Colors.yellow.withValues(alpha: 0.1),
+                      Colors.green.withValues(alpha: 0.2), Colors.green.withValues(alpha: 0.1),
+                      Colors.blue.withValues(alpha: 0.2), Colors.blue.withValues(alpha: 0.1),
+                      Colors.indigo.withValues(alpha: 0.2), Colors.indigo.withValues(alpha: 0.1),
+                      Colors.purple.withValues(alpha: 0.2), Colors.purple.withValues(alpha: 0.1),
                     ];
                     
                     return AnimatedContainer(
@@ -906,12 +902,12 @@ class _FoodPageState extends State<FoodPage> with SingleTickerProviderStateMixin
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.1),
+                            color: Colors.black.withValues(alpha: 0.1),
                             blurRadius: 10,
                             offset: const Offset(0, 4),
                           ),
                           BoxShadow(
-                            color: Colors.white.withOpacity(isDarkMode ? 0.05 : 0.5),
+                            color: Colors.white.withValues(alpha: isDarkMode ? 0.05 : 0.5),
                             blurRadius: 10,
                             offset: const Offset(0, -2),
                           ),
@@ -970,22 +966,22 @@ class _FoodPageState extends State<FoodPage> with SingleTickerProviderStateMixin
           end: Alignment.bottomRight,
           colors: isDarkMode
               ? [
-                  Colors.white.withOpacity(0.2),
-                  Colors.white.withOpacity(0.1),
+                  Colors.white.withValues(alpha: 0.2),
+                  Colors.white.withValues(alpha: 0.1),
                 ]
               : [
-                  Colors.white.withOpacity(0.7),
-                  Colors.white.withOpacity(0.5),
+                  Colors.white.withValues(alpha: 0.7),
+                  Colors.white.withValues(alpha: 0.5),
                 ],
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 15,
             offset: const Offset(0, 8),
           ),
           BoxShadow(
-            color: Colors.white.withOpacity(isDarkMode ? 0.05 : 0.5),
+            color: Colors.white.withValues(alpha: isDarkMode ? 0.05 : 0.5),
             blurRadius: 15,
             offset: const Offset(0, -4),
           ),
@@ -1043,22 +1039,22 @@ class _FoodPageState extends State<FoodPage> with SingleTickerProviderStateMixin
                 end: Alignment.bottomRight,
                 colors: isDarkMode
                     ? [
-                        Colors.white.withOpacity(0.2),
-                        Colors.white.withOpacity(0.1),
+                        Colors.white.withValues(alpha: 0.2),
+                        Colors.white.withValues(alpha: 0.1),
                       ]
                     : [
-                        Colors.white.withOpacity(0.8),
-                        Colors.white.withOpacity(0.6),
+                        Colors.white.withValues(alpha: 0.8),
+                        Colors.white.withValues(alpha: 0.6),
                       ],
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.2),
+                  color: Colors.black.withValues(alpha: 0.2),
                   blurRadius: 20,
                   offset: const Offset(0, 10),
                 ),
                 BoxShadow(
-                  color: Colors.white.withOpacity(isDarkMode ? 0.05 : 0.5),
+                  color: Colors.white.withValues(alpha: isDarkMode ? 0.05 : 0.5),
                   blurRadius: 20,
                   offset: const Offset(0, -5),
                 ),
@@ -1108,17 +1104,17 @@ class _FoodPageState extends State<FoodPage> with SingleTickerProviderStateMixin
           end: Alignment.bottomRight,
           colors: isDarkMode
               ? [
-                  Colors.white.withOpacity(0.2),
-                  Colors.white.withOpacity(0.1),
+                  Colors.white.withValues(alpha: 0.2),
+                  Colors.white.withValues(alpha: 0.1),
                 ]
               : [
-                  Colors.white.withOpacity(0.8),
-                  Colors.white.withOpacity(0.6),
+                  Colors.white.withValues(alpha: 0.8),
+                  Colors.white.withValues(alpha: 0.6),
                 ],
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -1129,7 +1125,7 @@ class _FoodPageState extends State<FoodPage> with SingleTickerProviderStateMixin
         child: InkWell(
           onTap: onPressed,
           borderRadius: BorderRadius.circular(15),
-          splashColor: Colors.blue.withOpacity(0.3),
+          splashColor: Colors.blue.withValues(alpha: 0.3),
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
             child: Row(
@@ -1172,22 +1168,22 @@ class _FoodPageState extends State<FoodPage> with SingleTickerProviderStateMixin
                 end: Alignment.bottomRight,
                 colors: isDarkMode
                     ? [
-                        Colors.white.withOpacity(0.2),
-                        Colors.white.withOpacity(0.1),
+                        Colors.white.withValues(alpha: 0.2),
+                        Colors.white.withValues(alpha: 0.1),
                       ]
                     : [
-                        Colors.white.withOpacity(0.8),
-                        Colors.white.withOpacity(0.6),
+                        Colors.white.withValues(alpha: 0.8),
+                        Colors.white.withValues(alpha: 0.6),
                       ],
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.2),
+                  color: Colors.black.withValues(alpha: 0.2),
                   blurRadius: 20,
                   offset: const Offset(0, 10),
                 ),
                 BoxShadow(
-                  color: Colors.white.withOpacity(isDarkMode ? 0.05 : 0.5),
+                  color: Colors.white.withValues(alpha: isDarkMode ? 0.05 : 0.5),
                   blurRadius: 20,
                   offset: const Offset(0, -5),
                 ),
@@ -1279,17 +1275,17 @@ class _FoodPageState extends State<FoodPage> with SingleTickerProviderStateMixin
           end: Alignment.bottomRight,
           colors: isDarkMode
               ? [
-                  Colors.white.withOpacity(0.2),
-                  Colors.white.withOpacity(0.1),
+                  Colors.white.withValues(alpha: 0.2),
+                  Colors.white.withValues(alpha: 0.1),
                 ]
               : [
-                  Colors.white.withOpacity(0.7),
-                  Colors.white.withOpacity(0.5),
+                  Colors.white.withValues(alpha: 0.7),
+                  Colors.white.withValues(alpha: 0.5),
                 ],
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 5,
             offset: const Offset(0, 2),
           ),
@@ -1334,22 +1330,22 @@ class _FoodPageState extends State<FoodPage> with SingleTickerProviderStateMixin
                 end: Alignment.bottomRight,
                 colors: isDarkMode
                     ? [
-                        Colors.white.withOpacity(0.2),
-                        Colors.white.withOpacity(0.1),
+                        Colors.white.withValues(alpha: 0.2),
+                        Colors.white.withValues(alpha: 0.1),
                       ]
                     : [
-                        Colors.white.withOpacity(0.8),
-                        Colors.white.withOpacity(0.6),
+                        Colors.white.withValues(alpha: 0.8),
+                        Colors.white.withValues(alpha: 0.6),
                       ],
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.2),
+                  color: Colors.black.withValues(alpha: 0.2),
                   blurRadius: 20,
                   offset: const Offset(0, 10),
                 ),
                 BoxShadow(
-                  color: Colors.white.withOpacity(isDarkMode ? 0.05 : 0.5),
+                  color: Colors.white.withValues(alpha: isDarkMode ? 0.05 : 0.5),
                   blurRadius: 20,
                   offset: const Offset(0, -5),
                 ),
@@ -1402,17 +1398,17 @@ class _FoodPageState extends State<FoodPage> with SingleTickerProviderStateMixin
           end: Alignment.bottomRight,
           colors: isDarkMode
               ? [
-                  Colors.white.withOpacity(0.2),
-                  Colors.white.withOpacity(0.1),
+                  Colors.white.withValues(alpha: 0.2),
+                  Colors.white.withValues(alpha: 0.1),
                 ]
               : [
-                  Colors.white.withOpacity(0.7),
-                  Colors.white.withOpacity(0.5),
+                  Colors.white.withValues(alpha: 0.7),
+                  Colors.white.withValues(alpha: 0.5),
                 ],
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 5,
             offset: const Offset(0, 2),
           ),

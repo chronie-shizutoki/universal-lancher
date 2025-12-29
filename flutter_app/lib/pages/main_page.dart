@@ -255,7 +255,7 @@ class _MainPageState extends State<MainPage> {
             borderRadius: BorderRadius.circular(30),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.1),
+                color: Colors.black.withValues(alpha: 0.1),
                 blurRadius: 10,
                 offset: const Offset(0, 4),
               ),
@@ -270,7 +270,7 @@ class _MainPageState extends State<MainPage> {
                   color: Colors.transparent,
                   child: InkWell(
                     borderRadius: BorderRadius.circular(20),
-                    splashColor: Theme.of(context).colorScheme.primary.withOpacity(0.3),
+                    splashColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
                     onTap: () {
                       setState(() {
                         _currentIndex = index;
@@ -285,7 +285,7 @@ class _MainPageState extends State<MainPage> {
                               borderRadius: BorderRadius.circular(20),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
+                                  color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
                                   blurRadius: 5,
                                   offset: const Offset(0, 3),
                                 ),
@@ -301,7 +301,7 @@ class _MainPageState extends State<MainPage> {
                           size: iconSize,
                           color: isSelected
                               ? Colors.white
-                              : Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                              : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
                         ),
                       ),
                     ),
