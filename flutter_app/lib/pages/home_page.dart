@@ -73,20 +73,20 @@ class _HomePageState extends State<HomePage> {
                       padding: const EdgeInsets.all(32.0),
                       decoration: BoxDecoration(
                         color: isDarkMode 
-                            ? Colors.black.withOpacity(0.3)
-                            : Colors.white.withOpacity(0.2),
+                            ? Colors.black.withValues(alpha: 0.3)
+                            : Colors.white.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(16.0),
                         border: Border.all(
                           color: isDarkMode 
-                              ? Colors.white.withOpacity(0.1)
-                              : Colors.white.withOpacity(0.3),
+                              ? Colors.white.withValues(alpha: 0.1)
+                              : Colors.white.withValues(alpha: 0.3),
                           width: 1.0,
                         ),
                         boxShadow: [
                           BoxShadow(
                             color: isDarkMode 
-                                ? Colors.black.withOpacity(0.3)
-                                : Colors.black.withOpacity(0.1),
+                                ? Colors.black.withValues(alpha: 0.3)
+                                : Colors.black.withValues(alpha: 0.1),
                             blurRadius: 32.0,
                             spreadRadius: 8.0,
                           ),
@@ -195,8 +195,8 @@ class _HomePageState extends State<HomePage> {
           boxShadow: [
             BoxShadow(
               color: isDarkMode 
-                  ? Colors.black.withOpacity(0.3)
-                  : Colors.black.withOpacity(0.15),
+                  ? Colors.black.withValues(alpha: 0.3)
+                  : Colors.black.withValues(alpha: 0.15),
               blurRadius: 10.0,
               spreadRadius: 2.0,
             ),
@@ -215,7 +215,7 @@ class _HomePageState extends State<HomePage> {
             shadowColor: Colors.transparent,
             surfaceTintColor: Colors.transparent,
             side: BorderSide(
-              color: Colors.white.withOpacity(isDarkMode ? 0.1 : 0.2),
+              color: Colors.white.withValues(alpha: isDarkMode ? 0.1 : 0.2),
               width: 1.0,
             ),
           ),
@@ -238,14 +238,14 @@ class _HomePageState extends State<HomePage> {
           borderRadius: BorderRadius.circular(12.0),
         ),
         backgroundColor: isDarkMode 
-            ? Colors.black.withOpacity(0.4)
-            : Colors.white.withOpacity(0.3),
+            ? Colors.black.withValues(alpha: 0.4)
+            : Colors.white.withValues(alpha: 0.3),
         foregroundColor: textPrimary,
         elevation: 0,
         shadowColor: Colors.transparent,
         surfaceTintColor: Colors.transparent,
         side: BorderSide(
-          color: Colors.white.withOpacity(isDarkMode ? 0.1 : 0.2),
+          color: Colors.white.withValues(alpha: isDarkMode ? 0.1 : 0.2),
           width: 1.0,
         ),
       ),
@@ -277,28 +277,28 @@ class _HomePageState extends State<HomePage> {
         width: double.infinity,
         height: double.infinity,
         color: isDarkMode 
-            ? Colors.black.withOpacity(0.3)
-            : Colors.white.withOpacity(0.2),
+            ? Colors.black.withValues(alpha: 0.3)
+            : Colors.white.withValues(alpha: 0.2),
         child: Center(
           child: Container(
             margin: const EdgeInsets.all(16.0),
             padding: const EdgeInsets.all(32.0),
             decoration: BoxDecoration(
               color: isDarkMode 
-                  ? Colors.black.withOpacity(0.3)
-                  : Colors.white.withOpacity(0.2),
+                  ? Colors.black.withValues(alpha: 0.3)
+                  : Colors.white.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(16.0),
               border: Border.all(
                 color: isDarkMode 
-                    ? Colors.white.withOpacity(0.1)
-                    : Colors.white.withOpacity(0.3),
+                    ? Colors.white.withValues(alpha: 0.1)
+                    : Colors.white.withValues(alpha: 0.3),
                 width: 1.0,
               ),
               boxShadow: [
                 BoxShadow(
                   color: isDarkMode 
-                      ? Colors.black.withOpacity(0.3)
-                      : Colors.black.withOpacity(0.1),
+                      ? Colors.black.withValues(alpha: 0.3)
+                      : Colors.black.withValues(alpha: 0.1),
                   blurRadius: 32.0,
                   spreadRadius: 8.0,
                 ),
@@ -393,8 +393,8 @@ class _HomePageState extends State<HomePage> {
         boxShadow: [
           BoxShadow(
             color: isDarkMode 
-                ? Colors.black.withOpacity(0.3)
-                : Colors.black.withOpacity(0.15),
+                ? Colors.black.withValues(alpha: 0.3)
+                : Colors.black.withValues(alpha: 0.15),
             blurRadius: 10.0,
             spreadRadius: 2.0,
           ),

@@ -844,7 +844,7 @@ class _FoodPageState extends State<FoodPage> with SingleTickerProviderStateMixin
                   ),
                   const SizedBox(width: 12),
                   if (provider.weeklyPlan.isNotEmpty)
-                    Container(
+                    SizedBox(
                       width: 100,
                       child: _buildGlassButton('重置', Colors.red, () {
                         final provider = Provider.of<FoodProvider>(context, listen: false);

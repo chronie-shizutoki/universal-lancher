@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
-import 'package:provider/provider.dart';
 import 'home_page.dart';
 import 'check_service_page.dart';
 import 'rate_calculator_page.dart';
@@ -285,7 +283,7 @@ class _MainPageState extends State<MainPage> {
       borderRadius: BorderRadius.circular(30),
       border: Border.all(
         color: isDarkMode 
-            ? Colors.white.withOpacity(0.1)
+            ? Colors.white.withValues(alpha: 0.1)
             : Colors.black.withValues(alpha: 0.05),
         width: 1,
       ),

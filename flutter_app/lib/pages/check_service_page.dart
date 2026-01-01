@@ -38,17 +38,9 @@ class ServiceStatus {
 // 液态玻璃容器组件
 class _GlassContainer extends StatelessWidget {
   final Widget child;
-  final EdgeInsets padding;
-  final double borderRadius;
-  final Color? backgroundColor;
-  final Color? borderColor;
 
   const _GlassContainer({
     required this.child,
-    this.padding = const EdgeInsets.all(16),
-    this.borderRadius = 16,
-    this.backgroundColor,
-    this.borderColor,
   });
 
   @override
@@ -57,23 +49,23 @@ class _GlassContainer extends StatelessWidget {
     final isDark = themeProvider.isDarkMode;
 
     return Container(
-      padding: padding,
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: backgroundColor ?? (isDark
-            ? const Color(0xFF1a1a1a).withOpacity(0.7)
-            : const Color(0xFFFFFFFF).withOpacity(0.7)),
-        borderRadius: BorderRadius.circular(borderRadius),
+        color: isDark
+            ? const Color(0xFF1a1a1a).withValues(alpha: 0.7)
+            : const Color(0xFFFFFFFF).withValues(alpha: 0.7),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: borderColor ?? (isDark
-              ? const Color(0xFF555555).withOpacity(0.5)
-              : const Color(0xFFe1e5e9).withOpacity(0.5)),
+          color: isDark
+              ? const Color(0xFF555555).withValues(alpha: 0.5)
+              : const Color(0xFFe1e5e9).withValues(alpha: 0.5),
           width: 1,
         ),
         boxShadow: [
           BoxShadow(
             color: isDark
-                ? Colors.black.withOpacity(0.3)
-                : Colors.black.withOpacity(0.1),
+                ? Colors.black.withValues(alpha: 0.3)
+                : Colors.black.withValues(alpha: 0.1),
             blurRadius: 32,
             offset: const Offset(0, 8),
           ),
@@ -103,11 +95,11 @@ class _GlassButton extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
         decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.primary.withOpacity(0.8),
+          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.8),
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.15),
+              color: Colors.black.withValues(alpha: 0.15),
               blurRadius: 12,
               offset: const Offset(0, 4),
             ),
