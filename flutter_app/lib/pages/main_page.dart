@@ -208,16 +208,14 @@ class _MainPageState extends State<MainPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(_titles[_currentIndex]),
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        foregroundColor: Colors.white,
-        elevation: 0,
-      ),
+      // 移除顶部标题栏
       // 使用Stack确保内容不会被悬浮导航栏遮挡
       body: Stack(
         children: [
-          _pages[_currentIndex],
+          // 使用SafeArea确保内容在状态栏下方显示
+          SafeArea(
+            child: _pages[_currentIndex],
+          ),
           // 悬浮导航栏放在内容上方
           Positioned(
             bottom: 0,

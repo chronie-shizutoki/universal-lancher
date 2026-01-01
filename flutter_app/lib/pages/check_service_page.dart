@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:provider/provider.dart';
+import '../providers/theme_provider.dart';
 
 class CheckServicePage extends StatefulWidget {
   const CheckServicePage({super.key});
@@ -31,6 +33,108 @@ class ServiceStatus {
     this.isHealthy = false,
     this.isChecking = false,
   });
+}
+
+// 液态玻璃容器组件
+class _GlassContainer extends StatelessWidget {
+  final Widget child;
+  final EdgeInsets padding;
+  final double borderRadius;
+  final Color? backgroundColor;
+  final Color? borderColor;
+
+  const _GlassContainer({
+    required this.child,
+    this.padding = const EdgeInsets.all(16),
+    this.borderRadius = 16,
+    this.backgroundColor,
+    this.borderColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isDark = themeProvider.isDarkMode;
+
+    return Container(
+      padding: padding,
+      decoration: BoxDecoration(
+        color: backgroundColor ?? (isDark
+            ? const Color(0xFF1a1a1a).withOpacity(0.7)
+            : const Color(0xFFFFFFFF).withOpacity(0.7)),
+        borderRadius: BorderRadius.circular(borderRadius),
+        border: Border.all(
+          color: borderColor ?? (isDark
+              ? const Color(0xFF555555).withOpacity(0.5)
+              : const Color(0xFFe1e5e9).withOpacity(0.5)),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: isDark
+                ? Colors.black.withOpacity(0.3)
+                : Colors.black.withOpacity(0.1),
+            blurRadius: 32,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: child,
+    );
+  }
+}
+
+// 液态玻璃按钮组件
+class _GlassButton extends StatelessWidget {
+  final VoidCallback? onPressed;
+  final bool isLoading;
+  final String text;
+
+  const _GlassButton({
+    this.onPressed,
+    required this.isLoading,
+    required this.text,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: isLoading ? null : onPressed,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.primary.withOpacity(0.8),
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.15),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Center(
+          child: isLoading
+              ? const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    color: Colors.white,
+                    strokeWidth: 2,
+                  ),
+                )
+              : Text(
+                  text,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+        ),
+      ),
+    );
+  }
 }
 
 class _CheckServicePageState extends State<CheckServicePage> {
@@ -128,12 +232,10 @@ class _CheckServicePageState extends State<CheckServicePage> {
             ),
             // 减少底部间距，让按钮和文字向上偏移
             const SizedBox(height: 4),
-            ElevatedButton(
+            _GlassButton(
               onPressed: _checkingAll ? null : _checkAllServices,
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              ),
-              child: Text(_checkingAll ? '检查中...' : '立即检查'),
+              isLoading: _checkingAll,
+              text: _checkingAll ? '检查中...' : '立即检查',
             ),
             if (_lastUpdate != null) ...[
               const SizedBox(height: 4),
@@ -154,19 +256,7 @@ class _CheckServicePageState extends State<CheckServicePage> {
   }
 
   Widget _buildServiceRow(ServiceInfo service, ServiceStatus status) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(8),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
+    return _GlassContainer(
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [

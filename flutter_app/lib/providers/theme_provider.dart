@@ -12,6 +12,22 @@ class ThemeProvider extends ChangeNotifier {
   
   AppThemeModeType get currentThemeMode => _currentThemeMode;
 
+  ThemeProvider() {
+    _loadThemeMode();
+    // 监听系统主题变化
+    _listenToSystemThemeChanges();
+  }
+
+  // 监听系统主题变化
+  void _listenToSystemThemeChanges() {
+    WidgetsBinding.instance.platformDispatcher.onPlatformBrightnessChanged = () {
+      // 只有在系统主题模式下才通知变化
+      if (_currentThemeMode == AppThemeModeType.system) {
+        notifyListeners();
+      }
+    };
+  }
+
   // 当前是否处于深色模式
   bool get isDarkMode {
     switch (_currentThemeMode) {
@@ -165,10 +181,6 @@ class ThemeProvider extends ChangeNotifier {
         space: 1,
       ),
     );
-  }
-
-  ThemeProvider() {
-    _loadThemeMode();
   }
 
   /// 加载保存的主题模式
