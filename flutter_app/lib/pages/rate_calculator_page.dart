@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
-import 'dart:ui';
 import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -94,6 +92,8 @@ class _RateCalculatorPageState extends State<RateCalculatorPage> {
             await _saveRates(tokenRate, _cnyRate!);
           }
           
+          if (!mounted) return;
+          
           ToastManager.showToast(
             context, 
             '已获取最新汇率：1美元 = $tokenRate 金流'
@@ -101,8 +101,7 @@ class _RateCalculatorPageState extends State<RateCalculatorPage> {
         }
       }
     } catch (e) {
-      // API请求失败，不做任何操作，保持现有汇率
-      print('获取汇率失败: $e');
+        // API请求失败，不做任何操作，保持现有汇率
     } finally {
       setState(() {
         _isLoading = false;

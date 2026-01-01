@@ -6,7 +6,6 @@ import 'check_service_page.dart';
 import 'rate_calculator_page.dart';
 import 'food_page.dart';
 import 'settings_page.dart';
-import '../providers/update_provider.dart';
 
 class MainPage extends StatefulWidget {
   const MainPage({super.key});
@@ -17,158 +16,10 @@ class MainPage extends StatefulWidget {
 
 class _MainPageState extends State<MainPage> {
   int _currentIndex = 0;
-  bool _hasCheckedUpdate = false;
 
   @override
   void initState() {
     super.initState();
-    // 初始化UpdateProvider并检查更新
-    _initializeAndCheckUpdate();
-  }
-
-  Future<void> _initializeAndCheckUpdate() async {
-    try {
-      final updateProvider = Provider.of<UpdateProvider>(context, listen: false);
-      await updateProvider.initialize();
-      
-      // 延迟一下再检查更新，让应用先完全加载
-      Future.delayed(const Duration(seconds: 2), () {
-        _checkUpdate();
-      });
-    } catch (e) {
-      if (kDebugMode) {
-        print('初始化更新检查失败: $e');
-      }
-    }
-  }
-
-  void _checkUpdate() {
-    if (_hasCheckedUpdate) return;
-    
-    final updateProvider = Provider.of<UpdateProvider>(context, listen: false);
-    updateProvider.checkUpdate().then((_) {
-      _hasCheckedUpdate = true;
-      if (updateProvider.isUpdateAvailable) {
-        // 在UI线程中显示更新对话框
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _showUpdateDialog(context, updateProvider);
-        });
-      }
-    });
-  }
-
-  void _showUpdateDialog(BuildContext context, UpdateProvider updateProvider) {
-    showDialog(
-      context: context, 
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('发现新版本'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('当前版本: ${updateProvider.localVersion}'),
-              Text('最新版本: ${updateProvider.remoteVersion}'),
-              const SizedBox(height: 8),
-              const Text('使用系统下载管理器，下载更稳定'),
-              const SizedBox(height: 16),
-              const Text('是否立即更新应用？'),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('稍后'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pop(context);
-                _showDownloadProgressDialog(context);
-                updateProvider.downloadApk();
-              },
-              child: const Text('立即更新'),
-            ),
-          ],
-        );
-      }
-    );
-  }
-
-  void _showDownloadProgressDialog(BuildContext context) {
-    showDialog(
-      context: context, 
-      barrierDismissible: false,
-      builder: (context) {
-        return AlertDialog(
-          title: Text('下载更新'),
-          content: Consumer<UpdateProvider>(
-            builder: (context, provider, child) {
-              return Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  provider.isDownloading
-                      ? const Column(
-                          children: [
-                            CircularProgressIndicator(),
-                            SizedBox(height: 8),
-                            Text('正在启动系统下载器...'),
-                          ],
-                        )
-                      : const SizedBox(),
-                  const SizedBox(height: 8),
-                  Text(
-                    '系统下载管理器提供更稳定的下载体验',
-                    style: TextStyle(fontSize: 12, color: Colors.grey),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    '请在系统通知栏查看下载进度',
-                    style: TextStyle(fontSize: 12, color: Colors.grey),
-                  ),
-                  if (provider.errorMessage != null) ...[
-                    SizedBox(height: 8),
-                    Text(
-                      provider.errorMessage!,
-                      style: TextStyle(color: Colors.red),
-                    ),
-                  ],
-                  if (!provider.isDownloading) ...[
-                    SizedBox(height: 8),
-                    Text('下载已开始，点击下方按钮打开下载文件夹安装'),
-                  ],
-                ],
-              );
-            },
-          ),
-          actions: [
-            Consumer<UpdateProvider>(
-              builder: (context, provider, child) {
-                return Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    if (provider.isDownloading) ...[
-                      TextButton(
-                        onPressed: () async {
-                          await provider.cancelDownload();
-                          if (mounted) Navigator.of(context).pop();
-                        },
-                        child: Text('取消下载'),
-                      ),
-                    ],
-                    TextButton(
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                      },
-                      child: provider.isDownloading ? Text('后台下载') : Text('关闭'),
-                    ),
-                  ],
-                );
-              },
-            ),
-          ],
-        );
-      },
-    );
   }
 
   final List<Widget> _pages = [
@@ -270,8 +121,8 @@ class _MainPageState extends State<MainPage> {
               child: InkWell(
                 borderRadius: BorderRadius.circular(20),
                 splashColor: isDarkMode 
-                    ? Colors.white.withOpacity(0.2)
-                    : Colors.black.withOpacity(0.1),
+                    ? Colors.white.withValues(alpha: 0.2)
+                    : Colors.black.withValues(alpha: 0.1),
                 onTap: () {
                   setState(() {
                     _currentIndex = index;
@@ -286,14 +137,14 @@ class _MainPageState extends State<MainPage> {
                   decoration: isSelected
                       ? BoxDecoration(
                           color: isDarkMode 
-                              ? Colors.white.withOpacity(0.15)
-                              : Colors.black.withOpacity(0.05),
+                              ? Colors.white.withValues(alpha: 0.15)
+                              : Colors.black.withValues(alpha: 0.05),
                           borderRadius: BorderRadius.circular(20),
                           boxShadow: [
                             BoxShadow(
                               color: isDarkMode 
-                                  ? Colors.white.withOpacity(0.15)
-                                  : Colors.black.withOpacity(0.05),
+                                  ? Colors.white.withValues(alpha: 0.15)
+                                  : Colors.black.withValues(alpha: 0.05),
                               blurRadius: 10,
                               offset: const Offset(0, 4),
                             ),
@@ -310,8 +161,8 @@ class _MainPageState extends State<MainPage> {
                               color: isSelected
                                   ? Theme.of(context).colorScheme.primary
                                   : isDarkMode
-                                      ? Colors.white.withOpacity(0.8)
-                                      : Colors.black.withOpacity(0.7),
+                                      ? Colors.white.withValues(alpha: 0.8)
+                                      : Colors.black.withValues(alpha: 0.7),
                             ),
                             const SizedBox(width: 16),
                             Expanded(
@@ -322,8 +173,8 @@ class _MainPageState extends State<MainPage> {
                                   color: isSelected
                                       ? Theme.of(context).colorScheme.primary
                                       : isDarkMode
-                                          ? Colors.white.withOpacity(0.8)
-                                          : Colors.black.withOpacity(0.7),
+                                          ? Colors.white.withValues(alpha: 0.8)
+                                          : Colors.black.withValues(alpha: 0.7),
                                   fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                                 ),
                                 overflow: TextOverflow.ellipsis,
@@ -341,8 +192,8 @@ class _MainPageState extends State<MainPage> {
                               color: isSelected
                                   ? Theme.of(context).colorScheme.primary
                                   : isDarkMode
-                                      ? Colors.white.withOpacity(0.8)
-                                      : Colors.black.withOpacity(0.7),
+                                      ? Colors.white.withValues(alpha: 0.8)
+                                      : Colors.black.withValues(alpha: 0.7),
                             ),
                           ],
                         ),
@@ -377,8 +228,8 @@ class _MainPageState extends State<MainPage> {
               child: InkWell(
                 borderRadius: BorderRadius.circular(20),
                 splashColor: isDarkMode 
-                    ? Colors.white.withOpacity(0.2)
-                    : Colors.black.withOpacity(0.1),
+                    ? Colors.white.withValues(alpha: 0.2)
+                    : Colors.black.withValues(alpha: 0.1),
                 onTap: () {
                   setState(() {
                     _currentIndex = index;
@@ -390,14 +241,14 @@ class _MainPageState extends State<MainPage> {
                   decoration: isSelected
                       ? BoxDecoration(
                           color: isDarkMode 
-                              ? Colors.white.withOpacity(0.15)
-                              : Colors.black.withOpacity(0.05),
+                              ? Colors.white.withValues(alpha: 0.15)
+                              : Colors.black.withValues(alpha: 0.05),
                           borderRadius: BorderRadius.circular(20),
                           boxShadow: [
                             BoxShadow(
                               color: isDarkMode 
-                                  ? Colors.white.withOpacity(0.15)
-                                  : Colors.black.withOpacity(0.05),
+                                  ? Colors.white.withValues(alpha: 0.15)
+                                  : Colors.black.withValues(alpha: 0.05),
                               blurRadius: 10,
                               offset: const Offset(0, 4),
                             ),
@@ -410,8 +261,8 @@ class _MainPageState extends State<MainPage> {
                     color: isSelected
                         ? Theme.of(context).colorScheme.primary
                         : isDarkMode
-                            ? Colors.white.withOpacity(0.8)
-                            : Colors.black.withOpacity(0.7),
+                            ? Colors.white.withValues(alpha: 0.8)
+                            : Colors.black.withValues(alpha: 0.7),
                   ),
                 ),
               ),
@@ -429,27 +280,27 @@ class _MainPageState extends State<MainPage> {
     
     return BoxDecoration(
       color: isDarkMode 
-          ? Colors.black.withOpacity(0.4)
-          : Colors.white.withOpacity(0.7),
+          ? Colors.black.withValues(alpha: 0.4)
+          : Colors.white.withValues(alpha: 0.7),
       borderRadius: BorderRadius.circular(30),
       border: Border.all(
         color: isDarkMode 
             ? Colors.white.withOpacity(0.1)
-            : Colors.black.withOpacity(0.05),
+            : Colors.black.withValues(alpha: 0.05),
         width: 1,
       ),
       boxShadow: [
         BoxShadow(
           color: isDarkMode 
-              ? Colors.black.withOpacity(0.2)
-              : Colors.black.withOpacity(0.05),
+              ? Colors.black.withValues(alpha: 0.2)
+              : Colors.black.withValues(alpha: 0.05),
           blurRadius: 20,
           offset: const Offset(0, 8),
         ),
         BoxShadow(
           color: isDarkMode 
-              ? Colors.white.withOpacity(0.05)
-              : Colors.white.withOpacity(0.5),
+              ? Colors.white.withValues(alpha: 0.05)
+              : Colors.white.withValues(alpha: 0.5),
           blurRadius: 10,
           offset: const Offset(0, -2),
         ),
