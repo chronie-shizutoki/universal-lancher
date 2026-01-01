@@ -46,135 +46,130 @@ class _HomePageState extends State<HomePage> {
     final Color textPrimary = isDarkMode ? _darkTextPrimary : _lightTextPrimary;
     final Color textSecondary = isDarkMode ? _darkTextSecondary : _lightTextSecondary;
     
-    return Scaffold(
-      body: Container(
-        // 渐变背景
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              primaryGradientStart,
-              primaryGradientEnd,
-            ],
-          ),
+    return Container(
+      // 渐变背景
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            primaryGradientStart,
+            primaryGradientEnd,
+          ],
         ),
-        child: SafeArea(
-          child: Stack(
-            children: [
-              // 主要内容
-              Center(
-                child: SingleChildScrollView(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      // 玻璃态容器
-                      Container(
-                        margin: const EdgeInsets.all(16.0),
-                        padding: const EdgeInsets.all(32.0),
-                        decoration: BoxDecoration(
+      ),
+      child: SafeArea(
+        child: Stack(
+          children: [
+            // 主要内容 - 移除了BackdropFilter以避免影响导航栏
+            Center(
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    // 普通容器，不再使用玻璃态效果
+                    Container(
+                      margin: const EdgeInsets.all(16.0),
+                      padding: const EdgeInsets.all(32.0),
+                      decoration: BoxDecoration(
+                        color: isDarkMode 
+                            ? Colors.black.withOpacity(0.3)
+                            : Colors.white.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(16.0),
+                        border: Border.all(
                           color: isDarkMode 
-                              ? Colors.black.withValues(alpha: 0.3)
-                              : Colors.white.withValues(alpha: 0.2),
-                          borderRadius: BorderRadius.circular(16.0),
-                          border: Border.all(
-                            color: isDarkMode 
-                                ? Colors.white.withValues(alpha: 0.1)
-                                : Colors.white.withValues(alpha: 0.3),
-                            width: 1.0,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: isDarkMode 
-                                  ? Colors.black.withValues(alpha: 0.3)
-                                  : Colors.black.withValues(alpha: 0.1),
-                              blurRadius: 32.0,
-                              spreadRadius: 8.0,
-                            ),
-                          ],
+                              ? Colors.white.withOpacity(0.1)
+                              : Colors.white.withOpacity(0.3),
+                          width: 1.0,
                         ),
-                        child: BackdropFilter(
-                          filter: ImageFilter.blur(sigmaX: 20.0, sigmaY: 20.0),
-                          child: Column(
+                        boxShadow: [
+                          BoxShadow(
+                            color: isDarkMode 
+                                ? Colors.black.withOpacity(0.3)
+                                : Colors.black.withOpacity(0.1),
+                            blurRadius: 32.0,
+                            spreadRadius: 8.0,
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        children: [
+                          // 按钮组
+                          Wrap(
+                            spacing: 16.0,
+                            runSpacing: 16.0,
                             children: [
-                              // 按钮组
-                              Wrap(
-                                spacing: 16.0,
-                                runSpacing: 16.0,
-                                children: [
-                                  _buildButton(
-                                    text: '记账',
-                                    isPrimary: true,
-                                    onPressed: () {
-                                      _navigateToUrl('http://192.168.0.197:3010');
-                                    },
-                                    buttonGradientStart: buttonGradientStart,
-                                    buttonGradientEnd: buttonGradientEnd,
-                                    textPrimary: textPrimary,
-                                    isDarkMode: isDarkMode,
-                                  ),
-                                  _buildButton(
-                                    text: '金流',
-                                    isPrimary: true,
-                                    onPressed: () {
-                                      setState(() {
-                                        _isModalVisible = true;
-                                      });
-                                    },
-                                    buttonGradientStart: buttonGradientStart,
-                                    buttonGradientEnd: buttonGradientEnd,
-                                    textPrimary: textPrimary,
-                                    isDarkMode: isDarkMode,
-                                  ),
-                                  _buildButton(
-                                    text: '库存',
-                                    isPrimary: true,
-                                    onPressed: () {
-                                      _navigateToUrl('http://192.168.0.197:5000');
-                                    },
-                                    buttonGradientStart: buttonGradientStart,
-                                    buttonGradientEnd: buttonGradientEnd,
-                                    textPrimary: textPrimary,
-                                    isDarkMode: isDarkMode,
-                                  ),
-                                ],
+                              _buildButton(
+                                text: '记账',
+                                isPrimary: true,
+                                onPressed: () {
+                                  _navigateToUrl('http://192.168.0.197:3010');
+                                },
+                                buttonGradientStart: buttonGradientStart,
+                                buttonGradientEnd: buttonGradientEnd,
+                                textPrimary: textPrimary,
+                                isDarkMode: isDarkMode,
+                              ),
+                              _buildButton(
+                                text: '金流',
+                                isPrimary: true,
+                                onPressed: () {
+                                  setState(() {
+                                    _isModalVisible = true;
+                                  });
+                                },
+                                buttonGradientStart: buttonGradientStart,
+                                buttonGradientEnd: buttonGradientEnd,
+                                textPrimary: textPrimary,
+                                isDarkMode: isDarkMode,
+                              ),
+                              _buildButton(
+                                text: '库存',
+                                isPrimary: true,
+                                onPressed: () {
+                                  _navigateToUrl('http://192.168.0.197:5000');
+                                },
+                                buttonGradientStart: buttonGradientStart,
+                                buttonGradientEnd: buttonGradientEnd,
+                                textPrimary: textPrimary,
+                                isDarkMode: isDarkMode,
                               ),
                             ],
                           ),
-                        ),
+                        ],
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
-              // 模态框
-              AnimatedOpacity(
-                opacity: _isModalVisible ? 1.0 : 0.0,
+            ),
+            // 模态框
+            AnimatedOpacity(
+              opacity: _isModalVisible ? 1.0 : 0.0,
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeInOut,
+              child: AnimatedScale(
+                scale: _isModalVisible ? 1.0 : 0.9,
                 duration: const Duration(milliseconds: 300),
                 curve: Curves.easeInOut,
-                child: AnimatedScale(
-                  scale: _isModalVisible ? 1.0 : 0.9,
-                  duration: const Duration(milliseconds: 300),
-                  curve: Curves.easeInOut,
-                  child: IgnorePointer(
-                    ignoring: !_isModalVisible,
-                    child: _buildModal(
-                      buttonGradientStart: buttonGradientStart,
-                      buttonGradientEnd: buttonGradientEnd,
-                      textPrimary: textPrimary,
-                      textSecondary: textSecondary,
-                      isDarkMode: isDarkMode,
-                    ),
+                child: IgnorePointer(
+                  ignoring: !_isModalVisible,
+                  child: _buildModal(
+                    buttonGradientStart: buttonGradientStart,
+                    buttonGradientEnd: buttonGradientEnd,
+                    textPrimary: textPrimary,
+                    textSecondary: textSecondary,
+                    isDarkMode: isDarkMode,
                   ),
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
   }
-
+  
   // 构建按钮
   Widget _buildButton({
     required String text,
@@ -200,8 +195,8 @@ class _HomePageState extends State<HomePage> {
           boxShadow: [
             BoxShadow(
               color: isDarkMode 
-                  ? Colors.black.withValues(alpha: 0.3)
-                  : Colors.black.withValues(alpha: 0.15),
+                  ? Colors.black.withOpacity(0.3)
+                  : Colors.black.withOpacity(0.15),
               blurRadius: 10.0,
               spreadRadius: 2.0,
             ),
@@ -220,7 +215,7 @@ class _HomePageState extends State<HomePage> {
             shadowColor: Colors.transparent,
             surfaceTintColor: Colors.transparent,
             side: BorderSide(
-              color: Colors.white.withValues(alpha: isDarkMode ? 0.1 : 0.2),
+              color: Colors.white.withOpacity(isDarkMode ? 0.1 : 0.2),
               width: 1.0,
             ),
           ),
@@ -243,14 +238,14 @@ class _HomePageState extends State<HomePage> {
           borderRadius: BorderRadius.circular(12.0),
         ),
         backgroundColor: isDarkMode 
-            ? Colors.black.withValues(alpha: 0.4)
-            : Colors.white.withValues(alpha: 0.3),
+            ? Colors.black.withOpacity(0.4)
+            : Colors.white.withOpacity(0.3),
         foregroundColor: textPrimary,
         elevation: 0,
         shadowColor: Colors.transparent,
         surfaceTintColor: Colors.transparent,
         side: BorderSide(
-          color: Colors.white.withValues(alpha: isDarkMode ? 0.1 : 0.2),
+          color: Colors.white.withOpacity(isDarkMode ? 0.1 : 0.2),
           width: 1.0,
         ),
       ),
@@ -263,7 +258,7 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
-
+  
   // 构建模态框
   Widget _buildModal({
     required Color buttonGradientStart,
@@ -282,28 +277,28 @@ class _HomePageState extends State<HomePage> {
         width: double.infinity,
         height: double.infinity,
         color: isDarkMode 
-            ? Colors.black.withValues(alpha: 0.3)
-            : Colors.white.withValues(alpha: 0.2),
+            ? Colors.black.withOpacity(0.3)
+            : Colors.white.withOpacity(0.2),
         child: Center(
           child: Container(
             margin: const EdgeInsets.all(16.0),
             padding: const EdgeInsets.all(32.0),
             decoration: BoxDecoration(
               color: isDarkMode 
-                  ? Colors.black.withValues(alpha: 0.3)
-                  : Colors.white.withValues(alpha: 0.2),
+                  ? Colors.black.withOpacity(0.3)
+                  : Colors.white.withOpacity(0.2),
               borderRadius: BorderRadius.circular(16.0),
               border: Border.all(
                 color: isDarkMode 
-                    ? Colors.white.withValues(alpha: 0.1)
-                    : Colors.white.withValues(alpha: 0.3),
+                    ? Colors.white.withOpacity(0.1)
+                    : Colors.white.withOpacity(0.3),
                 width: 1.0,
               ),
               boxShadow: [
                 BoxShadow(
                   color: isDarkMode 
-                      ? Colors.black.withValues(alpha: 0.3)
-                      : Colors.black.withValues(alpha: 0.1),
+                      ? Colors.black.withOpacity(0.3)
+                      : Colors.black.withOpacity(0.1),
                   blurRadius: 32.0,
                   spreadRadius: 8.0,
                 ),
@@ -375,7 +370,7 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
-
+  
   // 构建模态框按钮
   Widget _buildModalButton({
     required String text,
@@ -398,8 +393,8 @@ class _HomePageState extends State<HomePage> {
         boxShadow: [
           BoxShadow(
             color: isDarkMode 
-                ? Colors.black.withValues(alpha: 0.3)
-                : Colors.black.withValues(alpha: 0.15),
+                ? Colors.black.withOpacity(0.3)
+                : Colors.black.withOpacity(0.15),
             blurRadius: 10.0,
             spreadRadius: 2.0,
           ),
@@ -429,7 +424,7 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
-
+  
   // 导航到URL
   void _navigateToUrl(String url) {
     Navigator.push(

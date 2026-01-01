@@ -329,18 +329,11 @@ class _FoodPageState extends State<FoodPage> with SingleTickerProviderStateMixin
         // 计算食物扇形中间的角度 - 这是指针应该指向的位置
         final foodMiddleAngle = startAngle + foodAngle / 2;
         
-        // 关键修复：确保旋转方向和角度计算正确
-        // 为了让指针精确指向食物中间，我们需要：
-        // 1. 计算食物中间与顶部的夹角差
-        // 2. 考虑旋转方向，确保最终指向正确
-        double targetAngle;
-        
-        if (foodMiddleAngle < 0) {
-          // 如果食物中间角度小于0度，需要特别处理
-          targetAngle = (-foodMiddleAngle + 360.0) % 360.0;
-        } else {
-          targetAngle = (360.0 - foodMiddleAngle) % 360.0;
-        }
+        // 计算需要旋转的角度，使指针指向食物中间
+        // 指针固定在顶部(-90度位置)，转盘顺时针旋转
+        // 我们需要计算旋转后，食物中间角度刚好停在指针位置(-90度)
+        // 公式：targetAngle = (-90.0 - foodMiddleAngle + 360.0) % 360.0
+        double targetAngle = (-90.0 - foodMiddleAngle + 360.0) % 360.0;
         
         // 确保返回值在0-360度范围内
         return targetAngle;
@@ -870,8 +863,9 @@ class _FoodPageState extends State<FoodPage> with SingleTickerProviderStateMixin
               ? _buildEmptyState()
               : GridView.builder(
                   padding: const EdgeInsets.all(16),
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: MediaQuery.of(context).size.width < 600 ? 2 : 
+                                  MediaQuery.of(context).size.width < 900 ? 3 : 4,
                     crossAxisSpacing: 16,
                     mainAxisSpacing: 16,
                     childAspectRatio: 1.5,

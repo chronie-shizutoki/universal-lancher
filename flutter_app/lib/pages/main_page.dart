@@ -4,8 +4,8 @@ import 'package:provider/provider.dart';
 import 'home_page.dart';
 import 'check_service_page.dart';
 import 'rate_calculator_page.dart';
-import 'settings_page.dart';
 import 'food_page.dart';
+import 'settings_page.dart';
 import '../providers/update_provider.dart';
 
 class MainPage extends StatefulWidget {
@@ -180,7 +180,7 @@ class _MainPageState extends State<MainPage> {
   ];
 
   final List<String> _titles = [
-    '统一启动器',
+    '首页',
     '服务状态监控',
     '货币兑换计算器',
     '今天吃什么',
@@ -207,109 +207,253 @@ class _MainPageState extends State<MainPage> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isLargeScreen = screenWidth > 768; // 定义大屏幕阈值
+    final isExtraLargeScreen = screenWidth > 1024; // 定义超大屏幕阈值
+
     return Scaffold(
-      // 移除顶部标题栏
-      // 使用Stack确保内容不会被悬浮导航栏遮挡
-      body: Stack(
+      body: isLargeScreen
+          ? Row(
+              children: [
+                // 左侧导航栏
+                _buildLeftSideNavBar(isExtraLargeScreen, screenWidth),
+                // 主内容区域
+                Expanded(
+                  child: SafeArea(
+                    child: _pages[_currentIndex],
+                  ),
+                ),
+              ],
+            )
+          : Stack(
+              children: [
+                // 使用SafeArea确保内容在状态栏下方显示
+                SafeArea(
+                  child: _pages[_currentIndex],
+                ),
+                // 底部悬浮导航栏
+                Positioned(
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  child: _buildBottomNavBar(),
+                ),
+              ],
+            ),
+    );
+  }
+  
+  // 构建左侧导航栏（大屏幕）
+  Widget _buildLeftSideNavBar(bool isExtraLargeScreen, double screenWidth) {
+    final brightness = Theme.of(context).brightness;
+    final isDarkMode = brightness == Brightness.dark;
+    
+    // 计算导航栏宽度，至少占用屏幕15%的宽度
+    final minNavBarWidth = screenWidth * 0.15;
+    final navBarWidth = isExtraLargeScreen 
+        ? (200 > minNavBarWidth ? 200 : minNavBarWidth) 
+        : (80 > minNavBarWidth ? 80 : minNavBarWidth);
+    
+    return Container(
+      width: navBarWidth.toDouble(),
+      margin: const EdgeInsets.all(16),
+      decoration: _getGlassmorphismDecoration(),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.start, // 按钮组不再居中显示
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // 使用SafeArea确保内容在状态栏下方显示
-          SafeArea(
-            child: _pages[_currentIndex],
-          ),
-          // 悬浮导航栏放在内容上方
-          Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            child: _buildFloatingNavBar(),
-          ),
+          SizedBox(height: 32), // 顶部留白
+          ...List.generate(_pages.length, (index) {
+            bool isSelected = _currentIndex == index;
+            return Material(
+              color: Colors.transparent,
+              child: InkWell(
+                borderRadius: BorderRadius.circular(20),
+                splashColor: isDarkMode 
+                    ? Colors.white.withOpacity(0.2)
+                    : Colors.black.withOpacity(0.1),
+                onTap: () {
+                  setState(() {
+                    _currentIndex = index;
+                  });
+                },
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 300),
+                  padding: isExtraLargeScreen 
+                      ? const EdgeInsets.symmetric(vertical: 20, horizontal: 24)
+                      : const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+                  margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+                  decoration: isSelected
+                      ? BoxDecoration(
+                          color: isDarkMode 
+                              ? Colors.white.withOpacity(0.15)
+                              : Colors.black.withOpacity(0.05),
+                          borderRadius: BorderRadius.circular(20),
+                          boxShadow: [
+                            BoxShadow(
+                              color: isDarkMode 
+                                  ? Colors.white.withOpacity(0.15)
+                                  : Colors.black.withOpacity(0.05),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        )
+                      : const BoxDecoration(),
+                  child: isExtraLargeScreen
+                      ? Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            Icon(
+                              isSelected ? _activeIcons[index] : _icons[index],
+                              size: 32,
+                              color: isSelected
+                                  ? Theme.of(context).colorScheme.primary
+                                  : isDarkMode
+                                      ? Colors.white.withOpacity(0.8)
+                                      : Colors.black.withOpacity(0.7),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Text(
+                                _titles[index],
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: isSelected
+                                      ? Theme.of(context).colorScheme.primary
+                                      : isDarkMode
+                                          ? Colors.white.withOpacity(0.8)
+                                          : Colors.black.withOpacity(0.7),
+                                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 1,
+                              ),
+                            ),
+                          ],
+                        )
+                      : Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              isSelected ? _activeIcons[index] : _icons[index],
+                              size: 32,
+                              color: isSelected
+                                  ? Theme.of(context).colorScheme.primary
+                                  : isDarkMode
+                                      ? Colors.white.withOpacity(0.8)
+                                      : Colors.black.withOpacity(0.7),
+                            ),
+                          ],
+                        ),
+                ),
+              ),
+            );
+          }),
         ],
       ),
     );
   }
   
-  // 构建悬浮胶囊样式的导航栏
-  Widget _buildFloatingNavBar() {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        // 根据屏幕宽度调整图标大小
-        double getIconSize() {
-          final screenWidth = MediaQuery.of(context).size.width;
-          if (screenWidth < 360) return 20; // 小屏幕
-          if (screenWidth < 600) return 24; // 中等屏幕
-          return 28; // 大屏幕
-        }
-        
-        double iconSize = getIconSize();
-        
-        return Container(
-          margin: EdgeInsets.symmetric(
-            horizontal: MediaQuery.of(context).size.width * 0.05, // 水平边距自适应
-            vertical: 10,
-          ),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surface,
-            borderRadius: BorderRadius.circular(30),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.1),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: List.generate(_pages.length, (index) {
-              bool isSelected = _currentIndex == index;
-              return Expanded(
-                child: Material(
-                  color: Colors.transparent,
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(20),
-                    splashColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
-                    onTap: () {
-                      setState(() {
-                        _currentIndex = index;
-                      });
-                    },
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 300),
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                      decoration: isSelected
-                          ? BoxDecoration(
-                              color: Theme.of(context).colorScheme.primary,
-                              borderRadius: BorderRadius.circular(20),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
-                                  blurRadius: 5,
-                                  offset: const Offset(0, 3),
-                                ),
-                              ],
-                            )
-                          : const BoxDecoration(),
-                      transform: isSelected ? Matrix4.translationValues(0, -3, 0) : Matrix4.identity(),
-                      child: AnimatedScale(
-                        scale: isSelected ? 1.1 : 1.0,
-                        duration: const Duration(milliseconds: 300),
-                        child: Icon(
-                          isSelected ? _activeIcons[index] : _icons[index],
-                          size: iconSize,
-                          color: isSelected
-                              ? Colors.white
-                              : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
-                        ),
-                      ),
-                    ),
+  // 构建底部悬浮导航栏（小屏幕）
+  Widget _buildBottomNavBar() {
+    final brightness = Theme.of(context).brightness;
+    final isDarkMode = brightness == Brightness.dark;
+    
+    return Container(
+      margin: EdgeInsets.symmetric(
+        horizontal: MediaQuery.of(context).size.width * 0.1, // 水平边距自适应
+        vertical: 20,
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: _getGlassmorphismDecoration(),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: List.generate(_pages.length, (index) {
+          bool isSelected = _currentIndex == index;
+          return Expanded(
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                borderRadius: BorderRadius.circular(20),
+                splashColor: isDarkMode 
+                    ? Colors.white.withOpacity(0.2)
+                    : Colors.black.withOpacity(0.1),
+                onTap: () {
+                  setState(() {
+                    _currentIndex = index;
+                  });
+                },
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 300),
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  decoration: isSelected
+                      ? BoxDecoration(
+                          color: isDarkMode 
+                              ? Colors.white.withOpacity(0.15)
+                              : Colors.black.withOpacity(0.05),
+                          borderRadius: BorderRadius.circular(20),
+                          boxShadow: [
+                            BoxShadow(
+                              color: isDarkMode 
+                                  ? Colors.white.withOpacity(0.15)
+                                  : Colors.black.withOpacity(0.05),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        )
+                      : const BoxDecoration(),
+                  child: Icon(
+                    isSelected ? _activeIcons[index] : _icons[index],
+                    size: 24,
+                    color: isSelected
+                        ? Theme.of(context).colorScheme.primary
+                        : isDarkMode
+                            ? Colors.white.withOpacity(0.8)
+                            : Colors.black.withOpacity(0.7),
                   ),
                 ),
-              );
-            }),
-          ),
-        );
-      },
+              ),
+            ),
+          );
+        }),
+      ),
+    );
+  }
+  
+  // 液态玻璃效果装饰
+  BoxDecoration _getGlassmorphismDecoration() {
+    final brightness = Theme.of(context).brightness;
+    final isDarkMode = brightness == Brightness.dark;
+    
+    return BoxDecoration(
+      color: isDarkMode 
+          ? Colors.black.withOpacity(0.4)
+          : Colors.white.withOpacity(0.7),
+      borderRadius: BorderRadius.circular(30),
+      border: Border.all(
+        color: isDarkMode 
+            ? Colors.white.withOpacity(0.1)
+            : Colors.black.withOpacity(0.05),
+        width: 1,
+      ),
+      boxShadow: [
+        BoxShadow(
+          color: isDarkMode 
+              ? Colors.black.withOpacity(0.2)
+              : Colors.black.withOpacity(0.05),
+          blurRadius: 20,
+          offset: const Offset(0, 8),
+        ),
+        BoxShadow(
+          color: isDarkMode 
+              ? Colors.white.withOpacity(0.05)
+              : Colors.white.withOpacity(0.5),
+          blurRadius: 10,
+          offset: const Offset(0, -2),
+        ),
+      ],
     );
   }
 }
