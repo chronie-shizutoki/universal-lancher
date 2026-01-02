@@ -6,7 +6,9 @@ import 'dart:convert';
 import '../providers/theme_provider.dart';
 
 class RateCalculatorPage extends StatefulWidget {
-  const RateCalculatorPage({super.key});
+  final VoidCallback? onBack;
+
+  const RateCalculatorPage({super.key, this.onBack});
 
   @override
   State<RateCalculatorPage> createState() => _RateCalculatorPageState();
@@ -219,198 +221,214 @@ class _RateCalculatorPageState extends State<RateCalculatorPage> {
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
     final isDark = themeProvider.isDarkMode;
-    return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: isDark
-              ? [const Color(0xFF2d2d2d), const Color(0xFF1a1a1a)]
-              : [const Color(0xFFf5f7fa), const Color(0xFFc3cfe2)],
+    return Scaffold(
+      extendBodyBehindAppBar: true,
+      backgroundColor: Colors.transparent,
+      appBar: AppBar(
+        title: const Text('汇率计算器'),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            // 返回计算器选择页面
+            widget.onBack?.call();
+          },
         ),
       ),
-      child: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          // 主容器 - 液态玻璃效果
-          _GlassContainer(
-            padding: const EdgeInsets.all(25),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Text(
-                  '货币兑换计算器',
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.w700,
-                    color: Theme.of(context).colorScheme.primary,
-                    shadows: [
-                      Shadow(
-                        color: Colors.black.withValues(alpha: 0.1),
-                        offset: const Offset(0, 2),
-                        blurRadius: 4,
-                      ),
-                    ],
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: isDark
+                ? [const Color(0xFF2d2d2d), const Color(0xFF1a1a1a)]
+                : [const Color(0xFFf5f7fa), const Color(0xFFc3cfe2)],
+          ),
+        ),
+        child: ListView(
+          padding: const EdgeInsets.all(16),
+          children: [
+            // 主容器 - 液态玻璃效果
+            _GlassContainer(
+              padding: const EdgeInsets.all(25),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text(
+                    '货币兑换计算器',
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w700,
+                      color: Theme.of(context).colorScheme.primary,
+                      shadows: [
+                        Shadow(
+                          color: Colors.black.withValues(alpha: 0.1),
+                          offset: const Offset(0, 2),
+                          blurRadius: 4,
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-                const SizedBox(height: 25),
-                
-                // 汇率设置部分
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '汇率设置',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                        color: Theme.of(context).colorScheme.primary,
-                        shadows: [
-                          Shadow(
-                            color: Colors.black.withValues(alpha: 0.1),
-                            offset: const Offset(0, 2),
-                            blurRadius: 4,
+                  const SizedBox(height: 25),
+                  
+                  // 汇率设置部分
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '汇率设置',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                          color: Theme.of(context).colorScheme.primary,
+                          shadows: [
+                            Shadow(
+                              color: Colors.black.withValues(alpha: 0.1),
+                              offset: const Offset(0, 2),
+                              blurRadius: 4,
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _LabeledField(
+                              label: '1美元 = ? 金流',
+                              controller: _tokenRateController,
+                              hint: '输入金流数量',
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: _LabeledField(
+                              label: '1美元 = ? 人民币',
+                              controller: _cnyRateController,
+                              hint: '输入人民币数量',
+                            ),
                           ),
                         ],
                       ),
-                    ),
-                    const SizedBox(height: 16),
-                    Row(
+                      const SizedBox(height: 20),
+                      SizedBox(
+                        width: double.infinity,
+                        child: _GlassButton(
+                          onPressed: _setRates,
+                          isLoading: _isLoading,
+                          text: '设置汇率',
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 25),
+                  Divider(
+                    color: isDark
+                        ? Colors.white.withValues(alpha: 0.1)
+                        : Colors.black.withValues(alpha: 0.1),
+                    thickness: 1,
+                  ),
+                  const SizedBox(height: 25),
+                  
+                  // 货币兑换部分
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '货币兑换',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                          color: Theme.of(context).colorScheme.primary,
+                          shadows: [
+                            Shadow(
+                              color: Colors.black.withValues(alpha: 0.1),
+                              offset: const Offset(0, 2),
+                              blurRadius: 4,
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      _CurrencyRow(
+                        label: '美元 (USD)',
+                        symbol: '\$',
+                        controller: _usdController,
+                        onChanged: _onUsdChanged,
+                      ),
+                      const SizedBox(height: 15),
+                      _CurrencyRow(
+                        label: '金流',
+                        symbol: 'T',
+                        controller: _tokenController,
+                        onChanged: _onTokenChanged,
+                      ),
+                      const SizedBox(height: 15),
+                      _CurrencyRow(
+                        label: '人民币 (CNY)',
+                        symbol: '¥',
+                        controller: _cnyController,
+                        onChanged: _onCnyChanged,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 25),
+                  Divider(
+                    color: isDark
+                        ? Colors.white.withValues(alpha: 0.1)
+                        : Colors.black.withValues(alpha: 0.1),
+                    thickness: 1,
+                  ),
+                  const SizedBox(height: 25),
+                  
+                  // 使用说明部分
+                  _GlassContainer(
+                    padding: const EdgeInsets.all(15),
+                    borderRadius: 12,
+                    borderColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
+                    backgroundColor: isDark
+                        ? const Color(0xFF304159).withValues(alpha: 0.7)
+                        : const Color(0xFFE8F4FC).withValues(alpha: 0.7),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Expanded(
-                          child: _LabeledField(
-                            label: '1美元 = ? 金流',
-                            controller: _tokenRateController,
-                            hint: '输入金流数量',
+                        Text(
+                          '使用说明：',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            color: Theme.of(context).colorScheme.onSurface,
                           ),
                         ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: _LabeledField(
-                            label: '1美元 = ? 人民币',
-                            controller: _cnyRateController,
-                            hint: '输入人民币数量',
+                        const SizedBox(height: 8),
+                        Text(
+                          '1. 首先在"汇率设置"区域输入1美元兑换的金流数量和人民币数量',
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.8),
+                          ),
+                        ),
+                        Text(
+                          '2. 点击"设置汇率"按钮确认汇率',
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.8),
+                          ),
+                        ),
+                        Text(
+                          '3. 在"货币兑换"区域的任意一个输入框中输入金额，其他两个输入框会自动计算对应的金额',
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.8),
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 20),
-                    SizedBox(
-                      width: double.infinity,
-                      child: _GlassButton(
-                        onPressed: _setRates,
-                        isLoading: _isLoading,
-                        text: '设置汇率',
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 25),
-                Divider(
-                  color: isDark
-                      ? Colors.white.withValues(alpha: 0.1)
-                      : Colors.black.withValues(alpha: 0.1),
-                  thickness: 1,
-                ),
-                const SizedBox(height: 25),
-                
-                // 货币兑换部分
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '货币兑换',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                        color: Theme.of(context).colorScheme.primary,
-                        shadows: [
-                          Shadow(
-                            color: Colors.black.withValues(alpha: 0.1),
-                            offset: const Offset(0, 2),
-                            blurRadius: 4,
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    _CurrencyRow(
-                      label: '美元 (USD)',
-                      symbol: '\$',
-                      controller: _usdController,
-                      onChanged: _onUsdChanged,
-                    ),
-                    const SizedBox(height: 15),
-                    _CurrencyRow(
-                      label: '金流',
-                      symbol: 'T',
-                      controller: _tokenController,
-                      onChanged: _onTokenChanged,
-                    ),
-                    const SizedBox(height: 15),
-                    _CurrencyRow(
-                      label: '人民币 (CNY)',
-                      symbol: '¥',
-                      controller: _cnyController,
-                      onChanged: _onCnyChanged,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 25),
-                Divider(
-                  color: isDark
-                      ? Colors.white.withValues(alpha: 0.1)
-                      : Colors.black.withValues(alpha: 0.1),
-                  thickness: 1,
-                ),
-                const SizedBox(height: 25),
-                
-                // 使用说明部分
-                _GlassContainer(
-                  padding: const EdgeInsets.all(15),
-                  borderRadius: 12,
-                  borderColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
-                  backgroundColor: isDark
-                      ? const Color(0xFF304159).withValues(alpha: 0.7)
-                      : const Color(0xFFE8F4FC).withValues(alpha: 0.7),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        '使用说明：',
-                        style: TextStyle(
-                          fontWeight: FontWeight.w600,
-                          color: Theme.of(context).colorScheme.onSurface,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        '1. 首先在"汇率设置"区域输入1美元兑换的金流数量和人民币数量',
-                        style: TextStyle(
-                          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.8),
-                        ),
-                      ),
-                      Text(
-                        '2. 点击"设置汇率"按钮确认汇率',
-                        style: TextStyle(
-                          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.8),
-                        ),
-                      ),
-                      Text(
-                        '3. 在"货币兑换"区域的任意一个输入框中输入金额，其他两个输入框会自动计算对应的金额',
-                        style: TextStyle(
-                          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.8),
-                        ),
-                      ),
-                    ],
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-          // 底部安全占位区域
-          const SizedBox(height: 60),
-        ],
+            // 底部安全占位区域
+            const SizedBox(height: 60),
+          ],
+        ),
       ),
     );
   }

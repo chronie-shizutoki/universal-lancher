@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'home_page.dart';
 import 'check_service_page.dart';
-import 'rate_calculator_page.dart';
+import 'calculator_selection_page.dart';
 import 'food_page.dart';
 import 'settings_page.dart';
 
@@ -14,24 +14,41 @@ class MainPage extends StatefulWidget {
 
 class _MainPageState extends State<MainPage> {
   int _currentIndex = 0;
+  Widget? _calculatorPage;
+  late final List<Widget> _pages;
 
   @override
   void initState() {
     super.initState();
+    // 初始化页面列表
+    _pages = [
+      const HomePage(),
+      const CheckServicePage(),
+      CalculatorSelectionPage(onCalculatorSelected: _setCalculatorPage),
+      const FoodPage(),
+      const SettingsPage(),
+    ];
   }
 
-  final List<Widget> _pages = [
-    const HomePage(),
-    const CheckServicePage(),
-    const RateCalculatorPage(),
-    const FoodPage(),
-    const SettingsPage(),
-  ];
+  // 设置当前显示的计算器页面
+  void _setCalculatorPage(Widget? page) {
+    setState(() {
+      _calculatorPage = page;
+    });
+  }
+
+  // 获取当前要显示的页面
+  Widget _getCurrentPage() {
+    if (_currentIndex == 2) {
+      return _calculatorPage ?? _pages[2];
+    }
+    return _pages[_currentIndex];
+  }
 
   final List<String> _titles = [
     '首页',
     '服务状态监控',
-    '货币兑换计算器',
+    '计算器',
     '今天吃什么',
     '设置',
   ];
@@ -69,7 +86,7 @@ class _MainPageState extends State<MainPage> {
                 // 主内容区域
                 Expanded(
                   child: SafeArea(
-                    child: _pages[_currentIndex],
+                    child: _getCurrentPage(),
                   ),
                 ),
               ],
@@ -78,7 +95,7 @@ class _MainPageState extends State<MainPage> {
               children: [
                 // 使用SafeArea确保内容在状态栏下方显示
                 SafeArea(
-                  child: _pages[_currentIndex],
+                  child: _getCurrentPage(),
                 ),
                 // 底部悬浮导航栏
                 Positioned(
