@@ -10,7 +10,7 @@
 <!-- Top decoration -->
 <header class="top-banner">
   <div class="banner-bg"></div>
-  <h1 class="banner-title">Chronie 应用商店</h1>
+  <h1 class="banner-title">𝙲𝚑𝚛𝚘𝚗𝚒𝚎 应用商店</h1>
   <p class="banner-subtitle">精选实用工具，一键下载安装</p>
 </header>
 
@@ -23,7 +23,7 @@
     <div class="app-info">
       <h3 class="app-title">家庭记账本</h3>
       <p class="app-desc">轻松管理家庭收支，图表一目了然</p>
-      <a class="app-download" href="com.chronie.homemoney.1.20260101.2150.apk" download>下载 v1.20260101.2150</a>
+      <a class="app-download" href="com.chronie.homemoney.1.20260101.2150.apk" download><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px; vertical-align: middle;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>下载 v1.20260101.2150</a>
     </div>
   </article>
 
@@ -32,7 +32,7 @@
     <div class="app-info">
       <h3 class="app-title">库存管理</h3>
       <p class="app-desc">实时追踪库存，自动预警补货</p>
-      <a class="app-download" href="com.chronie.inventorymanager.apk" download>下载 v1.20251128.0001</a>
+      <a class="app-download" href="com.chronie.inventorymanager.apk" download><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px; vertical-align: middle;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>下载 v1.20251128.0001</a>
     </div>
   </article>
 
@@ -43,55 +43,126 @@
     <div class="app-info">
       <h3 class="app-title">统一启动器</h3>
       <p class="app-desc">一键聚合所有应用，快捷高效</p>
-      <a class="app-download" href="com.chronie.universal_lancher.1.20260103.1941.apk" download>下载 v1.20260103.1941</a>
+      <a class="app-download" href="com.chronie.universal_lancher.1.20260103.1941.apk" download><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px; vertical-align: middle;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>下载 v1.20260103.1941</a>
     </div>
   </article>
 </div>
 
 <br>
-<section class="recent-updates">
-  <h2 class="updates-title">更新内容</h2>
-  <div class="update-item">
-    <span class="update-badge">家庭记账本 | 2026年1月1日</span>
-    <ul class="update-list">
-      <li><strong>新功能</strong>
-        <ul>
-          <li>新增了从其他设备同步数据功能</li>
-        </ul>
-      </li>
-      <li><strong>优化</strong>
-        <ul>
-          <li>修正了多个错误</li>
-        </ul>
-      </li>
-    </ul>
 
-    <span class="update-badge">库存管理 | 2025年11月28日</span>
-    <ul class="update-list">
-    <li><strong>新功能</strong>
-      <ul>
-        <li>添加原生添加物品功能（无实际添加逻辑，测试中）</li>
-      </ul>
-    </li>
-    <li><strong>改进</strong>
-      <ul>
-        <li>改进了物品列表显示，支持长名称物品换行显示</li>
-        <li>修改了底部栏部分语言长文字显示效果</li>
-      </ul>
-    </li>
-  </ul>
+<!-- 更新内容弹窗触发按钮 -->
+<div style="text-align: center; margin: 2rem 0;">
+  <button id="updatesBtn" class="updates-button"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px; vertical-align: middle;"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"></path><path d="M21 3v5h-5"></path><path d="M12 12v9"></path><path d="M9 15l3-3 3 3"></path></svg>查看更新内容</button>
+</div>
 
-    <span class="update-badge">统一启动器 | 2026年1月3日</span>
-    <ul class="update-list">
-      <li><strong>改进</strong>
-        <ul>
-          <li>重构了价格比较器，新增了对多个规格的价格比较功能</li>
-          <li>修复了多个已知问题，提升了稳定性和用户体验</li>
+<!-- 更新内容弹窗 -->
+<div id="updatesModal" class="modal">
+  <div class="modal-content">
+    <span class="close">&times;</span>
+    <section class="recent-updates">
+      <h2 class="updates-title">更新内容</h2>
+      <div class="update-item">
+        <span class="update-badge">家庭记账本 | 2026年1月1日</span>
+        <ul class="update-list">
+          <li><strong>新功能</strong>
+            <ul>
+              <li>新增了从其他设备同步数据功能</li>
+            </ul>
+          </li>
+          <li><strong>优化</strong>
+            <ul>
+              <li>修正了多个错误</li>
+            </ul>
+          </li>
         </ul>
-      </li>
-    </ul>
+
+        <span class="update-badge">库存管理 | 2025年11月28日</span>
+        <ul class="update-list">
+        <li><strong>新功能</strong>
+          <ul>
+            <li>添加原生添加物品功能（无实际添加逻辑，测试中）</li>
+          </ul>
+        </li>
+        <li><strong>改进</strong>
+          <ul>
+            <li>改进了物品列表显示，支持长名称物品换行显示</li>
+            <li>修改了底部栏部分语言长文字显示效果</li>
+          </ul>
+        </li>
+      </ul>
+
+        <span class="update-badge">统一启动器 | 2026年1月3日</span>
+        <ul class="update-list">
+          <li><strong>改进</strong>
+            <ul>
+              <li>重构了价格比较器，新增了对多个规格的价格比较功能</li>
+              <li>修复了多个已知问题，提升了稳定性和用户体验</li>
+            </ul>
+          </li>
+        </ul>
+      </div>
+    </section>
   </div>
-</section>
+</div>
+
+<script>
+// 获取弹窗元素
+const modal = document.getElementById("updatesModal");
+const btn = document.getElementById("updatesBtn");
+const closeBtn = document.getElementsByClassName("close")[0];
+
+// 打开弹窗的函数
+function openModal() {
+  modal.style.display = "block";
+  modal.style.animation = "fadeIn 0.3s ease";
+  const modalContent = modal.querySelector(".modal-content");
+  modalContent.style.animation = "slideIn 0.3s ease";
+  document.body.style.overflow = "hidden"; // 防止背景滚动
+}
+
+// 关闭弹窗的函数
+function closeModal() {
+  const modalContent = modal.querySelector(".modal-content");
+  
+  // 重置动画状态，确保动画能够正确播放
+  modalContent.style.animation = "none";
+  modal.style.animation = "none";
+  
+  // 强制重排，使重置生效
+  void modalContent.offsetWidth;
+  void modal.offsetWidth;
+  
+  // 添加退出动画
+  modalContent.style.animation = "slideOut 0.3s cubic-bezier(0.4, 0, 1, 1)";
+  modal.style.animation = "fadeOut 0.3s cubic-bezier(0.4, 0, 1, 1)";
+  
+  // 动画结束后隐藏弹窗
+  setTimeout(() => {
+    modal.style.display = "none";
+    document.body.style.overflow = "auto"; // 恢复背景滚动
+  }, 300);
+}
+
+// 点击按钮打开弹窗
+btn.addEventListener("click", openModal);
+
+// 点击关闭按钮关闭弹窗
+closeBtn.addEventListener("click", closeModal);
+
+// 点击弹窗外部关闭弹窗
+window.addEventListener("click", (event) => {
+  if (event.target === modal) {
+    closeModal();
+  }
+});
+
+// 按ESC键关闭弹窗
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && modal.style.display === "block") {
+    closeModal();
+  }
+});
+</script>
 
 <!-- Optional: Add these styles in <head> or external CSS -->
 <style>
@@ -99,7 +170,7 @@
   /* android chrome fallback font is google costum font*/
   /* to avoid google font fallback, you must set font-family in * selector */
   * {
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    font-family: system-ui, sans-serif;
   }
 
   body {
@@ -222,6 +293,8 @@
 
 .recent-updates {
   padding: 2rem 1.5rem;
+  max-width: 500px;   /* 限制最大宽度 */
+  margin: 0 auto;     /* 水平居中 */
 }
 
 .updates-title {
@@ -290,5 +363,159 @@
   .update-badge {
     color: #0d8bf2;
   }
+  
+  /* App icon dark mode adjustments */
+  /* For SVG icons, apply filter directly to the SVG element */
+  
+  /* Special handling for favicon.ico to make it more visible in dark mode */
+  .app-icon img {
+    filter: invert(1) brightness(1.2);
+  }
 }
-</style>
+
+/* 更新内容弹窗样式 */
+.updates-button {
+  background: #0066ff;
+  color: #fff;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 500;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(0, 102, 255, 0.3);
+}
+
+.updates-button:hover {
+  background: #0053d9;
+  box-shadow: 0 6px 16px rgba(0, 102, 255, 0.4);
+  transform: translateY(-2px);
+}
+
+.updates-button:active {
+  transform: translateY(0);
+}
+
+/* Modal styles */
+.modal {
+  display: none; /* 默认隐藏 */
+  position: fixed;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(5px);
+  animation: fadeIn 0.3s ease;
+}
+
+/* Modal content */
+.modal-content {
+  background-color: #fff;
+  margin: 5% auto;
+  padding: 2rem;
+  border-radius: 16px;
+  width: 90%;
+  max-width: 500px;
+  max-height: 80vh;
+  overflow-y: auto;
+  position: relative;
+  animation: slideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  
+  /* 隐藏滚动条 */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
+
+/* 隐藏滚动条 - Chrome, Safari */
+.modal-content::-webkit-scrollbar {
+  display: none;
+}
+
+/* Close button */
+.close {
+  color: #aaa;
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+  position: absolute;
+  right: 1rem;
+  top: 1rem;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.close:hover,
+.close:focus {
+  color: #000;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-50px) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes fadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes slideOut {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-50px) scale(0.9);
+  }
+}
+
+/* Dark mode adjustments for modal */
+@media (prefers-color-scheme: dark) {
+  .modal-content {
+    background-color: #2a2a2a;
+    color: #e0e0e0;
+  }
+  
+  .close {
+    color: #ddd;
+  }
+  
+  .close:hover,
+  .close:focus {
+    color: #fff;
+  }
+  
+  .updates-button {
+    background: #0d8bf2;
+  }
+  
+  .updates-button:hover {
+    background: #0b7ad9;
+  }
+}
+
+@media (max-width: 768px) {
+  #updatesModal .modal-content {
+    max-width: 70%;
+    margin: 5% auto;
+  }
+}
