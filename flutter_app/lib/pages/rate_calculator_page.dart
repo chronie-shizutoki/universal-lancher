@@ -227,6 +227,7 @@ class _RateCalculatorPageState extends State<RateCalculatorPage> {
       appBar: AppBar(
         title: const Text('汇率计算器'),
         backgroundColor: Colors.transparent,
+        foregroundColor: Theme.of(context).colorScheme.onSurface,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),

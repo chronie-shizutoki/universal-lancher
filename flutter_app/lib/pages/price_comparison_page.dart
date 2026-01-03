@@ -9,10 +9,10 @@ class GlassSnackBar extends StatelessWidget {
   final Duration duration;
 
   const GlassSnackBar({
-    Key? key,
+    super.key,
     required this.message,
     this.duration = const Duration(seconds: 3),
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -28,25 +28,25 @@ class GlassSnackBar extends StatelessWidget {
           end: Alignment.bottomRight,
           colors: isDarkMode
               ? [
-                  Colors.white.withOpacity(0.2),
-                  Colors.white.withOpacity(0.1),
+                  Colors.white.withValues(alpha: 0.2),
+                  Colors.white.withValues(alpha: 0.1),
                 ]
               : [
-                  Colors.white.withOpacity(0.7),
-                  Colors.white.withOpacity(0.5),
+                  Colors.white.withValues(alpha: 0.7),
+                  Colors.white.withValues(alpha: 0.5),
                 ],
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.2),
+            color: Colors.black.withValues(alpha: 0.2),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
         ],
         border: Border.all(
           color: isDarkMode
-              ? Colors.white.withOpacity(0.3)
-              : Colors.black.withOpacity(0.1),
+              ? Colors.white.withValues(alpha: 0.3)
+              : Colors.black.withValues(alpha: 0.1),
           width: 1,
         ),
       ),
@@ -81,6 +81,149 @@ class GlassSnackBar extends StatelessWidget {
         elevation: 0,
         duration: const Duration(seconds: 3),
         behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+}
+
+ // 液态玻璃下拉选择框组件（带动画效果）
+class GlassDropdown<T> extends StatefulWidget {
+  final T value;
+  final List<T> items;
+  final String label;
+  final Widget Function(T) itemBuilder;
+  final void Function(T?) onChanged;
+  final double width;
+
+  const GlassDropdown({
+    Key? key,
+    required this.value,
+    required this.items,
+    required this.label,
+    required this.itemBuilder,
+    required this.onChanged,
+    this.width = double.infinity,
+  }) : super(key: key);
+
+  @override
+  State<GlassDropdown<T>> createState() => _GlassDropdownState<T>();
+}
+
+class _GlassDropdownState<T> extends State<GlassDropdown<T>> with SingleTickerProviderStateMixin {
+  bool _isExpanded = false;
+  late AnimationController _animationController;
+  late Animation<double> _scaleAnimation;
+  late Animation<double> _opacityAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 300),
+      vsync: this,
+    );
+    _scaleAnimation = Tween<double>(
+      begin: 0.95,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _animationController,
+      curve: Curves.easeOut,
+    ));
+    _opacityAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _animationController,
+      curve: Curves.easeOut,
+    ));
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
+
+  void _toggleExpanded() {
+    setState(() {
+      _isExpanded = !_isExpanded;
+      if (_isExpanded) {
+        _animationController.forward();
+      } else {
+        _animationController.reverse();
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
+    return SizedBox(
+      width: widget.width,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // 下拉按钮
+          Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(15),
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: isDarkMode
+                    ? [
+                        Colors.white.withValues(alpha: 0.2),
+                        Colors.white.withValues(alpha: 0.1),
+                      ]
+                    : [
+                        Colors.white.withValues(alpha: 0.7),
+                        Colors.white.withValues(alpha: 0.5),
+                      ],
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.1),
+                  blurRadius: 5,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: DropdownButtonFormField<T>(
+              initialValue: widget.value,
+              items: widget.items
+                  .map((item) => DropdownMenuItem(
+                        value: item,
+                        child: widget.itemBuilder(item),
+                      ))
+                  .toList(),
+              onChanged: (value) {
+                _toggleExpanded();
+                widget.onChanged(value);
+              },
+              onTap: _toggleExpanded,
+              decoration: InputDecoration(
+                labelText: widget.label,
+                labelStyle: TextStyle(
+                  color: isDarkMode ? Colors.grey.shade400 : Colors.grey.shade600,
+                ),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(15),
+                  borderSide: BorderSide.none,
+                ),
+                filled: true,
+                fillColor: Colors.transparent,
+                contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+              ),
+              dropdownColor: Colors.transparent,
+              style: TextStyle(
+                color: isDarkMode ? Colors.white70 : Colors.black87,
+                fontSize: 16,
+              ),
+              menuMaxHeight: 300,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -454,77 +597,6 @@ class _PriceComparisonPageState extends State<PriceComparisonPage> {
     );
   }
 
-  // 液态玻璃下拉选择框组件
-  Widget _buildGlassDropdown<T>({
-    required T value,
-    required List<T> items,
-    required String label,
-    required Widget Function(T) itemBuilder,
-    required void Function(T?) onChanged,
-    double width = double.infinity,
-  }) {
-    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-
-    return SizedBox(
-      width: width,
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(15),
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: isDarkMode
-                ? [
-                    Colors.white.withValues(alpha: 0.2),
-                    Colors.white.withValues(alpha: 0.1),
-                  ]
-                : [
-                    Colors.white.withValues(alpha: 0.7),
-                    Colors.white.withValues(alpha: 0.5),
-                  ],
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.1),
-              blurRadius: 5,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: DropdownButtonFormField<T>(
-          initialValue: value,
-          items: items
-              .map((item) => DropdownMenuItem(
-                    value: item,
-                    child: itemBuilder(item),
-                  ))
-              .toList(),
-          onChanged: onChanged,
-          decoration: InputDecoration(
-            labelText: label,
-            labelStyle: TextStyle(
-              color: isDarkMode ? Colors.grey.shade400 : Colors.grey.shade600,
-            ),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(15),
-              borderSide: BorderSide.none,
-            ),
-            filled: true,
-            fillColor: Colors.transparent,
-            contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-          ),
-          dropdownColor: isDarkMode
-              ? Colors.black.withValues(alpha: 0.8)
-              : Colors.white.withValues(alpha: 0.9),
-          style: TextStyle(
-            color: isDarkMode ? Colors.white70 : Colors.black87,
-            fontSize: 16,
-          ),
-        ),
-      ),
-    );
-  }
-
   // 创建商品卡片
   Widget _buildProductCard(Product product) {
     final unitCategory = getUnitCategory(product.unit);
@@ -583,7 +655,7 @@ class _PriceComparisonPageState extends State<PriceComparisonPage> {
                 ),
               ),
               const SizedBox(width: 10),
-              _buildGlassDropdown<String>(
+              GlassDropdown<String>(
                 value: product.currency,
                 items: currencies,
                 label: '',
@@ -612,7 +684,7 @@ class _PriceComparisonPageState extends State<PriceComparisonPage> {
                 ),
               ),
               const SizedBox(width: 10),
-              _buildGlassDropdown<String>(
+              GlassDropdown<String>(
                 value: product.unit,
                 items: unitsInCategory,
                 label: '',
@@ -924,6 +996,7 @@ class _PriceComparisonPageState extends State<PriceComparisonPage> {
       appBar: AppBar(
         title: const Text('价格比较计算器'),
         backgroundColor: Colors.transparent,
+        foregroundColor: Theme.of(context).colorScheme.onSurface,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
@@ -971,25 +1044,25 @@ class _PriceComparisonPageState extends State<PriceComparisonPage> {
                   const Text('基准货币：', style: TextStyle(fontSize: 18)),
                   const SizedBox(width: 10),
                   Expanded(
-                    child: _buildGlassDropdown<String>(
-                      value: _baseCurrency,
-                      items: currencies,
-                      label: '',
-                      itemBuilder: (currency) => Text(
-                        currency,
-                        style: const TextStyle(fontSize: 18),
-                      ),
-                      onChanged: (value) {
-                        if (value != null) {
-                          setState(() {
-                            _baseCurrency = value;
-                            if (_showResults) {
-                              _calculateComparison();
-                            }
-                          });
-                        }
-                      },
+                    child: GlassDropdown<String>(
+                    value: _baseCurrency,
+                    items: currencies,
+                    label: '',
+                    itemBuilder: (currency) => Text(
+                      currency,
+                      style: const TextStyle(fontSize: 18),
                     ),
+                    onChanged: (value) {
+                      if (value != null) {
+                        setState(() {
+                          _baseCurrency = value;
+                          if (_showResults) {
+                            _calculateComparison();
+                          }
+                        });
+                      }
+                    },
+                  ),
                   ),
                 ],
               ),
