@@ -3,6 +3,89 @@ import 'dart:math';
 import '../data/unit_conversion.dart';
 import '../data/currency_rates.dart';
 
+// 自定义液态玻璃风格通知组件
+class GlassSnackBar extends StatelessWidget {
+  final String message;
+  final Duration duration;
+
+  const GlassSnackBar({
+    Key? key,
+    required this.message,
+    this.duration = const Duration(seconds: 3),
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
+    return Container(
+      margin: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(25),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: isDarkMode
+              ? [
+                  Colors.white.withOpacity(0.2),
+                  Colors.white.withOpacity(0.1),
+                ]
+              : [
+                  Colors.white.withOpacity(0.7),
+                  Colors.white.withOpacity(0.5),
+                ],
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.2),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+        border: Border.all(
+          color: isDarkMode
+              ? Colors.white.withOpacity(0.3)
+              : Colors.black.withOpacity(0.1),
+          width: 1,
+        ),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            Icons.info_outline,
+            color: isDarkMode ? Colors.white70 : Colors.black87,
+            size: 20,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              message,
+              style: TextStyle(
+                color: isDarkMode ? Colors.white70 : Colors.black87,
+                fontSize: 16,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // 显示通知的静态方法
+  static void show(BuildContext context, String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: GlassSnackBar(message: message),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        duration: const Duration(seconds: 3),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+}
+
 // 商品数据模型
 class Product {
   final int id;
@@ -68,8 +151,6 @@ class PriceComparisonPage extends StatefulWidget {
 }
 
 class _PriceComparisonPageState extends State<PriceComparisonPage> {
-
-
   // 商品列表
   List<Product> _products = [];
 
@@ -105,8 +186,6 @@ class _PriceComparisonPageState extends State<PriceComparisonPage> {
     ];
   }
 
-
-
   // 添加新商品
   void _addProduct() {
     final newId = _products.isEmpty ? 1 : _products.last.id + 1;
@@ -127,9 +206,7 @@ class _PriceComparisonPageState extends State<PriceComparisonPage> {
   // 移除商品
   void _removeProduct(int id) {
     if (_products.length <= 2) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("至少需要两种商品进行比较")),
-      );
+      GlassSnackBar.show(context, "至少需要两种商品进行比较");
       return;
     }
     setState(() {
@@ -182,9 +259,7 @@ class _PriceComparisonPageState extends State<PriceComparisonPage> {
     // 验证数据
     for (final product in _products) {
       if (product.price <= 0 || product.unitValue <= 0 || product.quantity <= 0) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("请为${product.name}输入有效的正数值")),
-        );
+        GlassSnackBar.show(context, "请为${product.name}输入有效的正数值");
         return;
       }
     }
@@ -213,32 +288,250 @@ class _PriceComparisonPageState extends State<PriceComparisonPage> {
     );
   }
 
+  // 液态玻璃容器组件
+  Widget _buildGlassContainer({
+    required Widget child,
+    EdgeInsets padding = const EdgeInsets.all(20),
+    double borderRadius = 20,
+  }) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: isDarkMode
+            ? Colors.white.withValues(alpha: 0.1)
+            : Colors.white.withValues(alpha: 0.7),
+        borderRadius: BorderRadius.circular(borderRadius),
+        border: Border.all(
+          color: isDarkMode
+              ? Colors.white.withValues(alpha: 0.2)
+              : Colors.black.withValues(alpha: 0.05),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDarkMode ? 0.3 : 0.1),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+          BoxShadow(
+            color: isDarkMode
+              ? Colors.white.withValues(alpha: 0.05)
+              : Colors.white.withValues(alpha: 0.5),
+            blurRadius: 10,
+            offset: const Offset(0, -2),
+          ),
+        ],
+      ),
+      padding: padding,
+      margin: const EdgeInsets.only(bottom: 20),
+      child: child,
+    );
+  }
+
+  // 液态玻璃按钮组件
+  Widget _buildGlassButton({
+    required VoidCallback onPressed,
+    required String text,
+    IconData? icon,
+    Color? buttonColor,
+  }) {
+    final theme = Theme.of(context);
+    final color = buttonColor ?? theme.colorScheme.primary;
+
+    return GestureDetector(
+      onTap: onPressed,
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(25),
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              color.withValues(alpha: 0.9),
+              color.withValues(alpha: 0.7),
+            ],
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: color.withValues(alpha: 0.3),
+              blurRadius: 15,
+              offset: const Offset(0, 8),
+            ),
+            BoxShadow(
+              color: color.withValues(alpha: 0.2),
+              blurRadius: 10,
+              offset: const Offset(0, -4),
+            ),
+          ],
+        ),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: onPressed,
+            borderRadius: BorderRadius.circular(25),
+            splashColor: Colors.white.withValues(alpha: 0.3),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  if (icon != null)
+                    Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: Icon(icon, color: Colors.white, size: 20),
+                    ),
+                  Text(
+                    text,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // 液态玻璃文本输入框组件
+  Widget _buildGlassTextField({
+    required TextEditingController controller,
+    required String labelText,
+    TextInputType keyboardType = TextInputType.text,
+    void Function(String)? onChanged,
+  }) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(15),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: isDarkMode
+              ? [
+                  Colors.white.withValues(alpha: 0.2),
+                  Colors.white.withValues(alpha: 0.1),
+                ]
+              : [
+                  Colors.white.withValues(alpha: 0.7),
+                  Colors.white.withValues(alpha: 0.5),
+                ],
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.1),
+            blurRadius: 5,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: TextField(
+        controller: controller,
+        keyboardType: keyboardType,
+        onChanged: onChanged,
+        style: TextStyle(color: isDarkMode ? Colors.white70 : Colors.black87),
+        decoration: InputDecoration(
+          labelText: labelText,
+          labelStyle: TextStyle(
+            color: isDarkMode ? Colors.grey.shade400 : Colors.grey.shade600,
+          ),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(15),
+            borderSide: BorderSide.none,
+          ),
+          filled: true,
+          fillColor: Colors.transparent,
+          contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        ),
+      ),
+    );
+  }
+
+  // 液态玻璃下拉选择框组件
+  Widget _buildGlassDropdown<T>({
+    required T value,
+    required List<T> items,
+    required String label,
+    required Widget Function(T) itemBuilder,
+    required void Function(T?) onChanged,
+    double width = double.infinity,
+  }) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
+    return SizedBox(
+      width: width,
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(15),
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: isDarkMode
+                ? [
+                    Colors.white.withValues(alpha: 0.2),
+                    Colors.white.withValues(alpha: 0.1),
+                  ]
+                : [
+                    Colors.white.withValues(alpha: 0.7),
+                    Colors.white.withValues(alpha: 0.5),
+                  ],
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.1),
+              blurRadius: 5,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: DropdownButtonFormField<T>(
+          initialValue: value,
+          items: items
+              .map((item) => DropdownMenuItem(
+                    value: item,
+                    child: itemBuilder(item),
+                  ))
+              .toList(),
+          onChanged: onChanged,
+          decoration: InputDecoration(
+            labelText: label,
+            labelStyle: TextStyle(
+              color: isDarkMode ? Colors.grey.shade400 : Colors.grey.shade600,
+            ),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(15),
+              borderSide: BorderSide.none,
+            ),
+            filled: true,
+            fillColor: Colors.transparent,
+            contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          ),
+          dropdownColor: isDarkMode
+              ? Colors.black.withValues(alpha: 0.8)
+              : Colors.white.withValues(alpha: 0.9),
+          style: TextStyle(
+            color: isDarkMode ? Colors.white70 : Colors.black87,
+            fontSize: 16,
+          ),
+        ),
+      ),
+    );
+  }
+
   // 创建商品卡片
   Widget _buildProductCard(Product product) {
     final unitCategory = getUnitCategory(product.unit);
     final unitsInCategory = unitCategories[unitCategory] ?? unitCategories['数量']!;
     final currencies = currencyRates.keys.toList();
 
-    return Container(
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
-            blurRadius: 10,
-            offset: const Offset(0, 5),
-          ),
-        ],
-        border: Border(
-          left: BorderSide(
-            color: Theme.of(context).colorScheme.primary,
-            width: 5,
-          ),
-        ),
-      ),
-      padding: const EdgeInsets.all(20),
-      margin: const EdgeInsets.only(bottom: 20),
+    return _buildGlassContainer(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -246,24 +539,32 @@ class _PriceComparisonPageState extends State<PriceComparisonPage> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Expanded(
-                child: TextField(
-                  decoration: InputDecoration(
-                    labelText: '商品名称',
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                    filled: true,
-                    fillColor: Theme.of(context).colorScheme.surfaceContainerHighest,
-                  ),
+                child: _buildGlassTextField(
                   controller: TextEditingController(text: product.name),
+                  labelText: '商品名称',
                   onChanged: (value) {
                     _updateProduct(product.copyWith(name: value));
                   },
                 ),
               ),
               if (_products.length > 2)
-                IconButton(
-                  icon: const Icon(Icons.delete),
-                  color: Colors.red,
-                  onPressed: () => _removeProduct(product.id),
+                GestureDetector(
+                  onTap: () => _removeProduct(product.id),
+                  child: Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: Colors.red.withValues(alpha: 0.8),
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.red.withValues(alpha: 0.3),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: const Icon(Icons.delete, color: Colors.white, size: 20),
+                  ),
                 ),
             ],
           ),
@@ -271,15 +572,10 @@ class _PriceComparisonPageState extends State<PriceComparisonPage> {
           Row(
             children: [
               Expanded(
-                child: TextField(
-                  decoration: InputDecoration(
-                    labelText: '价格',
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                    filled: true,
-                    fillColor: Theme.of(context).colorScheme.surfaceContainerHighest,
-                  ),
-                  keyboardType: TextInputType.number,
+                child: _buildGlassTextField(
                   controller: TextEditingController(text: product.price.toString()),
+                  labelText: '价格',
+                  keyboardType: TextInputType.number,
                   onChanged: (value) {
                     final price = double.tryParse(value) ?? 0.0;
                     _updateProduct(product.copyWith(price: price));
@@ -287,27 +583,17 @@ class _PriceComparisonPageState extends State<PriceComparisonPage> {
                 ),
               ),
               const SizedBox(width: 10),
-              SizedBox(
+              _buildGlassDropdown<String>(
+                value: product.currency,
+                items: currencies,
+                label: '',
+                itemBuilder: (currency) => Text(currency),
+                onChanged: (value) {
+                  if (value != null) {
+                    _updateProduct(product.copyWith(currency: value));
+                  }
+                },
                 width: 100,
-                child: DropdownButtonFormField<String>(
-                  initialValue: product.currency,
-                  decoration: InputDecoration(
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                    filled: true,
-                    fillColor: Theme.of(context).colorScheme.surfaceContainerHighest,
-                  ),
-                  items: currencies
-                      .map((currency) => DropdownMenuItem(
-                            value: currency,
-                            child: Text(currency),
-                          ))
-                      .toList(),
-                  onChanged: (value) {
-                    if (value != null) {
-                      _updateProduct(product.copyWith(currency: value));
-                    }
-                  },
-                ),
               ),
             ],
           ),
@@ -315,15 +601,10 @@ class _PriceComparisonPageState extends State<PriceComparisonPage> {
           Row(
             children: [
               Expanded(
-                child: TextField(
-                  decoration: InputDecoration(
-                    labelText: '规格数值',
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                    filled: true,
-                    fillColor: Theme.of(context).colorScheme.surfaceContainerHighest,
-                  ),
-                  keyboardType: TextInputType.number,
+                child: _buildGlassTextField(
                   controller: TextEditingController(text: product.unitValue.toString()),
+                  labelText: '规格数值',
+                  keyboardType: TextInputType.number,
                   onChanged: (value) {
                     final unitValue = double.tryParse(value) ?? 0.0;
                     _updateProduct(product.copyWith(unitValue: unitValue));
@@ -331,40 +612,25 @@ class _PriceComparisonPageState extends State<PriceComparisonPage> {
                 ),
               ),
               const SizedBox(width: 10),
-              SizedBox(
+              _buildGlassDropdown<String>(
+                value: product.unit,
+                items: unitsInCategory,
+                label: '',
+                itemBuilder: (unit) => Text(unit),
+                onChanged: (value) {
+                  if (value != null) {
+                    _updateProduct(product.copyWith(unit: value));
+                  }
+                },
                 width: 100,
-                child: DropdownButtonFormField<String>(
-                  initialValue: product.unit,
-                  decoration: InputDecoration(
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                    filled: true,
-                    fillColor: Theme.of(context).colorScheme.surfaceContainerHighest,
-                  ),
-                  items: unitsInCategory
-                      .map((unit) => DropdownMenuItem(
-                            value: unit,
-                            child: Text(unit),
-                          ))
-                      .toList(),
-                  onChanged: (value) {
-                    if (value != null) {
-                      _updateProduct(product.copyWith(unit: value));
-                    }
-                  },
-                ),
               ),
             ],
           ),
           const SizedBox(height: 15),
-          TextField(
-            decoration: InputDecoration(
-              labelText: '商品数量（件数）',
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-              filled: true,
-              fillColor: Theme.of(context).colorScheme.surfaceContainerHighest,
-            ),
-            keyboardType: TextInputType.number,
+          _buildGlassTextField(
             controller: TextEditingController(text: product.quantity.toString()),
+            labelText: '商品数量（件数）',
+            keyboardType: TextInputType.number,
             onChanged: (value) {
               final quantity = int.tryParse(value) ?? 1;
               _updateProduct(product.copyWith(quantity: quantity));
@@ -385,25 +651,12 @@ class _PriceComparisonPageState extends State<PriceComparisonPage> {
     final cheapestProduct = _products[minIndex];
     final mostExpensiveProduct = _products[maxIndex];
     final mostExpensiveResult = results[maxIndex];
-    final cheapestResult = results[minIndex]; // 移动位置避免重复定义
+    final cheapestResult = results[minIndex];
 
     final savingsPercent = ((mostExpensiveResult.pricePerBaseUnit - cheapestResult.pricePerBaseUnit) / mostExpensiveResult.pricePerBaseUnit * 100);
     final baseUnitName = getBaseUnitName(cheapestProduct.unit);
 
-    return Container(
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.primaryContainer,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
-            blurRadius: 10,
-            offset: const Offset(0, 5),
-          ),
-        ],
-      ),
-      padding: const EdgeInsets.all(20),
-      margin: const EdgeInsets.only(bottom: 30),
+    return _buildGlassContainer(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -412,7 +665,7 @@ class _PriceComparisonPageState extends State<PriceComparisonPage> {
             style: TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,
-              color: Theme.of(context).colorScheme.onPrimaryContainer,
+              color: Theme.of(context).colorScheme.primary,
             ),
           ),
           const SizedBox(height: 10),
@@ -420,7 +673,7 @@ class _PriceComparisonPageState extends State<PriceComparisonPage> {
             '${cheapestProduct.name}的单位价格更划算，比${mostExpensiveProduct.name}便宜${savingsPercent.toStringAsFixed(1)}%。',
             style: TextStyle(
               fontSize: 16,
-              color: Theme.of(context).colorScheme.onPrimaryContainer,
+              color: Theme.of(context).colorScheme.onSurface,
             ),
           ),
           const SizedBox(height: 10),
@@ -428,7 +681,7 @@ class _PriceComparisonPageState extends State<PriceComparisonPage> {
             '具体数据：${cheapestProduct.name}每$baseUnitName价格为 ${cheapestResult.pricePerBaseUnit.toStringAsFixed(4)} $_baseCurrency，而${mostExpensiveProduct.name}为 ${mostExpensiveResult.pricePerBaseUnit.toStringAsFixed(4)} $_baseCurrency。',
             style: TextStyle(
               fontSize: 16,
-              color: Theme.of(context).colorScheme.onPrimaryContainer,
+              color: Theme.of(context).colorScheme.onSurface,
             ),
           ),
         ],
@@ -486,68 +739,52 @@ class _PriceComparisonPageState extends State<PriceComparisonPage> {
       },
     ];
 
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        crossAxisSpacing: 20,
-        mainAxisSpacing: 20,
-        childAspectRatio: 1.5,
-      ),
-      itemCount: methods.length,
-      itemBuilder: (context, index) {
-        final method = methods[index];
-        return Container(
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surface,
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.1),
-                blurRadius: 10,
-                offset: const Offset(0, 5),
-              ),
-            ],
-          ),
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                method['title']!,
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Theme.of(context).colorScheme.primary,
+    return Wrap(
+      spacing: 20,
+      runSpacing: 20,
+      alignment: WrapAlignment.center,
+      children: methods.map((method) {
+        return SizedBox(
+          width: 300, // 设置卡片的宽度
+          child: _buildGlassContainer(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  method['title']!,
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                 ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-              const SizedBox(height: 15),
-              Text(
-                method['result']!,
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Theme.of(context).colorScheme.onSurface,
+                const SizedBox(height: 15),
+                Text(
+                  method['result']!,
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 10),
-              Text(
-                method['desc']!,
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                const SizedBox(height: 10),
+                Text(
+                  method['desc']!,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                 ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
+              ],
+            ),
           ),
         );
-      },
+      }).toList(),
     );
   }
 
@@ -560,83 +797,124 @@ class _PriceComparisonPageState extends State<PriceComparisonPage> {
     final cheapestProduct = _products[minIndex];
     final baseUnitName = getBaseUnitName(cheapestProduct.unit);
 
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: DataTable(
-        columns: [
-          DataColumn(
-            label: Text(
-              '商品名称',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-          ),
-          DataColumn(
-            label: Text(
-              '总价（$_baseCurrency）',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-          ),
-          DataColumn(
-            label: Text(
-              '总$baseUnitName数',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-          ),
-          DataColumn(
-            label: Text(
-              '每$baseUnitName价格（$_baseCurrency）',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-          ),
-          DataColumn(
-            label: Text(
-              '每$_baseCurrency可购买$baseUnitName数',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-          ),
-        ],
-        rows: List.generate(_products.length, (index) {
-          final product = _products[index];
-          final result = results[index];
-          final isCheapest = product.id == cheapestProduct.id;
-
-          return DataRow(
-            cells: [
-              DataCell(
-                Row(
-                  children: [
-                    Text(product.name),
-                    if (isCheapest)
-                      const Padding(
-                        padding: EdgeInsets.only(left: 5),
-                        child: Icon(
-                          Icons.star,
-                          color: Colors.amber,
-                          size: 16,
-                        ),
-                      ),
-                  ],
+    return _buildGlassContainer(
+      borderRadius: 20,
+      padding: EdgeInsets.zero,
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: DataTable(
+          columns: [
+            DataColumn(
+              label: Container(
+                padding: const EdgeInsets.all(16),
+                child: Text(
+                  '商品名称',
+                  style: TextStyle(fontWeight: FontWeight.bold),
                 ),
               ),
-              DataCell(Text(convertToBaseCurrency(product.price, product.currency, _baseCurrency).toStringAsFixed(2))),
-              DataCell(Text(result.totalBaseUnits.toStringAsFixed(2))),
-              DataCell(Text(result.pricePerBaseUnit.toStringAsFixed(4))),
-              DataCell(Text(result.baseUnitsPerCurrency.toStringAsFixed(2))),
-            ],
-            color: WidgetStateProperty.resolveWith<Color?>(
-              (Set<WidgetState> states) {
-                if (isCheapest) {
-                  return Theme.of(context).colorScheme.secondaryContainer.withValues(alpha: 0.5);
-                }
-                return null;
-              },
             ),
-          );
-        }),
+            DataColumn(
+              label: Container(
+                padding: const EdgeInsets.all(16),
+                child: Text(
+                  '总价（$_baseCurrency）',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ),
+            ),
+            DataColumn(
+              label: Container(
+                padding: const EdgeInsets.all(16),
+                child: Text(
+                  '总$baseUnitName数',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ),
+            ),
+            DataColumn(
+              label: Container(
+                padding: const EdgeInsets.all(16),
+                child: Text(
+                  '每$baseUnitName价格（$_baseCurrency）',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ),
+            ),
+            DataColumn(
+              label: Container(
+                padding: const EdgeInsets.all(16),
+                child: Text(
+                  '每$_baseCurrency可购买$baseUnitName数',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ),
+            ),
+          ],
+          rows: List.generate(_products.length, (index) {
+            final product = _products[index];
+            final result = results[index];
+            final isCheapest = product.id == cheapestProduct.id;
+
+            return DataRow(
+              cells: [
+                DataCell(
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    child: Row(
+                      children: [
+                        Text(product.name),
+                        if (isCheapest)
+                          const Padding(
+                            padding: EdgeInsets.only(left: 5),
+                            child: Icon(
+                              Icons.star,
+                              color: Colors.amber,
+                              size: 16,
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+                DataCell(
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    child: Text(convertToBaseCurrency(product.price, product.currency, _baseCurrency).toStringAsFixed(2)),
+                  ),
+                ),
+                DataCell(
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    child: Text(result.totalBaseUnits.toStringAsFixed(2)),
+                  ),
+                ),
+                DataCell(
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    child: Text(result.pricePerBaseUnit.toStringAsFixed(4)),
+                  ),
+                ),
+                DataCell(
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    child: Text(result.baseUnitsPerCurrency.toStringAsFixed(2)),
+                  ),
+                ),
+              ],
+              color: WidgetStateProperty.resolveWith<Color?>(
+                (Set<WidgetState> states) {
+                  if (isCheapest) {
+                    return Theme.of(context).colorScheme.secondaryContainer.withValues(alpha: 0.3);
+                  }
+                  return null;
+                },
+              ),
+            );
+          }),
+        ),
       ),
     );
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -686,38 +964,32 @@ class _PriceComparisonPageState extends State<PriceComparisonPage> {
             const SizedBox(height: 30),
 
             // 基准货币选择
-            Container(
+            _buildGlassContainer(
               padding: const EdgeInsets.all(20),
-              margin: const EdgeInsets.only(bottom: 30),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                borderRadius: BorderRadius.circular(20),
-              ),
               child: Row(
                 children: [
                   const Text('基准货币：', style: TextStyle(fontSize: 18)),
                   const SizedBox(width: 10),
-                  DropdownButton<String>(
-                    value: _baseCurrency,
-                    items: currencies
-                        .map((currency) => DropdownMenuItem(
-                              value: currency,
-                              child: Text(
-                                currency,
-                                style: const TextStyle(fontSize: 18),
-                              ),
-                            ))
-                        .toList(),
-                    onChanged: (value) {
-                      if (value != null) {
-                        setState(() {
-                          _baseCurrency = value;
-                          if (_showResults) {
-                            _calculateComparison();
-                          }
-                        });
-                      }
-                    },
+                  Expanded(
+                    child: _buildGlassDropdown<String>(
+                      value: _baseCurrency,
+                      items: currencies,
+                      label: '',
+                      itemBuilder: (currency) => Text(
+                        currency,
+                        style: const TextStyle(fontSize: 18),
+                      ),
+                      onChanged: (value) {
+                        if (value != null) {
+                          setState(() {
+                            _baseCurrency = value;
+                            if (_showResults) {
+                              _calculateComparison();
+                            }
+                          });
+                        }
+                      },
+                    ),
                   ),
                 ],
               ),
@@ -739,51 +1011,33 @@ class _PriceComparisonPageState extends State<PriceComparisonPage> {
               children: _products.map(_buildProductCard).toList(),
             ),
 
-            // 添加商品按钮
+            // 所有操作按钮
             Center(
-              child: ElevatedButton.icon(
-                onPressed: _addProduct,
-                icon: const Icon(Icons.add),
-                label: const Text('添加更多商品'),
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
-                  ),
+              child: Wrap(
+                alignment: WrapAlignment.center,
+                spacing: 20,
+                runSpacing: 20,
+                children: [
+                _buildGlassButton(
+                  onPressed: _addProduct,
+                  text: '添加更多商品',
+                  icon: Icons.add,
+                  buttonColor: Theme.of(context).colorScheme.secondary,
                 ),
-              ),
-            ),
-            const SizedBox(height: 30),
-
-            // 操作按钮
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                ElevatedButton.icon(
+                _buildGlassButton(
                   onPressed: _calculateComparison,
-                  icon: const Icon(Icons.calculate),
-                  label: const Text('计算比较结果'),
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                  ),
+                  text: '计算比较结果',
+                  icon: Icons.calculate,
                 ),
-                const SizedBox(width: 20),
-                ElevatedButton.icon(
+                _buildGlassButton(
                   onPressed: _resetData,
-                  icon: const Icon(Icons.refresh),
-                  label: const Text('重置所有数据'),
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                  ),
+                  text: '重置所有数据',
+                  icon: Icons.refresh,
+                  buttonColor: Theme.of(context).colorScheme.error,
                 ),
               ],
             ),
+          ),
             const SizedBox(height: 40),
 
             // 结果区域
@@ -831,19 +1085,7 @@ class _PriceComparisonPageState extends State<PriceComparisonPage> {
                   const SizedBox(height: 30),
 
                   // 注意事项
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.errorContainer,
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.1),
-                          blurRadius: 10,
-                          offset: const Offset(0, 5),
-                        ),
-                      ],
-                    ),
-                    padding: const EdgeInsets.all(20),
+                  _buildGlassContainer(
                     child: Row(
                       children: [
                         const Icon(Icons.warning, color: Colors.amber, size: 30),
@@ -853,7 +1095,7 @@ class _PriceComparisonPageState extends State<PriceComparisonPage> {
                             '注意：此计算结果基于您输入的数据和选择的单位/货币转换。实际购买时还需考虑品牌、质量、个人偏好等因素。',
                             style: TextStyle(
                               fontSize: 16,
-                              color: Theme.of(context).colorScheme.onErrorContainer,
+                              color: Theme.of(context).colorScheme.onSurface,
                             ),
                           ),
                         ),
