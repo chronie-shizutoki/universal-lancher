@@ -1,8 +1,18 @@
 import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:network_info_plus/network_info_plus.dart';
+import 'package:permission_handler/permission_handler.dart';
 import './webview_page.dart';
 import '../providers/theme_provider.dart';
+
+// 网络常量
+const List<String> _allowedNetworks = [
+  'Tenda_794FC0_5G',
+  'Tenda_794FC0',
+];
+const String _networkWarningMessage = '您当前环境可能无法访问服务，请检查您的地理位置或尝试连接指定网络并关闭移动数据';
 
 // 颜色常量
 const Color _lightPrimaryGradientStart = Color(0xFFf5f7fa);
@@ -30,6 +40,60 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   bool _isModalVisible = false;
+  bool _showNetworkWarning = false;
+  String? _currentWifiName;
+  final NetworkInfo _networkInfo = NetworkInfo();
+
+  @override
+  void initState() {
+    super.initState();
+    _checkNetwork();
+  }
+
+  Future<void> _checkNetwork() async {
+    try {
+      // 先请求位置权限
+      final locationPermission = await Permission.location.status;
+      if (locationPermission != PermissionStatus.granted) {
+        // 如果没有权限，请求权限
+        final result = await Permission.location.request();
+        if (result != PermissionStatus.granted) {
+          // 如果用户拒绝了权限，尝试检查IP地址
+          await _checkIpAddress();
+          return;
+        }
+      }
+      
+      // 权限已授予，获取WiFi名称
+      final wifiName = await _networkInfo.getWifiName();
+      // 清理WiFi名称，移除可能的引号和空格
+      final cleanedWifiName = wifiName?.trim().replaceAll('"', '');
+      
+      setState(() {
+        _currentWifiName = cleanedWifiName;
+        // 只有当WiFi名称为空或不在允许列表中时才显示警告
+        _showNetworkWarning = cleanedWifiName == null || !_allowedNetworks.contains(cleanedWifiName);
+      });
+    } catch (e) {
+      // 如果获取WiFi名称失败，尝试检查IP地址作为备选方案
+      await _checkIpAddress();
+    }
+  }
+  
+  Future<void> _checkIpAddress() async {
+    try {
+      final ip = await _networkInfo.getWifiIP();
+      setState(() {
+        // 如果IP地址是内部网络地址(192.168.x.x)，则不显示警告
+        _showNetworkWarning = ip == null || !ip.startsWith('192.168.');
+      });
+    } catch (ipError) {
+      // 如果都失败，默认显示警告
+      setState(() {
+        _showNetworkWarning = true;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -94,6 +158,49 @@ class _HomePageState extends State<HomePage> {
                       ),
                       child: Column(
                         children: [
+                          // 网络警告信息
+                          if (_showNetworkWarning)
+                            Container(
+                              margin: const EdgeInsets.only(bottom: 16.0),
+                              padding: const EdgeInsets.all(16.0),
+                              decoration: BoxDecoration(
+                                color: isDarkMode
+                                    ? Colors.orange.withValues(alpha: 0.2)
+                                    : Colors.orange.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(12.0),
+                                border: Border.all(
+                                  color: isDarkMode
+                                      ? Colors.orange.withValues(alpha: 0.5)
+                                      : Colors.orange.withValues(alpha: 0.3),
+                                  width: 1.0,
+                                ),
+                              ),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Icon(
+                                    Icons.warning,
+                                    color: isDarkMode
+                                        ? Colors.orangeAccent
+                                        : Colors.orange,
+                                    size: 20.0,
+                                  ),
+                                  const SizedBox(width: 12.0),
+                                  Expanded(
+                                    child: Text(
+                                      _networkWarningMessage,
+                                      style: TextStyle(
+                                        color: isDarkMode
+                                            ? Colors.orangeAccent
+                                            : Colors.orange,
+                                        fontSize: 14.0,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
                           // 按钮组
                           Wrap(
                             spacing: 16.0,
