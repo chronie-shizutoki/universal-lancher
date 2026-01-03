@@ -1,18 +1,22 @@
 /* 定义液态玻璃风格的变量 */
-  :root {
-    --glass-bg: rgba(255, 255, 255, 0.2);
-    --glass-border: rgba(255, 255, 255, 0.3);
-    --glass-shadow: rgba(0, 0, 0, 0.1);
-    --text-primary: #333;
-    --text-secondary: #555;
-    --accent-gradient: linear-gradient(135deg, #b8e0ff 0%, #7f5af0 100%);
-    --install-bg: rgba(44, 62, 80, 0.9);
-    --install-text: #fff;
-    --install-guide-bg: rgba(240, 240, 240, 0.9);
-    --install-guide-text: #333;
-    --install-guide-border: rgba(221, 221, 221, 0.8);
-    --blur-strength: 10px;
-  }
+:root {
+  --glass-bg: rgba(255, 255, 255, 0.25);
+  --glass-border: rgba(255, 255, 255, 0.3);
+  --glass-shadow: rgba(0, 0, 0, 0.08);
+  --glass-shadow-hover: rgba(0, 0, 0, 0.15);
+  --text-primary: #333;
+  --text-secondary: #555;
+  --accent-gradient: linear-gradient(135deg, #b8e0ff 0%, #7f5af0 100%);
+  --accent-gradient-hover: linear-gradient(135deg, #a8d0ff 0%, #6f4af0 100%);
+  --blur-strength: 12px;
+  --border-radius: 16px;
+  --spacing-xs: 0.5rem;
+  --spacing-sm: 1rem;
+  --spacing-md: 2rem;
+  --spacing-lg: 3rem;
+  --transition-speed: 0.3s;
+  --transition-easing: cubic-bezier(0.4, 0, 0.2, 1);
+}
 
   /* 全局重置和基础样式 */
   * {
@@ -44,17 +48,18 @@
     backdrop-filter: blur(var(--blur-strength));
     -webkit-backdrop-filter: blur(var(--blur-strength));
     border: 1px solid var(--glass-border);
-    border-radius: 16px;
-    box-shadow: 0 8px 32px var(--glass-shadow);
-    padding: 2rem;
-    margin-bottom: 2rem;
-    transition: all 0.3s ease;
+    border-radius: var(--border-radius);
+    box-shadow: 0 8px 32px var(--glass-shadow), 0 0 0 1px rgba(255, 255, 255, 0.1) inset;
+    padding: var(--spacing-md);
+    margin-bottom: var(--spacing-md);
+    transition: all var(--transition-speed) var(--transition-easing);
     max-width: 100%;
     width: 100%;
+    min-width: 0;
   }
 
   .glass-container:hover {
-    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 12px 40px var(--glass-shadow-hover), 0 0 0 1px rgba(255, 255, 255, 0.15) inset;
     transform: translateY(-2px);
   }
 
@@ -92,17 +97,29 @@
   /* 液态玻璃按钮样式 */
   .btn {
     padding: 1rem 2rem;
-    border-radius: 12px;
+    border-radius: var(--border-radius);
     text-decoration: none;
     font-weight: 600;
     font-size: 1rem;
-    transition: all 0.3s ease;
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    font-family: system-ui, sans-serif;
+    transition: all var(--transition-speed) var(--transition-easing);
+    border: 1px solid var(--glass-border);
+    backdrop-filter: blur(var(--blur-strength));
+    -webkit-backdrop-filter: blur(var(--blur-strength));
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 120px;
     position: relative;
+    box-shadow: 0 4px 16px var(--glass-shadow), 0 0 0 1px rgba(255, 255, 255, 0.1) inset;
+    background: var(--glass-bg);
+    /* 文字渐变效果 */
+    background-image: var(--accent-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
     overflow: hidden;
-    z-index: 1;
-    backdrop-filter: blur(5px);
-    -webkit-backdrop-filter: blur(5px);
   }
 
   .btn::before {
@@ -113,31 +130,21 @@
     width: 100%;
     height: 100%;
     background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-    transition: left 0.5s;
-    z-index: -1;
+    transition: left var(--transition-speed) ease;
+  }
+
+  .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px var(--glass-shadow-hover), 0 0 0 1px rgba(255, 255, 255, 0.15) inset;
   }
 
   .btn:hover::before {
     left: 100%;
   }
 
-  .btn:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
-  }
-
   .btn:active {
-    transform: translateY(-1px);
-    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
-  }
-
-  .btn.primary {
-    background: var(--accent-gradient);
-  }
-
-  .btn.secondary {
-    background: rgba(255, 255, 255, 0.3);
-    color: var(--text-primary);
+    transform: translateY(0);
+    box-shadow: 0 4px 12px var(--glass-shadow), 0 0 0 1px rgba(255, 255, 255, 0.1) inset;
   }
 
   /* 额外服务部分样式 */
@@ -288,8 +295,11 @@
       --glass-bg: rgba(20, 30, 40, 0.7);
       --glass-border: rgba(255, 255, 255, 0.1);
       --glass-shadow: rgba(0, 0, 0, 0.3);
+      --glass-shadow-hover: rgba(0, 0, 0, 0.45);
       --text-primary: #ffffff;
       --text-secondary: #e0e0e0;
+      --accent-gradient: linear-gradient(135deg, #8bb4e0 0%, #6f4af0 100%);
+      --accent-gradient-hover: linear-gradient(135deg, #7aa3d0 0%, #5f3af0 100%);
       --install-bg: rgba(20, 30, 40, 0.9);
       --install-text: #ffffff;
       --install-guide-bg: rgba(40, 50, 60, 0.9);
@@ -300,56 +310,90 @@
     body {
       background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
     }
-
-    .btn.secondary {
-      background: rgba(255, 255, 255, 0.1);
-      color: var(--text-primary);
-    }
   }
 
-  /* 响应式设计 */
-  @media (max-width: 768px) {
-    body {
-      padding: 1rem;
-    }
+  /* 头部弹性布局 */
+.header-flex {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-md);
+}
 
-    .glass-container {
-      padding: 1.5rem;
-      margin-bottom: 1.5rem;
-    }
+/* 底部信息样式 */
+.footer-info {
+  margin-top: var(--spacing-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  opacity: 0.8;
+  transition: opacity var(--transition-speed) var(--transition-easing);
+}
 
-    .welcome h1 {
-      font-size: 2rem;
-    }
+.footer-info:hover {
+  opacity: 1;
+}
 
-    .welcome p {
-      font-size: 1rem;
-    }
-
-    .button-group {
-      flex-direction: column;
-      align-items: center;
-      width: 100%;
-    }
-
-    .btn {
-      width: 100%;
-      max-width: 300px;
-    }
+/* 响应式设计 */
+@media (max-width: 768px) {
+  body {
+    padding: 1rem;
   }
 
-  @media (max-width: 480px) {
-    .welcome h1 {
-      font-size: 1.8rem;
-    }
-
-    .glass-container {
-      padding: 1.25rem;
-      border-radius: 12px;
-    }
-
-    .btn {
-      padding: 0.8rem 1.5rem;
-      font-size: 0.9rem;
-    }
+  .glass-container {
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
   }
+
+  .welcome h1 {
+    font-size: 2rem;
+  }
+
+  .welcome p {
+    font-size: 1rem;
+  }
+
+  .button-group {
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    gap: var(--spacing-sm);
+  }
+
+  .btn {
+    width: 100%;
+    max-width: 300px;
+  }
+
+  .header-flex {
+    flex-direction: column;
+    gap: var(--spacing-sm);
+  }
+
+  .header-flex img {
+    width: 96px;
+    height: 96px;
+  }
+}
+
+@media (max-width: 480px) {
+  .welcome h1 {
+    font-size: 1.8rem;
+  }
+
+  .glass-container {
+    padding: 1.25rem;
+    border-radius: 12px;
+  }
+
+  .btn {
+    padding: 0.8rem 1.5rem;
+    font-size: 0.9rem;
+  }
+
+  .header-flex img {
+    width: 80px;
+    height: 80px;
+  }
+}
