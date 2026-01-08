@@ -9,7 +9,9 @@
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            font-family: system-ui, sans-serif;
+            transition: color 0.3s ease, background-color 0.3s ease;
+            scrollbar-width: none;
         }
         
         body {
@@ -22,10 +24,11 @@
         .container {
             max-width: 1200px;
             margin: 0 auto;
-            background-color: white;
-            border-radius: 12px;
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
             padding: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
         
         header {
@@ -36,8 +39,8 @@
         }
         
         h1 {
-            color: #2c3e50;
             margin-bottom: 10px;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         }
         
         .subtitle {
@@ -55,6 +58,7 @@
             margin-bottom: 20px;
             display: flex;
             align-items: center;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         }
         
         .section-title i {
@@ -70,16 +74,26 @@
         }
         
         .product-card {
-            background-color: #f9f9f9;
-            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
             padding: 25px;
             border-left: 5px solid #3498db;
-            transition: transform 0.3s, box-shadow 0.3s;
+            transition: transform 0.3s, box-shadow 0.3s, background-color 0.3s;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 4px 15px rgba(31, 38, 135, 0.1);
+            max-width: 100%;
+            box-sizing: border-box;
+        }
+        
+        .input-group {
+            max-width: 100%;
+            box-sizing: border-box;
         }
         
         .product-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+            background: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 8px 25px rgba(31, 38, 135, 0.2);
         }
         
         .product-header {
@@ -96,9 +110,9 @@
         }
         
         .remove-btn {
-            background-color: #e74c3c;
+            background: rgba(231, 76, 60, 0.8);
             color: white;
-            border: none;
+            border: 1px solid rgba(255, 255, 255, 0.3);
             width: 30px;
             height: 30px;
             border-radius: 50%;
@@ -106,6 +120,14 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            transition: all 0.3s;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .remove-btn:hover {
+            background: rgba(231, 76, 60, 1);
+            transform: scale(1.1);
+            box-shadow: 0 4px 15px rgba(231, 76, 60, 0.3);
         }
         
         .input-group {
@@ -122,23 +144,168 @@
         .input-with-unit {
             display: flex;
             align-items: center;
+            flex-wrap: wrap;
         }
         
-        .input-with-unit input, .input-with-unit select {
+        .input-with-unit input, .input-with-unit select, .custom-select {
             padding: 12px 15px;
             border: 1px solid #ddd;
             border-radius: 6px;
             font-size: 1rem;
         }
+
+        /* 自定义选择器样式 - 液态玻璃风格 */
+        .custom-select-container {
+            position: relative;
+            width: 80px;
+        }
+
+        .custom-select {
+            position: relative;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            padding: 12px 35px 12px 15px;
+            cursor: pointer;
+            user-select: none;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            box-shadow: 0 4px 15px rgba(31, 38, 135, 0.1);
+        }
+
+        .custom-select:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.5);
+            box-shadow: 0 6px 20px rgba(31, 38, 135, 0.2);
+        }
+
+        .custom-select::after {
+            content: '';
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 12px;
+            height: 12px;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%237f8c8d' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-size: contain;
+            background-repeat: no-repeat;
+            pointer-events: none;
+            transition: transform 0.3s ease;
+        }
+
+        .custom-select-options {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            margin-top: 5px;
+            max-height: 200px;
+            overflow-y: auto;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.2);
+            transition: opacity 0.3s ease, visibility 0.3s ease, transform 0.3s ease;
+        }
+
+        .custom-select-options.open {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .custom-select.expanded::after {
+            transform: translateY(-50%) rotate(180deg);
+        }
+
+        .custom-select-option {
+            padding: 12px 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .custom-select-option:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .custom-select-option.selected {
+            background: rgba(52, 152, 219, 0.3);
+            color: #3498db;
+            font-weight: 600;
+        }
+
+        /* 单位分组样式 */
+        .custom-select-option-group {
+            margin: 8px 0;
+        }
+
+        .custom-select-option-group-title {
+            padding: 8px 15px;
+            font-weight: 600;
+            color: #3498db;
+            font-size: 0.9rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            margin-bottom: 5px;
+        }
+
+        /* 深色模式下的单位分组样式 */
+        @media (prefers-color-scheme: dark) {
+            .custom-select-option-group-title {
+                color: #3498db;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            }
+        }
+
+        /* 自定义选择器深色模式 */
+        @media (prefers-color-scheme: dark) {
+            .custom-select {
+                background: rgba(255, 255, 255, 0.05);
+                border-color: rgba(255, 255, 255, 0.2);
+                color: #ecf0f1;
+            }
+
+            .custom-select:hover {
+                background: rgba(255, 255, 255, 0.1);
+                border-color: rgba(255, 255, 255, 0.3);
+            }
+
+            .custom-select::after {
+                background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23bdc3c7' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            }
+
+            .custom-select-options {
+                background: rgba(255, 255, 255, 0.05);
+                border-color: rgba(255, 255, 255, 0.2);
+            }
+
+            .custom-select-option:hover {
+                background: rgba(255, 255, 255, 0.1);
+            }
+
+            .custom-select-option.selected {
+                background: rgba(52, 152, 219, 0.4);
+                color: #3498db;
+            }
+        }
         
         .input-with-unit input {
             flex: 1;
+            min-width: 0;
             margin-right: 10px;
         }
         
         .input-with-unit select {
             width: 80px;
-            background-color: white;
+            flex-shrink: 0;
         }
         
         .buttons {
@@ -151,37 +318,46 @@
         .btn {
             padding: 14px 28px;
             border: none;
-            border-radius: 8px;
+            border-radius: 12px;
             font-size: 1rem;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
         }
         
         .btn-primary {
-            background-color: #3498db;
+            background: rgba(52, 152, 219, 0.8);
             color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
         }
         
         .btn-primary:hover {
-            background-color: #2980b9;
+            background: rgba(52, 152, 219, 1);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(52, 152, 219, 0.3);
         }
         
         .btn-secondary {
-            background-color: #2ecc71;
+            background: rgba(46, 204, 113, 0.8);
             color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
         }
         
         .btn-secondary:hover {
-            background-color: #27ae60;
+            background: rgba(46, 204, 113, 1);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(46, 204, 113, 0.3);
         }
         
         .result-section {
-            background-color: #f8f9fa;
-            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
             padding: 25px;
             margin-top: 30px;
             display: none;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 4px 15px rgba(31, 38, 135, 0.1);
         }
         
         .result-section.active {
@@ -202,11 +378,13 @@
         }
         
         .recommendation {
-            background-color: #e8f4fc;
-            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
             padding: 20px;
             margin-bottom: 25px;
             border-left: 5px solid #3498db;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 4px 15px rgba(31, 38, 135, 0.1);
         }
         
         .recommendation h3 {
@@ -222,10 +400,11 @@
         }
         
         .method-card {
-            background-color: white;
-            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
             padding: 20px;
-            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 4px 15px rgba(31, 38, 135, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
         
         .method-title {
@@ -247,26 +426,33 @@
             font-size: 0.95rem;
         }
         
+        .unit-table-container {
+            overflow-x: auto;
+            overflow-y: hidden;
+            margin-top: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(31, 38, 135, 0.1);
+        }
+        
         .unit-table {
             width: 100%;
+            min-width: 400px;
             border-collapse: collapse;
-            margin-top: 25px;
-            background-color: white;
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
         
         .unit-table th, .unit-table td {
             padding: 15px;
             text-align: center;
-            border-bottom: 1px solid #eee;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
         }
         
         .unit-table th {
-            background-color: #3498db;
+            background: rgba(52, 152, 219, 0.8);
             color: white;
             font-weight: 600;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.3);
         }
         
         .unit-table tr:last-child td {
@@ -274,34 +460,42 @@
         }
         
         .best-value {
-            background-color: #e8f6f3 !important;
+            background: rgba(232, 246, 243, 0.15) !important;
             color: #27ae60;
             font-weight: 600;
         }
         
         .warning {
-            background-color: #fff8e1;
-            border-radius: 8px;
+            background: rgba(255, 251, 230, 0.15);
+            border-radius: 12px;
             padding: 15px;
             margin-top: 20px;
-            border-left: 5px solid #ffc107;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 4px 15px rgba(31, 38, 135, 0.1);
+        }
+
+        .warning p {
+            color: #ffbf00;
         }
         
         .add-product-btn {
             display: block;
             margin: 20px auto;
-            background-color: #95a5a6;
+            background: rgba(149, 165, 166, 0.8);
             color: white;
             padding: 12px 25px;
-            border-radius: 6px;
-            border: none;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
             font-size: 1rem;
             cursor: pointer;
-            transition: background-color 0.3s;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
         }
         
         .add-product-btn:hover {
-            background-color: #7f8c8d;
+            background: rgba(149, 165, 166, 1);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(149, 165, 166, 0.3);
         }
         
         footer {
@@ -314,17 +508,228 @@
         }
         
         @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            
+            .container {
+                padding: 20px;
+            }
+            
             .product-container {
-                grid-template-columns: 1fr;
+                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+                gap: 20px;
+            }
+            
+            .product-card {
+                padding: 20px;
+            }
+            
+            .input-with-unit {
+                flex-direction: row;
+                align-items: center;
+            }
+            
+            .input-with-unit input {
+                margin-right: 8px;
+                margin-bottom: 0;
+                flex: 1;
+            }
+            
+            .input-with-unit select {
+                width: 60px;
+            }
+            
+            .custom-select-container {
+                width: 60px;
+                flex-shrink: 0;
             }
             
             .comparison-methods {
                 grid-template-columns: 1fr;
             }
             
-            .container {
-                padding: 20px;
+            .buttons {
+                flex-direction: column;
+                align-items: stretch;
             }
+            
+            .btn {
+                width: 100%;
+                margin-bottom: 10px;
+            }
+            
+            .btn:last-child {
+                margin-bottom: 0;
+            }
+            
+            .unit-table {
+                font-size: 0.9rem;
+            }
+            
+            .unit-table th, .unit-table td {
+                padding: 10px;
+            }
+        }
+
+        @media (prefers-color-scheme: dark) {
+            body {
+                background-color: #2c3e50;
+                color: #ecf0f1;
+            }
+            
+            .container {
+                background: rgba(255, 255, 255, 0.05);
+                border: 1px solid rgba(255, 255, 255, 0.2);
+            }
+            
+            header {
+                border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            }
+            
+            .section-title {
+                color: #3498db;
+            }
+            
+            .product-card {
+                background: rgba(255, 255, 255, 0.05);
+                border: 1px solid rgba(255, 255, 255, 0.2);
+            }
+            
+            .product-name {
+                color: #ecf0f1;
+            }
+            
+            /* 输入框和选择框深色模式 */
+            .input-group label {
+                color: #bdc3c7;
+            }
+            
+            .input-with-unit input, .input-with-unit select {
+                background: rgba(255, 255, 255, 0.05);
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                color: #ecf0f1;
+            }
+            
+            .input-with-unit input:focus, .input-with-unit select:focus {
+                outline: none;
+                border-color: #3498db;
+                box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+            }
+            
+            /* 按钮深色模式 */
+            .btn {
+                border: 1px solid rgba(255, 255, 255, 0.3);
+            }
+            
+            .btn-primary {
+                background: rgba(52, 152, 219, 0.8);
+            }
+            
+            .btn-primary:hover {
+                background: rgba(52, 152, 219, 1);
+            }
+            
+            .btn-secondary {
+                background: rgba(46, 204, 113, 0.8);
+            }
+            
+            .btn-secondary:hover {
+                background: rgba(46, 204, 113, 1);
+            }
+            
+            .add-product-btn {
+                background: rgba(149, 165, 166, 0.8);
+                border: 1px solid rgba(255, 255, 255, 0.3);
+            }
+            
+            .add-product-btn:hover {
+                background: rgba(149, 165, 166, 1);
+            }
+            
+            .remove-btn {
+                background: rgba(231, 76, 60, 0.8);
+                border: 1px solid rgba(255, 255, 255, 0.3);
+            }
+            
+            .remove-btn:hover {
+                background: rgba(231, 76, 60, 1);
+            }
+            
+            /* 结果部分深色模式 */
+            .result-section {
+                background: rgba(255, 255, 255, 0.05);
+                border: 1px solid rgba(255, 255, 255, 0.2);
+            }
+            
+            .result-title {
+                color: #ecf0f1;
+            }
+            
+            .recommendation {
+                background: rgba(255, 255, 255, 0.05);
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                border-left: 5px solid #3498db;
+            }
+            
+            .recommendation h3 {
+                color: #ecf0f1;
+            }
+            
+            .method-card {
+                background: rgba(255, 255, 255, 0.05);
+                border: 1px solid rgba(255, 255, 255, 0.2);
+            }
+            
+            .method-title {
+                color: #3498db;
+            }
+            
+            .method-result {
+                color: #ecf0f1;
+            }
+            
+            .method-desc {
+                color: #bdc3c7;
+            }
+            
+            /* 表格深色模式 */
+            .unit-table {
+                background: rgba(255, 255, 255, 0.05);
+                border: 1px solid rgba(255, 255, 255, 0.2);
+            }
+            
+            .unit-table th {
+                background: rgba(52, 152, 219, 0.8);
+                border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+            }
+            
+            .unit-table td {
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            }
+            
+            .best-value {
+                background: rgba(232, 246, 243, 0.15) !important;
+                color: #2ecc71;
+            }
+            
+            /* 警告框深色模式 */
+            .warning {
+                background: rgba(255, 251, 230, 0.1);
+                border: 1px solid rgba(255, 255, 255, 0.2);
+            }
+            
+            .warning p {
+                color: #ffc107;
+            }
+            
+            /* 页脚深色模式 */
+            footer {
+                border-top: 1px solid rgba(255, 255, 255, 0.2);
+                color: #bdc3c7;
+            }
+
+            
         }
     </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -370,9 +775,11 @@
             </div>
             
             <h3 class="section-title"><i class="fas fa-table"></i> 单位价格对比表</h3>
-            <table id="unit-table" class="unit-table">
-                <!-- 表格数据将动态添加到这里 -->
-            </table>
+            <div class="unit-table-container">
+                <table id="unit-table" class="unit-table">
+                    <!-- 表格数据将动态添加到这里 -->
+                </table>
+            </div>
             
             <div class="warning">
                 <p><i class="fas fa-exclamation-triangle"></i> <strong>注意：</strong> 此计算结果基于您输入的数据和选择的单位转换。实际购买时还需考虑品牌、质量、个人偏好等因素。</p>
@@ -380,11 +787,12 @@
         </section>
         
         <footer>
-            <p>© 2023 价格比较计算器 | 设计用于复杂商品价格分析 | 支持多种单位自动转换</p>
+            <p>© 2026 价格比较计算器 | 设计用于复杂商品价格分析 | 支持多种单位自动转换</p>
         </footer>
     </div>
 
     <script>
+        // 单位转换因子（转换为基准单位）
         // 单位转换因子（转换为基准单位）
         const unitConversion = {
             // 体积单位转换到毫升(ml)
@@ -392,25 +800,85 @@
             'L': 1000,
             'cm³': 1,
             'm³': 1000000,
+            'fl oz': 29.5735,
+            'cup': 236.588,
+            'pint': 473.176,
+            'quart': 946.353,
+            'gallon': 3785.41,
+            'tsp': 4.92892,
+            'tbsp': 14.7868,
+            'in³': 16.3871,
+            'ft³': 28316.8,
             // 重量单位转换到克(g)
             'g': 1,
             'kg': 1000,
             'mg': 0.001,
+            'μg': 0.000001,
             'lb': 453.592,
             'oz': 28.3495,
+            'ton': 1000000,
+            'tonne': 1000000,
+            'stone': 6350.29,
+            'dr': 1.77185,
+            'grain': 0.0647989,
             // 数量单位（没有转换，直接使用）
             '个': 1,
             '件': 1,
             '瓶': 1,
-            '包': 1
+            '包': 1,
+            '盒': 1,
+            '袋': 1,
+            '箱': 1,
+            '组': 1,
+            '套': 1,
+            '支': 1,
+            '条': 1,
+            '罐': 1,
+            '桶': 1,
+            '筐': 1,
+            '批': 1,
+            '份': 1,
+            // 长度单位转换到米(m)
+            'mm': 0.001,
+            'cm': 0.01,
+            'm': 1,
+            'km': 1000,
+            'in': 0.0254,
+            'ft': 0.3048,
+            'yd': 0.9144,
+            'mi': 1609.34
         };
         
         // 单位类别
         const unitCategories = {
-            '体积': ['ml', 'L', 'cm³', 'm³'],
-            '重量': ['g', 'kg', 'mg', 'lb', 'oz'],
-            '数量': ['个', '件', '瓶', '包']
+            '体积': ['ml', 'L', 'cm³', 'm³', 'fl oz', 'cup', 'pint', 'quart', 'gallon', 'tsp', 'tbsp', 'in³', 'ft³'],
+            '重量': ['g', 'kg', 'mg', 'μg', 'lb', 'oz', 'ton', 'tonne', 'stone', 'dr', 'grain'],
+            '数量': ['个', '件', '瓶', '包', '盒', '袋', '箱', '组', '套', '支', '条', '罐', '桶', '筐', '批', '份'],
+            '长度': ['mm', 'cm', 'm', 'km', 'in', 'ft', 'yd', 'mi']
         };
+        
+        // 获取单位类别
+        function getUnitCategory(unit) {
+            for (const category in unitCategories) {
+                if (unitCategories[category].includes(unit)) {
+                    return category;
+                }
+            }
+            return '数量'; // 默认返回数量类别
+        }
+        
+        // 获取基准单位名称
+        function getBaseUnitName(unit) {
+            if (unitCategories['体积'].includes(unit)) {
+                return '毫升(ml)';
+            } else if (unitCategories['重量'].includes(unit)) {
+                return '克(g)';
+            } else if (unitCategories['长度'].includes(unit)) {
+                return '米(m)';
+            } else {
+                return '单位';
+            }
+        }
         
         // 商品计数器
         let productCounter = 0;
@@ -436,6 +904,9 @@
                 const productCard = createProductCard(product);
                 productContainer.appendChild(productCard);
             });
+            
+            // 初始化自定义选择器
+            setupCustomSelects();
         }
         
         // 创建商品卡片
@@ -444,9 +915,18 @@
             card.className = 'product-card';
             card.id = `product-card-${product.id}`;
             
-            // 获取单位类别
-            const unitCategory = getUnitCategory(product.unit);
-            const unitsInCategory = unitCategories[unitCategory] || ['个', '件', '瓶', '包'];
+            // 生成所有类别的单位选项，按类别分组
+            let optionsHTML = '';
+            for (const category in unitCategories) {
+                optionsHTML += `<div class="custom-select-option-group">
+                    <div class="custom-select-option-group-title">${category}</div>`;
+                    
+                unitCategories[category].forEach(unit => {
+                    optionsHTML += `<div class="custom-select-option ${unit === product.unit ? 'selected' : ''}" data-value="${unit}">${unit}</div>`;
+                });
+                
+                optionsHTML += '</div>';
+            }
             
             card.innerHTML = `
                 <div class="product-header">
@@ -464,9 +944,14 @@
                     <label>规格数值</label>
                     <div class="input-with-unit">
                         <input type="number" min="0.01" step="0.01" value="${product.unitValue}" class="unit-value-input" data-id="${product.id}">
-                        <select class="unit-select" data-id="${product.id}">
-                            ${unitsInCategory.map(unit => `<option value="${unit}" ${unit === product.unit ? 'selected' : ''}>${unit}</option>`).join('')}
-                        </select>
+                        <div class="custom-select-container" data-id="${product.id}">
+                            <div class="custom-select">
+                                ${product.unit}
+                            </div>
+                            <div class="custom-select-options">
+                                ${optionsHTML}
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div class="input-group">
@@ -491,6 +976,73 @@
             return '数量'; // 默认
         }
         
+        // 自定义选择器功能
+        function setupCustomSelects() {
+            const selectContainers = document.querySelectorAll('.custom-select-container');
+            
+            selectContainers.forEach(container => {
+                const customSelect = container.querySelector('.custom-select');
+                const optionsContainer = container.querySelector('.custom-select-options');
+                const options = container.querySelectorAll('.custom-select-option');
+                
+                // 点击选择器展开/收起选项
+                customSelect.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    optionsContainer.classList.toggle('open');
+                    customSelect.classList.toggle('expanded');
+                });
+                
+                // 点击选项选择
+                options.forEach(option => {
+                    option.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        
+                        // 移除所有选项的选中状态
+                        options.forEach(opt => opt.classList.remove('selected'));
+                        
+                        // 添加当前选项的选中状态
+                        option.classList.add('selected');
+                        
+                        // 更新选择器显示文本
+                        customSelect.textContent = option.textContent;
+                        
+                        // 关闭选项容器
+                        optionsContainer.classList.remove('open');
+                        customSelect.classList.remove('expanded');
+                        
+                        // 更新商品数据
+                        const productId = parseInt(container.getAttribute('data-id'));
+                        const unit = option.getAttribute('data-value');
+                        updateProductUnit(productId, unit);
+                    });
+                });
+            });
+            
+            // 点击外部区域关闭所有选择器
+            document.addEventListener('click', () => {
+                const allOptionsContainers = document.querySelectorAll('.custom-select-options');
+                allOptionsContainers.forEach(container => {
+                    container.classList.remove('open');
+                });
+                
+                const allCustomSelects = document.querySelectorAll('.custom-select');
+                allCustomSelects.forEach(select => {
+                    select.classList.remove('expanded');
+                });
+            });
+        }
+        
+        // 更新商品单位
+        function updateProductUnit(productId, unit) {
+            const product = products.find(p => p.id === productId);
+            if (product) {
+                product.unit = unit;
+                
+                // 重新渲染商品卡片以更新单位类别
+                renderProductCards();
+            }
+        }
+
         // 设置事件监听器
         function setupEventListeners() {
             // 计算按钮
@@ -513,13 +1065,7 @@
                 }
             });
             
-            // 单位选择变化事件
-            document.getElementById('product-container').addEventListener('change', function(e) {
-                if (e.target.classList.contains('unit-select')) {
-                    const id = parseInt(e.target.getAttribute('data-id'));
-                    updateProductFromInput(id);
-                }
-            });
+            // 单位选择变化事件已替换为自定义选择器的点击事件
             
             // 移除商品按钮（委托）
             document.getElementById('product-container').addEventListener('click', function(e) {
@@ -546,9 +1092,7 @@
             const unitValueInput = card.querySelector('.unit-value-input');
             product.unitValue = parseFloat(unitValueInput.value) || 0;
             
-            // 更新单位
-            const unitSelect = card.querySelector('.unit-select');
-            product.unit = unitSelect.value;
+            // 单位已经通过自定义选择器更新，不需要在这里处理
             
             // 更新数量
             const quantityInput = card.querySelector('.quantity-input');

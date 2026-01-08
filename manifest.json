@@ -25,21 +25,5 @@
       "type": "image/png",
       "purpose": "maskable"
     }
-  ],
-  "shortcuts": [
-    {
-      "name": "记账",
-      "short_name": "记账",
-      "description": "打开记账应用",
-      "url": "/?app=homemoney",
-      "icons": [{ "src": "icons/icon.png", "sizes": "96x96" }]
-    },
-    {
-      "name": "金流",
-      "short_name": "金流",
-      "description": "打开金流应用",
-      "url": "/?app=chrysorrhoe",
-      "icons": [{ "src": "icons/icon.png", "sizes": "96x96" }]
-    }
   ]
 }
