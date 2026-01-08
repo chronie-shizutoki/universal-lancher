@@ -86,12 +86,28 @@ class GlassSnackBar extends StatelessWidget {
   }
 }
 
- // 液态玻璃下拉选择框组件（带动画效果）
+ // 定义下拉选项类型
+enum DropdownItemType {
+  group,
+  item,
+}
+
+// 下拉选项数据结构
+class DropdownItem<T> {
+  final DropdownItemType type;
+  final T? value;
+  final String? groupName;
+
+  DropdownItem.item(this.value) : type = DropdownItemType.item, groupName = null;
+  DropdownItem.group(this.groupName) : type = DropdownItemType.group, value = null;
+}
+
+// 液态玻璃下拉选择框组件（带动画效果）
 class GlassDropdown<T> extends StatefulWidget {
   final T value;
-  final List<T> items;
+  final List<DropdownItem<T>> items;
   final String label;
-  final Widget Function(T) itemBuilder;
+  final Widget Function(DropdownItem<T>) itemBuilder;
   final void Function(T?) onChanged;
   final double width;
 
@@ -192,10 +208,20 @@ class _GlassDropdownState<T> extends State<GlassDropdown<T>> with SingleTickerPr
             child: DropdownButtonFormField<T>(
               initialValue: widget.value,
               items: widget.items
-                  .map((item) => DropdownMenuItem(
-                        value: item,
-                        child: widget.itemBuilder(item),
-                      ))
+                  .map((dropdownItem) {
+                    if (dropdownItem.type == DropdownItemType.group) {
+                      return DropdownMenuItem<T>(
+                        value: null,
+                        enabled: false,
+                        child: widget.itemBuilder(dropdownItem),
+                      );
+                    } else {
+                      return DropdownMenuItem<T>(
+                        value: dropdownItem.value,
+                        child: widget.itemBuilder(dropdownItem),
+                      );
+                    }
+                  })
                   .toList(),
               onChanged: (value) {
                 _toggleExpanded();
@@ -633,6 +659,18 @@ class _PriceComparisonPageState extends State<PriceComparisonPage> {
     final unitCategory = getUnitCategory(product.unit);
     final unitsInCategory = unitCategories[unitCategory] ?? unitCategories['数量']!;
     final currencies = currencyRates.keys.toList();
+    
+    // 构建货币下拉选项（未分组）
+    final currencyItems = currencies.map((currency) => DropdownItem<String>.item(currency)).toList();
+    
+    // 构建单位下拉选项（按类别分组）
+    final unitItems = <DropdownItem<String>>[];
+    for (final category in unitCategories.keys) {
+      unitItems.add(DropdownItem<String>.group(category));
+      for (final unit in unitCategories[category]!) {
+        unitItems.add(DropdownItem<String>.item(unit));
+      }
+    }
 
     return _buildGlassContainer(
       child: Column(
@@ -690,9 +728,15 @@ class _PriceComparisonPageState extends State<PriceComparisonPage> {
               const SizedBox(width: 10),
               GlassDropdown<String>(
                 value: product.currency,
-                items: currencies,
+                items: currencyItems,
                 label: '',
-                itemBuilder: (currency) => Text(currency),
+                itemBuilder: (dropdownItem) {
+                  if (dropdownItem.type == DropdownItemType.group) {
+                    return Container();
+                  } else {
+                    return Text(currencyNames[dropdownItem.value!] ?? dropdownItem.value!);
+                  }
+                },
                 onChanged: (value) {
                   if (value != null) {
                     _updateProduct(product.copyWith(currency: value));
@@ -720,9 +764,27 @@ class _PriceComparisonPageState extends State<PriceComparisonPage> {
               const SizedBox(width: 10),
               GlassDropdown<String>(
                 value: product.unit,
-                items: unitsInCategory,
+                items: unitItems,
                 label: '',
-                itemBuilder: (unit) => Text(unit),
+                itemBuilder: (dropdownItem) {
+                  if (dropdownItem.type == DropdownItemType.group) {
+                    return Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      child: Text(
+                        dropdownItem.groupName!, 
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                      ),
+                    );
+                  } else {
+                    return Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+                      child: Text(dropdownItem.value!),
+                    );
+                  }
+                },
                 onChanged: (value) {
                   if (value != null) {
                     _updateProduct(product.copyWith(unit: value));
@@ -1081,12 +1143,18 @@ class _PriceComparisonPageState extends State<PriceComparisonPage> {
                   Expanded(
                     child: GlassDropdown<String>(
                     value: _baseCurrency,
-                    items: currencies,
+                    items: currencies.map((currency) => DropdownItem<String>.item(currency)).toList(),
                     label: '',
-                    itemBuilder: (currency) => Text(
-                      currency,
-                      style: const TextStyle(fontSize: 18),
-                    ),
+                    itemBuilder: (dropdownItem) {
+                      if (dropdownItem.type == DropdownItemType.group) {
+                        return Container();
+                      } else {
+                        return Text(
+                          currencyNames[dropdownItem.value!] ?? dropdownItem.value!,
+                          style: const TextStyle(fontSize: 18),
+                        );
+                      }
+                    },
                     onChanged: (value) {
                       if (value != null) {
                         setState(() {
