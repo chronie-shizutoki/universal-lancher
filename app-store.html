@@ -197,83 +197,120 @@ document.addEventListener("keydown", (event) => {
   left: 0;
   width: 100%;
   height: 100%;
-  border-radius: 0 0 30px 30px;
+  border-radius: 20px;
   z-index: -1;
   transform: scale(1.05);
   filter: blur(1px);
 }
 
 .banner-title {
-  font-size: 1.5rem;
+  font-size: 1.8rem;
   margin: 0 0 .5rem;
   letter-spacing: 1px;
-  text-shadow: 0 2px 8px rgba(0,0,0,.25);
+  text-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  font-weight: 600;
 }
 
 .banner-subtitle {
   font-size: 1.1rem;
   font-weight: 300;
-  opacity: .9;
-  text-shadow: 0 1px 4px rgba(0,0,0,.2);
+  opacity: 0.95;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.2);
 }
 
 .app-grid {
   display: grid;
   gap: 1.5rem;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   padding: 1rem;
+  margin-bottom: 2rem;
 }
 
 .app-card {
-  background: #ffffff;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0,0,0,.08);
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 32px rgba(31, 38, 135, 0.25);
   display: flex;
   align-items: center;
-  padding: 1rem 1.25rem;
-  transition: transform .2s ease, box-shadow .2s ease;
+  padding: 1.25rem 1.5rem;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.app-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+  transition: left 0.5s ease;
+}
+
+.app-card:hover::before {
+  left: 100%;
 }
 
 .app-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 20px rgba(0,0,0,.12);
+  transform: translateY(-6px);
+  box-shadow: 0 12px 40px rgba(31, 38, 135, 0.4);
+  border-color: rgba(255, 255, 255, 0.3);
 }
 
 .app-icon {
   font-size: 2.5rem;
-  margin-right: 1rem;
+  margin-right: 1.25rem;
   flex-shrink: 0;
+  position: relative;
+  z-index: 2;
 }
 
 .app-info {
   flex: 1;
+  position: relative;
+  z-index: 2;
 }
 
 .app-title {
   margin: 0 0 .25rem;
-  font-size: 1.1rem;
-  color: #222;
+  font-size: 1.2rem;
+  font-weight: 600;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
 
 .app-desc {
-  margin: 0 0 .5rem;
-  font-size: .85rem;
-  color: #555;
+  margin: 0 0 .75rem;
+  font-size: .9rem;
+  line-height: 1.4;
 }
 
 .app-download {
-  display: inline-block;
-  background: #0066ff;
-  color: #fff;
-  padding: .4rem .8rem;
-  border-radius: 6px;
-  font-size: .7rem;
+  display: inline-flex;
+  align-items: center;
+  background: linear-gradient(135deg, #ff7e5f, #feb47b);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: #feb47b;
+  padding: .5rem 1rem;
+  border-radius: 8px;
+  font-size: .85rem;
   text-decoration: none;
-  transition: background .2s ease;
+  transition: all 0.3s ease;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  backdrop-filter: blur(5px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  font-weight: 500;
 }
 
 .app-download:hover {
-  background: #0053d9;
+  border-color: rgba(255, 255, 255, 0.5);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+  transform: translateY(-2px);
 }
 
 .last-updated {
@@ -303,9 +340,11 @@ document.addEventListener("keydown", (event) => {
 }
 
 .updates-title {
-  font-size: 1.3rem;
+  font-size: 1.5rem;
   margin: 0 0 1.5rem;
   text-align: center;
+  font-weight: 600;
+  text-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 .update-item {
@@ -316,52 +355,66 @@ document.addEventListener("keydown", (event) => {
   display: block;
   font-size: 1.1rem;
   font-weight: 500;
-  color: #0066ff;
-  margin: 0 0 .5rem;
+  background: linear-gradient(135deg, #ff7e5f, #feb47b);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  margin: 0 0 .75rem;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .update-list {
-  font-size: .9rem;
-  line-height: 1.6;
+  font-size: .95rem;
+  line-height: 1.7;
+  list-style-type: disc;
+  margin-left: 1.5rem;
+}
+
+.update-list strong {
+  color: #4CAF50;
+  font-weight: 600;
 }
 
 @media (prefers-color-scheme: dark) {
   html, body {
-    background: #121212;
-    color: #e0e0e0;
+    background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+    color: rgba(255, 255, 255, 0.9);
   }
 
   .app-grid {
-    background: #121212;
+    background: transparent;
   }
   .app-card {
-    background: #1e1e1e;
-    color: #e0e0e0;
-    box-shadow: 0 4px 12px rgba(0,0,0,.4);
+    background: rgba(255, 255, 255, 0.05);
+    color: rgba(255, 255, 255, 0.9);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    border-color: rgba(255, 255, 255, 0.1);
   }
   .app-card:hover {
-    box-shadow: 0 8px 20px rgba(0,0,0,.6);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.4);
+    border-color: rgba(255, 255, 255, 0.2);
   }
   .app-title {
-    color: #ffffff;
+    color: white;
   }
   .app-desc {
-    color: #b0b0b0;
+    color: rgba(255, 255, 255, 0.8);
   }
   .app-download {
-    background: #0d8bf2;
+    border-color: rgba(255, 255, 255, 0.2);
   }
   .app-download:hover {
-    background: #0b7ad9;
+    border-color: rgba(255, 255, 255, 0.4);
   }
   .last-updated {
-    color: #aaa;
+    color: rgba(255, 255, 255, 0.7);
   }
   .update-item {
-    color: #e0e0e0;
+    color: rgba(255, 255, 255, 0.9);
   }
   .update-badge {
-    color: #0d8bf2;
+    color: rgba(255, 255, 255, 0.95);
   }
   
   /* App icon dark mode adjustments */
@@ -369,32 +422,36 @@ document.addEventListener("keydown", (event) => {
   
   /* Special handling for favicon.ico to make it more visible in dark mode */
   .app-icon img {
-    filter: invert(1) brightness(1.2);
+    filter: invert(1) brightness(1.1);
   }
 }
 
 /* 更新内容弹窗样式 */
 .updates-button {
-  background: #0066ff;
-  color: #fff;
-  border: none;
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
   padding: 0.75rem 1.5rem;
   font-size: 1rem;
   font-weight: 500;
-  border-radius: 8px;
+  border-radius: 12px;
   cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 4px 12px rgba(0, 102, 255, 0.3);
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .updates-button:hover {
-  background: #0053d9;
-  box-shadow: 0 6px 16px rgba(0, 102, 255, 0.4);
-  transform: translateY(-2px);
+  background: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.5);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.25);
+  transform: translateY(-3px);
 }
 
 .updates-button:active {
-  transform: translateY(0);
+  transform: translateY(-1px);
 }
 
 /* Modal styles */
@@ -406,24 +463,25 @@ document.addEventListener("keydown", (event) => {
   top: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(5px);
+  background-color: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(10px);
   animation: fadeIn 0.3s ease;
 }
 
 /* Modal content */
 .modal-content {
-  background-color: #fff;
+  background: rgba(255, 255, 255, 0.25);
   margin: 5% auto;
   padding: 2rem;
-  border-radius: 16px;
+  border-radius: 20px;
   width: 90%;
   max-width: 500px;
   max-height: 80vh;
   overflow-y: auto;
   position: relative;
   animation: slideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   
   /* 隐藏滚动条 */
   scrollbar-width: none; /* Firefox */
@@ -437,7 +495,7 @@ document.addEventListener("keydown", (event) => {
 
 /* Close button */
 .close {
-  color: #aaa;
+  color: rgba(255, 255, 255, 0.8);
   float: right;
   font-size: 28px;
   font-weight: bold;
@@ -445,14 +503,17 @@ document.addEventListener("keydown", (event) => {
   right: 1rem;
   top: 1rem;
   cursor: pointer;
-  transition: color 0.2s ease;
+  transition: all 0.3s ease;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 .close:hover,
 .close:focus {
-  color: #000;
+  color: white;
   text-decoration: none;
   cursor: pointer;
+  transform: rotate(90deg) scale(1.1);
+  text-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
 }
 
 /* Animations */
@@ -491,25 +552,30 @@ document.addEventListener("keydown", (event) => {
 /* Dark mode adjustments for modal */
 @media (prefers-color-scheme: dark) {
   .modal-content {
-    background-color: #2a2a2a;
-    color: #e0e0e0;
+    background: rgba(255, 255, 255, 0.05);
+    color: rgba(255, 255, 255, 0.9);
+    border-color: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
   }
   
   .close {
-    color: #ddd;
+    color: rgba(255, 255, 255, 0.7);
   }
   
   .close:hover,
   .close:focus {
-    color: #fff;
+    color: white;
   }
   
   .updates-button {
-    background: #0d8bf2;
+    background: rgba(255, 255, 255, 0.15);
+    color: white;
+    border-color: rgba(255, 255, 255, 0.2);
   }
   
   .updates-button:hover {
-    background: #0b7ad9;
+    background: rgba(255, 255, 255, 0.25);
+    border-color: rgba(255, 255, 255, 0.4);
   }
 }
 
