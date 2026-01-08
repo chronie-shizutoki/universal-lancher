@@ -14,6 +14,7 @@ class CalculatorSelectionPage extends StatelessWidget {
       appBar: AppBar(
         title: const Text('计算器'),
         backgroundColor: Colors.transparent,
+        foregroundColor: Theme.of(context).colorScheme.onBackground,
         elevation: 0,
       ),
       body: SafeArea(
@@ -43,13 +44,20 @@ class CalculatorSelectionPage extends StatelessWidget {
                       icon: Icons.price_change_outlined,
                       onTap: () {
                         if (onCalculatorSelected != null) {
-                          onCalculatorSelected!(PriceComparisonPage(onBack: () {
-                            onCalculatorSelected!(this);
-                          }));
+                          // 使用AnimatedSwitcher添加过渡动画
+                          onCalculatorSelected!(AnimatedSwitcher(
+                            duration: const Duration(milliseconds: 300),
+                            transitionBuilder: (child, animation) {
+                              return FadeTransition(opacity: animation, child: child);
+                            },
+                            child: PriceComparisonPage(onBack: () {
+                              onCalculatorSelected!(this);
+                            }),
+                          ));
                         } else {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (context) => const PriceComparisonPage()),
+                            MaterialPageRoute(builder: (context) => PriceComparisonPage()),
                           );
                         }
                       },
@@ -61,13 +69,20 @@ class CalculatorSelectionPage extends StatelessWidget {
                       icon: Icons.currency_exchange_outlined,
                       onTap: () {
                         if (onCalculatorSelected != null) {
-                          onCalculatorSelected!(RateCalculatorPage(onBack: () {
-                            onCalculatorSelected!(this);
-                          }));
+                          // 使用AnimatedSwitcher添加过渡动画
+                          onCalculatorSelected!(AnimatedSwitcher(
+                            duration: const Duration(milliseconds: 300),
+                            transitionBuilder: (child, animation) {
+                              return FadeTransition(opacity: animation, child: child);
+                            },
+                            child: RateCalculatorPage(onBack: () {
+                              onCalculatorSelected!(this);
+                            }),
+                          ));
                         } else {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (context) => const RateCalculatorPage()),
+                            MaterialPageRoute(builder: (context) => RateCalculatorPage()),
                           );
                         }
                       },
@@ -126,7 +141,8 @@ class CalculatorSelectionPage extends StatelessWidget {
         ),
         padding: const EdgeInsets.all(24),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
               icon,
@@ -152,6 +168,7 @@ class CalculatorSelectionPage extends StatelessWidget {
                     : Colors.black.withValues(alpha: 0.6),
               ),
               textAlign: TextAlign.center,
+              softWrap: true,
             ),
           ],
         ),

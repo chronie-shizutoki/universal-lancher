@@ -1099,7 +1099,11 @@ class _PriceComparisonPageState extends State<PriceComparisonPage> {
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
             // 返回计算器选择页面
-            widget.onBack?.call();
+            if (widget.onBack != null) {
+              widget.onBack?.call();
+            } else {
+              Navigator.pop(context);
+            }
           },
         ),
       ),
