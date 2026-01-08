@@ -303,10 +303,13 @@ class _PriceComparisonPageState extends State<PriceComparisonPage> {
   // 是否显示结果
   bool _showResults = false;
 
+  // 为每个产品字段创建的控制器映射
+  Map<int, Map<String, TextEditingController>> _controllers = {};
+
   @override
   void initState() {
     super.initState();
-    // 初始化商品数据（清空状态）
+    // 初始化商品数据
     _products = [
       Product(
         id: 1,
@@ -327,6 +330,29 @@ class _PriceComparisonPageState extends State<PriceComparisonPage> {
         currency: "CNY",
       ),
     ];
+    
+    // 初始化控制器
+    _initializeControllers();
+  }
+  
+  // 初始化控制器
+  void _initializeControllers() {
+    _controllers.clear();
+    for (var product in _products) {
+      _controllers[product.id] = {
+        'name': TextEditingController(text: product.name),
+        'price': TextEditingController(text: product.price.toString()),
+        'unitValue': TextEditingController(text: product.unitValue.toString()),
+        'quantity': TextEditingController(text: product.quantity.toString()),
+      };
+    }
+  }
+  
+  // 更新控制器文本
+  void _updateControllerText(int productId, String field, String value) {
+    if (_controllers.containsKey(productId) && _controllers[productId]!.containsKey(field)) {
+      _controllers[productId]![field]!.text = value;
+    }
   }
 
   // 添加新商品
@@ -343,6 +369,7 @@ class _PriceComparisonPageState extends State<PriceComparisonPage> {
         unit: "g",
         currency: "CNY",
       ));
+      _initializeControllers();
     });
   }
 
@@ -355,6 +382,7 @@ class _PriceComparisonPageState extends State<PriceComparisonPage> {
     setState(() {
       _products.removeWhere((product) => product.id == id);
       _showResults = false;
+      _initializeControllers();
     });
   }
 
@@ -394,6 +422,7 @@ class _PriceComparisonPageState extends State<PriceComparisonPage> {
       ];
       _baseCurrency = 'CNY';
       _showResults = false;
+      _initializeControllers();
     });
   }
 
@@ -544,12 +573,14 @@ class _PriceComparisonPageState extends State<PriceComparisonPage> {
 
   // 液态玻璃文本输入框组件
   Widget _buildGlassTextField({
-    required TextEditingController controller,
+    required int productId,
+    required String field,
     required String labelText,
     TextInputType keyboardType = TextInputType.text,
     void Function(String)? onChanged,
   }) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final controller = _controllers[productId]![field]!;
 
     return Container(
       decoration: BoxDecoration(
@@ -576,9 +607,9 @@ class _PriceComparisonPageState extends State<PriceComparisonPage> {
         ],
       ),
       child: TextField(
-        controller: controller,
         keyboardType: keyboardType,
         onChanged: onChanged,
+        controller: controller,
         style: TextStyle(color: isDarkMode ? Colors.white70 : Colors.black87),
         decoration: InputDecoration(
           labelText: labelText,
@@ -612,12 +643,13 @@ class _PriceComparisonPageState extends State<PriceComparisonPage> {
             children: [
               Expanded(
                 child: _buildGlassTextField(
-                  controller: TextEditingController(text: product.name),
-                  labelText: '商品名称',
-                  onChanged: (value) {
+                    productId: product.id,
+                    field: 'name',
+                    labelText: '商品名称',
+                    onChanged: (value) {
                     _updateProduct(product.copyWith(name: value));
                   },
-                ),
+                  ),
               ),
               if (_products.length > 2)
                 GestureDetector(
@@ -645,9 +677,10 @@ class _PriceComparisonPageState extends State<PriceComparisonPage> {
             children: [
               Expanded(
                 child: _buildGlassTextField(
-                  controller: TextEditingController(text: product.price.toString()),
+                  productId: product.id,
+                  field: 'price',
                   labelText: '价格',
-                  keyboardType: TextInputType.number,
+                  keyboardType: TextInputType.numberWithOptions(decimal: true),
                   onChanged: (value) {
                     final price = double.tryParse(value) ?? 0.0;
                     _updateProduct(product.copyWith(price: price));
@@ -674,9 +707,10 @@ class _PriceComparisonPageState extends State<PriceComparisonPage> {
             children: [
               Expanded(
                 child: _buildGlassTextField(
-                  controller: TextEditingController(text: product.unitValue.toString()),
+                  productId: product.id,
+                  field: 'unitValue',
                   labelText: '规格数值',
-                  keyboardType: TextInputType.number,
+                  keyboardType: TextInputType.numberWithOptions(decimal: true),
                   onChanged: (value) {
                     final unitValue = double.tryParse(value) ?? 0.0;
                     _updateProduct(product.copyWith(unitValue: unitValue));
@@ -700,13 +734,14 @@ class _PriceComparisonPageState extends State<PriceComparisonPage> {
           ),
           const SizedBox(height: 15),
           _buildGlassTextField(
-            controller: TextEditingController(text: product.quantity.toString()),
+            productId: product.id,
+            field: 'quantity',
             labelText: '商品数量（件数）',
             keyboardType: TextInputType.number,
             onChanged: (value) {
-              final quantity = int.tryParse(value) ?? 1;
-              _updateProduct(product.copyWith(quantity: quantity));
-            },
+                final quantity = int.tryParse(value) ?? 1;
+                _updateProduct(product.copyWith(quantity: quantity));
+              },
           ),
         ],
       ),
