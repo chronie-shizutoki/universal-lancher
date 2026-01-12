@@ -1,1 +1,0 @@
-python -m http.server 8500 --bind 0.0.0.0
