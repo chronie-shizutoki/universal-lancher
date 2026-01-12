@@ -1,5 +1,5 @@
 [build]
-  command = "git clone https://github.com/flutter/flutter.git -b stable --depth 1 && export PATH=$(pwd)/flutter/bin:$PATH && cd flutter_app && flutter pub get && flutter build web --release"
+  command = "echo 'Building Flutter web app...' && curl -sL https://storage.googleapis.com/flutter_infra_release/releases/stable/linux/flutter_linux_3.38.0-stable.tar.xz -o flutter.tar.xz && tar -xf flutter.tar.xz && export PATH=$(pwd)/flutter/bin:$PATH && echo 'Flutter路径:' $(which flutter) && echo 'Flutter版本:' && flutter --version && cd flutter_app && echo '进入flutter_app目录' && ls -la && flutter pub get && flutter build web --release"
   publish = "flutter_app/build/web"
   base = "."
 
