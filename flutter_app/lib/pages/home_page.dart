@@ -222,7 +222,7 @@ class _HomePageState extends State<HomePage> {
                                 isPrimary: true,
                                 onPressed: () {
                                   setState(() {
-                                    _isModalVisible = true;
+                                    _navigateToUrl('http://192.168.0.197:3100');
                                   });
                                 },
                                 buttonGradientStart: buttonGradientStart,
