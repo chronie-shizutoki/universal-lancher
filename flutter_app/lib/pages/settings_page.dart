@@ -16,7 +16,7 @@ class _SettingsPageState extends State<SettingsPage> {
   // 常量定义，避免硬编码
   static const String _loadingText = '加载中...';
   static const String _fetchFailedText = '获取失败';
-  static const String _appStoreUrl = 'https://universal-launcher.netlify.app/app-store.html';
+  static const String _appStoreUrl = 'https://chronie-app-store.netlify.app/';
   static const String _errorMessageCannotOpen = '无法打开应用商店';
   static const String _errorMessageGeneric = '打开应用商店时出错';
   static const String _formatYear = '年';
