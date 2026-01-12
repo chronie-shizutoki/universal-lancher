@@ -1,0 +1,17 @@
+[build]
+  command = "cd flutter_app && flutter build web --release"
+  publish = "flutter_app/build/web"
+  base = "."
+
+[build.environment]
+  FLUTTER_VERSION = "3.38.0"
+  DART_VERSION = "3.10.0"
+
+[dev]
+  command = "cd flutter_app && flutter run -d web-server"
+
+# 处理单页应用路由
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
