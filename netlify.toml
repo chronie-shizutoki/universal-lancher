@@ -1,22 +1,13 @@
 [build]
-  command = "if [ ! -d flutter ]; then git clone https://github.com/flutter/flutter.git -b stable --depth 1; fi && export PATH=$(pwd)/flutter/bin:$PATH && flutter doctor && cd flutter_app && flutter pub get && flutter build web --release"
+  command = "git clone https://github.com/flutter/flutter.git -b stable --depth 1 && export PATH=$(pwd)/flutter/bin:$PATH && cd flutter_app && flutter pub get && flutter build web --release"
   publish = "flutter_app/build/web"
   base = "."
 
 [build.environment]
   FLUTTER_VERSION = "3.38.0"
   DART_VERSION = "3.10.0"
-  CHANNEL = "stable"
 
-[[plugins]]
-  package = "netlify-plugin-cache"
 
-[plugins.inputs]
-  paths = [
-    "./flutter",
-    "./flutter_app/.dart_tool",
-    "./flutter_app/build"
-  ]
 
 [dev]
   command = "cd flutter_app && flutter run -d web-server"
