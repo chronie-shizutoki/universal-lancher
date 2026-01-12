@@ -1,5 +1,5 @@
 [build]
-  command = "git clone https://github.com/flutter/flutter.git -b stable --depth 1 && export PATH=$(pwd)/flutter/bin:$PATH && cd flutter_app && flutter pub get && flutter build web --release --web-renderer html"
+  command = "git clone https://github.com/flutter/flutter.git -b stable --depth 1 && export PATH=$(pwd)/flutter/bin:$PATH && flutter doctor -v && cd flutter_app && flutter pub get && flutter build web --release"
   publish = "flutter_app/build/web"
   base = "."
 
