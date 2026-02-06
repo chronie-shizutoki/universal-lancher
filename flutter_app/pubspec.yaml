@@ -56,7 +56,7 @@ dependencies:
   webview_flutter_web: ^0.2.3+4
   
   # 获取应用版本信息
-  package_info_plus: ^8.0.2
+  package_info_plus: 9.0.0
   
   # 下载管理库，使用原生下载管理器
   flutter_downloader: ^1.12.0
