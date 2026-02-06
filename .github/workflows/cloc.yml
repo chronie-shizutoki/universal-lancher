@@ -198,7 +198,7 @@ jobs:
 
       - name: Comment PR with cloc summary
         if: github.event_name == 'pull_request'
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             const table = `${{ steps.summary.outputs.table }}`;
