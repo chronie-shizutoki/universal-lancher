@@ -68,7 +68,7 @@ dependencies:
   path_provider: ^2.1.4
   
   # 网络信息
-  network_info_plus: ^5.0.3
+  network_info_plus: 7.0.0
 
 dev_dependencies:
   flutter_test:
