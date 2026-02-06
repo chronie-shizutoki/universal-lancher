@@ -48,7 +48,7 @@ jobs:
           }
         working-directory: flutter_app
       - name: Upload Windows build artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: windows-release
           path: flutter_app/build/windows/x64/runner/Release/
