@@ -46,7 +46,7 @@ dependencies:
   hive_flutter: 1.1.0
   
   # WebView支持
-  webview_flutter: 4.13.0
+  webview_flutter: 4.13.1
   
   # URL启动器
   url_launcher: ^6.3.1
