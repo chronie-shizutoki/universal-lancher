@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
 import 'package:network_info_plus/network_info_plus.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -15,11 +16,6 @@ const List<String> _allowedNetworks = [
 const String _networkWarningMessage = '您当前环境可能无法访问服务，请检查您的地理位置或尝试连接指定网络并关闭移动数据';
 
 // 颜色常量
-const Color _lightPrimaryGradientStart = Color(0xFFf5f7fa);
-const Color _lightPrimaryGradientEnd = Color(0xFFc3cfe2);
-const Color _darkPrimaryGradientStart = Color(0xFF1a1a2e);
-const Color _darkPrimaryGradientEnd = Color(0xFF16213e);
-
 const Color _lightButtonGradientStart = Color(0xFFb8e0ff);
 const Color _lightButtonGradientEnd = Color(0xFF7f5af0);
 const Color _darkButtonGradientStart = Color(0xFF4a5568);
@@ -51,6 +47,14 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _checkNetwork() async {
+    // 检查是否为web平台，如果是则跳过网络检查
+    if (kIsWeb) {
+      setState(() {
+        _showNetworkWarning = false;
+      });
+      return;
+    }
+    
     try {
       // 先请求位置权限
       final locationPermission = await Permission.location.status;
@@ -81,6 +85,14 @@ class _HomePageState extends State<HomePage> {
   }
   
   Future<void> _checkIpAddress() async {
+    // 检查是否为web平台，如果是则跳过网络检查
+    if (kIsWeb) {
+      setState(() {
+        _showNetworkWarning = false;
+      });
+      return;
+    }
+    
     try {
       final ip = await _networkInfo.getWifiIP();
       setState(() {
@@ -103,176 +115,173 @@ class _HomePageState extends State<HomePage> {
     final bool isDarkMode = themeProvider.isDarkMode;
     
     // 根据主题模式选择颜色
-    final Color primaryGradientStart = isDarkMode ? _darkPrimaryGradientStart : _lightPrimaryGradientStart;
-    final Color primaryGradientEnd = isDarkMode ? _darkPrimaryGradientEnd : _lightPrimaryGradientEnd;
     final Color buttonGradientStart = isDarkMode ? _darkButtonGradientStart : _lightButtonGradientStart;
     final Color buttonGradientEnd = isDarkMode ? _darkButtonGradientEnd : _lightButtonGradientEnd;
     final Color textPrimary = isDarkMode ? _darkTextPrimary : _lightTextPrimary;
     final Color textSecondary = isDarkMode ? _darkTextSecondary : _lightTextSecondary;
     
-    return Container(
-      // 渐变背景
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            primaryGradientStart,
-            primaryGradientEnd,
-          ],
-        ),
-      ),
-      child: SafeArea(
-        child: Stack(
-          children: [
-            // 主要内容 - 移除了BackdropFilter以避免影响导航栏
-            Center(
-              child: SingleChildScrollView(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    // 普通容器，不再使用玻璃态效果
-                    Container(
-                      margin: const EdgeInsets.all(16.0),
-                      padding: const EdgeInsets.all(32.0),
-                      decoration: BoxDecoration(
+    return SafeArea(
+      child: Stack(
+        children: [
+          // 主要内容
+          Center(
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  // 普通容器
+                  Container(
+                    margin: const EdgeInsets.all(16.0),
+                    padding: const EdgeInsets.all(32.0),
+                    decoration: BoxDecoration(
+                      color: isDarkMode 
+                          ? Colors.black.withValues(alpha: 0.3)
+                          : Colors.white.withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(16.0),
+                      border: Border.all(
                         color: isDarkMode 
-                            ? Colors.black.withValues(alpha: 0.3)
-                            : Colors.white.withValues(alpha: 0.2),
-                        borderRadius: BorderRadius.circular(16.0),
-                        border: Border.all(
-                          color: isDarkMode 
-                              ? Colors.white.withValues(alpha: 0.1)
-                              : Colors.white.withValues(alpha: 0.3),
-                          width: 1.0,
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: isDarkMode 
-                                ? Colors.black.withValues(alpha: 0.3)
-                                : Colors.black.withValues(alpha: 0.1),
-                            blurRadius: 32.0,
-                            spreadRadius: 8.0,
-                          ),
-                        ],
+                            ? Colors.white.withValues(alpha: 0.1)
+                            : Colors.white.withValues(alpha: 0.3),
+                        width: 1.0,
                       ),
-                      child: Column(
-                        children: [
-                          // 网络警告信息
-                          if (_showNetworkWarning)
-                            Container(
-                              margin: const EdgeInsets.only(bottom: 16.0),
-                              padding: const EdgeInsets.all(16.0),
-                              decoration: BoxDecoration(
+                      boxShadow: [
+                        BoxShadow(
+                          color: isDarkMode 
+                              ? Colors.black.withValues(alpha: 0.3)
+                              : Colors.black.withValues(alpha: 0.1),
+                          blurRadius: 32.0,
+                          spreadRadius: 8.0,
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      children: [
+                        // 网络警告信息
+                        if (_showNetworkWarning)
+                          Container(
+                            margin: const EdgeInsets.only(bottom: 16.0),
+                            padding: const EdgeInsets.all(16.0),
+                            decoration: BoxDecoration(
+                              color: isDarkMode
+                                  ? Colors.orange.withValues(alpha: 0.2)
+                                  : Colors.orange.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(12.0),
+                              border: Border.all(
                                 color: isDarkMode
-                                    ? Colors.orange.withValues(alpha: 0.2)
-                                    : Colors.orange.withValues(alpha: 0.1),
-                                borderRadius: BorderRadius.circular(12.0),
-                                border: Border.all(
-                                  color: isDarkMode
-                                      ? Colors.orange.withValues(alpha: 0.5)
-                                      : Colors.orange.withValues(alpha: 0.3),
-                                  width: 1.0,
-                                ),
-                              ),
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Icon(
-                                    Icons.warning,
-                                    color: isDarkMode
-                                        ? Colors.orangeAccent
-                                        : Colors.orange,
-                                    size: 20.0,
-                                  ),
-                                  const SizedBox(width: 12.0),
-                                  Expanded(
-                                    child: Text(
-                                      _networkWarningMessage,
-                                      style: TextStyle(
-                                        color: isDarkMode
-                                            ? Colors.orangeAccent
-                                            : Colors.orange,
-                                        fontSize: 14.0,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                  ),
-                                ],
+                                    ? Colors.orange.withValues(alpha: 0.5)
+                                    : Colors.orange.withValues(alpha: 0.3),
+                                width: 1.0,
                               ),
                             ),
-                          // 按钮组
-                          Wrap(
-                            spacing: 16.0,
-                            runSpacing: 16.0,
-                            children: [
-                              _buildButton(
-                                text: '记账',
-                                isPrimary: true,
-                                onPressed: () {
-                                  _navigateToUrl('http://192.168.0.197:3010');
-                                },
-                                buttonGradientStart: buttonGradientStart,
-                                buttonGradientEnd: buttonGradientEnd,
-                                textPrimary: textPrimary,
-                                isDarkMode: isDarkMode,
-                              ),
-                              _buildButton(
-                                text: '金流',
-                                isPrimary: true,
-                                onPressed: () {
-                                  setState(() {
-                                    _navigateToUrl('http://192.168.0.197:3100');
-                                  });
-                                },
-                                buttonGradientStart: buttonGradientStart,
-                                buttonGradientEnd: buttonGradientEnd,
-                                textPrimary: textPrimary,
-                                isDarkMode: isDarkMode,
-                              ),
-                              _buildButton(
-                                text: '库存',
-                                isPrimary: true,
-                                onPressed: () {
-                                  _navigateToUrl('http://192.168.0.197:5000');
-                                },
-                                buttonGradientStart: buttonGradientStart,
-                                buttonGradientEnd: buttonGradientEnd,
-                                textPrimary: textPrimary,
-                                isDarkMode: isDarkMode,
-                              ),
-                            ],
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Icon(
+                                  Icons.warning,
+                                  color: isDarkMode
+                                      ? Colors.orangeAccent
+                                      : Colors.orange,
+                                  size: 20.0,
+                                ),
+                                const SizedBox(width: 12.0),
+                                Expanded(
+                                  child: Text(
+                                    _networkWarningMessage,
+                                    style: TextStyle(
+                                      color: isDarkMode
+                                          ? Colors.orangeAccent
+                                          : Colors.orange,
+                                      fontSize: 14.0,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
-                        ],
-                      ),
+                        // 按钮组
+                        Wrap(
+                          alignment: WrapAlignment.center,
+                          spacing: 16.0,
+                          runSpacing: 16.0,
+                          children: [
+                            _buildButton(
+                              text: '家庭记账本',
+                              isPrimary: true,
+                              onPressed: () {
+                                _navigateToUrl('http://192.168.0.197:3010');
+                              },
+                              buttonGradientStart: buttonGradientStart,
+                              buttonGradientEnd: buttonGradientEnd,
+                              textPrimary: textPrimary,
+                              isDarkMode: isDarkMode,
+                            ),
+                            _buildButton(
+                              text: '金流',
+                              isPrimary: true,
+                              onPressed: () {
+                                setState(() {
+                                  _navigateToUrl('http://192.168.0.197:3100');
+                                });
+                              },
+                              buttonGradientStart: buttonGradientStart,
+                              buttonGradientEnd: buttonGradientEnd,
+                              textPrimary: textPrimary,
+                              isDarkMode: isDarkMode,
+                            ),
+                            _buildButton(
+                              text: '智能家居库存管理系统',
+                              isPrimary: true,
+                              onPressed: () {
+                                _navigateToUrl('http://192.168.0.197:5000');
+                              },
+                              buttonGradientStart: buttonGradientStart,
+                              buttonGradientEnd: buttonGradientEnd,
+                              textPrimary: textPrimary,
+                              isDarkMode: isDarkMode,
+                            ),
+                            _buildButton(
+                              text: '限时福利活动',
+                              isPrimary: true,
+                              onPressed: () {
+                                _navigateToUrl('http://192.168.0.197:3001');
+                              },
+                              buttonGradientStart: buttonGradientStart,
+                              buttonGradientEnd: buttonGradientEnd,
+                              textPrimary: textPrimary,
+                              isDarkMode: isDarkMode,
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
-            // 模态框
-            AnimatedOpacity(
-              opacity: _isModalVisible ? 1.0 : 0.0,
+          ),
+          // 模态框
+          AnimatedOpacity(
+            opacity: _isModalVisible ? 1.0 : 0.0,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeInOut,
+            child: AnimatedScale(
+              scale: _isModalVisible ? 1.0 : 0.9,
               duration: const Duration(milliseconds: 300),
               curve: Curves.easeInOut,
-              child: AnimatedScale(
-                scale: _isModalVisible ? 1.0 : 0.9,
-                duration: const Duration(milliseconds: 300),
-                curve: Curves.easeInOut,
-                child: IgnorePointer(
-                  ignoring: !_isModalVisible,
-                  child: _buildModal(
-                    buttonGradientStart: buttonGradientStart,
-                    buttonGradientEnd: buttonGradientEnd,
-                    textPrimary: textPrimary,
-                    textSecondary: textSecondary,
-                    isDarkMode: isDarkMode,
-                  ),
+              child: IgnorePointer(
+                ignoring: !_isModalVisible,
+                child: _buildModal(
+                  buttonGradientStart: buttonGradientStart,
+                  buttonGradientEnd: buttonGradientEnd,
+                  textPrimary: textPrimary,
+                  textSecondary: textSecondary,
+                  isDarkMode: isDarkMode,
                 ),
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

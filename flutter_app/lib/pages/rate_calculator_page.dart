@@ -118,12 +118,11 @@ class _RateCalculatorPageState extends State<RateCalculatorPage> {
     if (tokenRate == null || cnyRate == null || tokenRate <= 0 || cnyRate <= 0) {
       showDialog(
         context: context,
-        builder: (context) => AlertDialog(
-          title: const Text('提示'),
-          content: const Text('请输入有效的汇率值（大于0）'),
-          actions: [
-            TextButton(onPressed: () => Navigator.pop(context), child: const Text('确定')),
-          ],
+        barrierColor: Colors.black.withValues(alpha: 0.3),
+        builder: (context) => _GlassDialog(
+          title: '提示',
+          content: '请输入有效的汇率值（大于0）',
+          onConfirm: () => Navigator.pop(context),
         ),
       );
       return;
@@ -221,9 +220,14 @@ class _RateCalculatorPageState extends State<RateCalculatorPage> {
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
     final isDark = themeProvider.isDarkMode;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isLargeScreen = screenWidth > 768;
+    
     return Scaffold(
-      extendBodyBehindAppBar: true,
-      backgroundColor: Colors.transparent,
+      // 移除extendBodyBehindAppBar，因为我们不再需要背景延伸到app bar下方
+      backgroundColor: isDark
+          ? const Color(0xFF1a1a1a)
+          : const Color(0xFFf5f7fa),
       appBar: AppBar(
         title: const Text('汇率计算器'),
         backgroundColor: Colors.transparent,
@@ -251,41 +255,24 @@ class _RateCalculatorPageState extends State<RateCalculatorPage> {
                 : [const Color(0xFFf5f7fa), const Color(0xFFc3cfe2)],
           ),
         ),
-        child: ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
-            // 主容器 - 液态玻璃效果
-            _GlassContainer(
-              padding: const EdgeInsets.all(25),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Text(
-                    '货币兑换计算器',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.w700,
-                      color: Theme.of(context).colorScheme.primary,
-                      shadows: [
-                        Shadow(
-                          color: Colors.black.withValues(alpha: 0.1),
-                          offset: const Offset(0, 2),
-                          blurRadius: 4,
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 25),
-                  
-                  // 汇率设置部分
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+        child: Center(
+          child: Container(
+            width: isLargeScreen ? screenWidth * 0.8 : screenWidth,
+            constraints: const BoxConstraints(maxWidth: 1200),
+            child: ListView(
+              padding: const EdgeInsets.all(16),
+              children: [
+                // 主容器 - 液态玻璃效果
+                _GlassContainer(
+                  padding: const EdgeInsets.all(25),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       Text(
-                        '汇率设置',
+                        '货币兑换计算器',
                         style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w600,
+                          fontSize: 24,
+                          fontWeight: FontWeight.w700,
                           color: Theme.of(context).colorScheme.primary,
                           shadows: [
                             Shadow(
@@ -296,143 +283,166 @@ class _RateCalculatorPageState extends State<RateCalculatorPage> {
                           ],
                         ),
                       ),
-                      const SizedBox(height: 16),
-                      Row(
+                      const SizedBox(height: 25),
+                      
+                      // 汇率设置部分
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Expanded(
-                            child: _LabeledField(
-                              label: '1美元 = ? 金流',
-                              controller: _tokenRateController,
-                              hint: '输入金流数量',
+                          Text(
+                            '汇率设置',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w600,
+                              color: Theme.of(context).colorScheme.primary,
+                              shadows: [
+                                Shadow(
+                                  color: Colors.black.withValues(alpha: 0.1),
+                                  offset: const Offset(0, 2),
+                                  blurRadius: 4,
+                                ),
+                              ],
                             ),
                           ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: _LabeledField(
-                              label: '1美元 = ? 人民币',
-                              controller: _cnyRateController,
-                              hint: '输入人民币数量',
+                          const SizedBox(height: 16),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: _LabeledField(
+                                  label: '1美元 = ? 金流',
+                                  controller: _tokenRateController,
+                                  hint: '输入金流数量',
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: _LabeledField(
+                                  label: '1美元 = ? 人民币',
+                                  controller: _cnyRateController,
+                                  hint: '输入人民币数量',
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 20),
+                          SizedBox(
+                            width: double.infinity,
+                            child: _GlassButton(
+                              onPressed: _setRates,
+                              isLoading: _isLoading,
+                              text: '设置汇率',
                             ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 20),
-                      SizedBox(
-                        width: double.infinity,
-                        child: _GlassButton(
-                          onPressed: _setRates,
-                          isLoading: _isLoading,
-                          text: '设置汇率',
-                        ),
+                      const SizedBox(height: 25),
+                      Divider(
+                        color: isDark
+                            ? Colors.white.withValues(alpha: 0.1)
+                            : Colors.black.withValues(alpha: 0.1),
+                        thickness: 1,
                       ),
-                    ],
-                  ),
-                  const SizedBox(height: 25),
-                  Divider(
-                    color: isDark
-                        ? Colors.white.withValues(alpha: 0.1)
-                        : Colors.black.withValues(alpha: 0.1),
-                    thickness: 1,
-                  ),
-                  const SizedBox(height: 25),
-                  
-                  // 货币兑换部分
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        '货币兑换',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w600,
-                          color: Theme.of(context).colorScheme.primary,
-                          shadows: [
-                            Shadow(
-                              color: Colors.black.withValues(alpha: 0.1),
-                              offset: const Offset(0, 2),
-                              blurRadius: 4,
+                      const SizedBox(height: 25),
+                      
+                      // 货币兑换部分
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '货币兑换',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w600,
+                              color: Theme.of(context).colorScheme.primary,
+                              shadows: [
+                                Shadow(
+                                  color: Colors.black.withValues(alpha: 0.1),
+                                  offset: const Offset(0, 2),
+                                  blurRadius: 4,
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          _CurrencyRow(
+                            label: '美元 (USD)',
+                            symbol: '\$',
+                            controller: _usdController,
+                            onChanged: _onUsdChanged,
+                          ),
+                          const SizedBox(height: 15),
+                          _CurrencyRow(
+                            label: '金流',
+                            symbol: 'T',
+                            controller: _tokenController,
+                            onChanged: _onTokenChanged,
+                          ),
+                          const SizedBox(height: 15),
+                          _CurrencyRow(
+                            label: '人民币 (CNY)',
+                            symbol: '¥',
+                            controller: _cnyController,
+                            onChanged: _onCnyChanged,
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 25),
+                      Divider(
+                        color: isDark
+                            ? Colors.white.withValues(alpha: 0.1)
+                            : Colors.black.withValues(alpha: 0.1),
+                        thickness: 1,
+                      ),
+                      const SizedBox(height: 25),
+                      
+                      // 使用说明部分
+                      _GlassContainer(
+                        padding: const EdgeInsets.all(15),
+                        borderRadius: 12,
+                        borderColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
+                        backgroundColor: isDark
+                            ? const Color(0xFF304159).withValues(alpha: 0.7)
+                            : const Color(0xFFE8F4FC).withValues(alpha: 0.7),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              '使用说明：',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w600,
+                                color: Theme.of(context).colorScheme.onSurface,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              '1. 首先在"汇率设置"区域输入1美元兑换的金流数量和人民币数量',
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.8),
+                              ),
+                            ),
+                            Text(
+                              '2. 点击"设置汇率"按钮确认汇率',
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.8),
+                              ),
+                            ),
+                            Text(
+                              '3. 在"货币兑换"区域的任意一个输入框中输入金额，其他两个输入框会自动计算对应的金额',
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.8),
+                              ),
                             ),
                           ],
                         ),
                       ),
-                      const SizedBox(height: 16),
-                      _CurrencyRow(
-                        label: '美元 (USD)',
-                        symbol: '\$',
-                        controller: _usdController,
-                        onChanged: _onUsdChanged,
-                      ),
-                      const SizedBox(height: 15),
-                      _CurrencyRow(
-                        label: '金流',
-                        symbol: 'T',
-                        controller: _tokenController,
-                        onChanged: _onTokenChanged,
-                      ),
-                      const SizedBox(height: 15),
-                      _CurrencyRow(
-                        label: '人民币 (CNY)',
-                        symbol: '¥',
-                        controller: _cnyController,
-                        onChanged: _onCnyChanged,
-                      ),
                     ],
                   ),
-                  const SizedBox(height: 25),
-                  Divider(
-                    color: isDark
-                        ? Colors.white.withValues(alpha: 0.1)
-                        : Colors.black.withValues(alpha: 0.1),
-                    thickness: 1,
-                  ),
-                  const SizedBox(height: 25),
-                  
-                  // 使用说明部分
-                  _GlassContainer(
-                    padding: const EdgeInsets.all(15),
-                    borderRadius: 12,
-                    borderColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
-                    backgroundColor: isDark
-                        ? const Color(0xFF304159).withValues(alpha: 0.7)
-                        : const Color(0xFFE8F4FC).withValues(alpha: 0.7),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          '使用说明：',
-                          style: TextStyle(
-                            fontWeight: FontWeight.w600,
-                            color: Theme.of(context).colorScheme.onSurface,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          '1. 首先在"汇率设置"区域输入1美元兑换的金流数量和人民币数量',
-                          style: TextStyle(
-                            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.8),
-                          ),
-                        ),
-                        Text(
-                          '2. 点击"设置汇率"按钮确认汇率',
-                          style: TextStyle(
-                            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.8),
-                          ),
-                        ),
-                        Text(
-                          '3. 在"货币兑换"区域的任意一个输入框中输入金额，其他两个输入框会自动计算对应的金额',
-                          style: TextStyle(
-                            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.8),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
+                ),
+                // 底部安全占位区域
+                const SizedBox(height: 60),
+              ],
             ),
-            // 底部安全占位区域
-            const SizedBox(height: 60),
-          ],
+          ),
         ),
       ),
     );
@@ -732,29 +742,34 @@ class _CustomToastState extends State<_CustomToast> with SingleTickerProviderSta
     final themeProvider = Provider.of<ThemeProvider>(context);
     final isDark = themeProvider.isDarkMode;
 
-    return Material(
-      color: Colors.transparent,
-      child: Align(
-        alignment: Alignment.bottomCenter,
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: SlideTransition(
-            position: _slideAnimation,
-            child: FadeTransition(
-              opacity: _opacityAnimation,
-              child: _GlassContainer(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                borderRadius: 12,
-                backgroundColor: isDark
-                    ? const Color(0xFF333333).withValues(alpha: 0.8)
-                    : const Color(0xFFFFFFFF).withValues(alpha: 0.8),
-                borderColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
-                child: Text(
-                  widget.message,
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.onSurface,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
+    return IgnorePointer(
+      ignoring: true,
+      child: Material(
+        color: Colors.transparent,
+        type: MaterialType.transparency,
+        clipBehavior: Clip.none,
+        child: Align(
+          alignment: Alignment.bottomCenter,
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: SlideTransition(
+              position: _slideAnimation,
+              child: FadeTransition(
+                opacity: _opacityAnimation,
+                child: _GlassContainer(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                  borderRadius: 12,
+                  backgroundColor: isDark
+                      ? const Color(0xFF333333).withValues(alpha: 0.8)
+                      : const Color(0xFFFFFFFF).withValues(alpha: 0.8),
+                  borderColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
+                  child: Text(
+                    widget.message,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurface,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
                 ),
               ),
@@ -783,5 +798,131 @@ class ToastManager {
     );
 
     overlay.insert(overlayEntry);
+  }
+}
+
+// 液态玻璃样式弹窗
+class _GlassDialog extends StatefulWidget {
+  final String title;
+  final String content;
+  final VoidCallback onConfirm;
+
+  const _GlassDialog({
+    required this.title,
+    required this.content,
+    required this.onConfirm,
+  });
+
+  @override
+  State<_GlassDialog> createState() => _GlassDialogState();
+}
+
+class _GlassDialogState extends State<_GlassDialog> with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _opacityAnimation;
+  late Animation<double> _scaleAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    
+    // 初始化动画控制器
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 300),
+      vsync: this,
+    );
+
+    // 淡入淡出动画
+    _opacityAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeOut),
+    );
+
+    // 缩放动画
+    _scaleAnimation = Tween<double>(begin: 0.9, end: 1.0).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeOut),
+    );
+
+    // 启动进入动画
+    _controller.forward();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  Future<void> _closeDialog() async {
+    await _controller.reverse();
+    widget.onConfirm();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isDark = themeProvider.isDarkMode;
+
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      child: FadeTransition(
+        opacity: _opacityAnimation,
+        child: ScaleTransition(
+          scale: _scaleAnimation,
+          child: Container(
+            constraints: const BoxConstraints(maxWidth: 320),
+            child: _GlassContainer(
+              padding: const EdgeInsets.all(24),
+              borderRadius: 16,
+              borderColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
+              backgroundColor: isDark
+                  ? const Color(0xFF1a1a1a).withValues(alpha: 0.8)
+                  : const Color(0xFFFFFFFF).withValues(alpha: 0.8),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text(
+                    widget.title,
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w700,
+                      color: Theme.of(context).colorScheme.primary,
+                      shadows: [
+                        Shadow(
+                          color: Colors.black.withValues(alpha: 0.1),
+                          offset: const Offset(0, 2),
+                          blurRadius: 4,
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    widget.content,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurface,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                      height: 1.4,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 24),
+                  SizedBox(
+                    width: double.infinity,
+                    child: _GlassButton(
+                      onPressed: _closeDialog,
+                      isLoading: false,
+                      text: '确定',
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }

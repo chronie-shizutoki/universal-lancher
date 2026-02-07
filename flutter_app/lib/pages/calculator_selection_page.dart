@@ -14,80 +14,57 @@ class CalculatorSelectionPage extends StatelessWidget {
       appBar: AppBar(
         title: const Text('计算器'),
         backgroundColor: Colors.transparent,
-        foregroundColor: Theme.of(context).colorScheme.onBackground,
+        foregroundColor: Theme.of(context).colorScheme.onSurface,
         elevation: 0,
       ),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(20.0),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                '选择计算器类型',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 30),
               Expanded(
-                child: GridView.count(
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 20,
-                  mainAxisSpacing: 20,
-                  children: [
-                    _buildCalculatorCard(
-                      context,
-                      title: '价格比较器',
-                      description: '比较不同商品的单位价格，选择最划算的选项',
-                      icon: Icons.price_change_outlined,
-                      onTap: () {
-                        if (onCalculatorSelected != null) {
-                          // 使用AnimatedSwitcher添加过渡动画
-                          onCalculatorSelected!(AnimatedSwitcher(
-                            duration: const Duration(milliseconds: 300),
-                            transitionBuilder: (child, animation) {
-                              return FadeTransition(opacity: animation, child: child);
-                            },
-                            child: PriceComparisonPage(onBack: () {
-                              onCalculatorSelected!(this);
-                            }),
-                          ));
-                        } else {
-                          Navigator.push(
+                child: ListView.builder(
+                  itemCount: 2,
+                  itemBuilder: (context, index) {
+                    if (index == 0) {
+                      return Center(
+                        child: SizedBox(
+                          width: MediaQuery.of(context).size.width > 600 ? 500 : double.infinity,
+                          child: _buildCalculatorCard(
                             context,
-                            MaterialPageRoute(builder: (context) => PriceComparisonPage()),
-                          );
-                        }
-                      },
-                    ),
-                    _buildCalculatorCard(
-                      context,
-                      title: '汇率计算器',
-                      description: '进行不同货币之间的汇率转换',
-                      icon: Icons.currency_exchange_outlined,
-                      onTap: () {
-                        if (onCalculatorSelected != null) {
-                          // 使用AnimatedSwitcher添加过渡动画
-                          onCalculatorSelected!(AnimatedSwitcher(
-                            duration: const Duration(milliseconds: 300),
-                            transitionBuilder: (child, animation) {
-                              return FadeTransition(opacity: animation, child: child);
+                            title: '价格比较器',
+                            description: '比较不同商品的单位价格，选择最划算的选项',
+                            icon: Icons.price_change_outlined,
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (context) => PriceComparisonPage()),
+                              );
                             },
-                            child: RateCalculatorPage(onBack: () {
-                              onCalculatorSelected!(this);
-                            }),
-                          ));
-                        } else {
-                          Navigator.push(
+                          ),
+                        ),
+                      );
+                    } else {
+                      return Center(
+                        child: SizedBox(
+                          width: MediaQuery.of(context).size.width > 600 ? 500 : double.infinity,
+                          child: _buildCalculatorCard(
                             context,
-                            MaterialPageRoute(builder: (context) => RateCalculatorPage()),
-                          );
-                        }
-                      },
-                    ),
-                  ],
+                            title: '汇率计算器',
+                            description: '进行不同货币之间的汇率转换',
+                            icon: Icons.currency_exchange_outlined,
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (context) => RateCalculatorPage()),
+                              );
+                            },
+                          ),
+                        ),
+                      );
+                    }
+                  },
+                  padding: const EdgeInsets.only(bottom: 20),
                 ),
               ),
             ],
@@ -111,6 +88,7 @@ class CalculatorSelectionPage extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
+        margin: const EdgeInsets.symmetric(vertical: 10),
         decoration: BoxDecoration(
           color: isDarkMode
               ? Colors.black.withValues(alpha: 0.4)
@@ -140,35 +118,40 @@ class CalculatorSelectionPage extends StatelessWidget {
           ],
         ),
         padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          mainAxisSize: MainAxisSize.min,
+        child: Row(
           children: [
             Icon(
               icon,
               size: 64,
               color: Theme.of(context).colorScheme.primary,
             ),
-            const SizedBox(height: 20),
-            Text(
-              title,
-              style: const TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
+            const SizedBox(width: 24),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    description,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: isDarkMode
+                          ? Colors.white.withValues(alpha: 0.7)
+                          : Colors.black.withValues(alpha: 0.6),
+                    ),
+                    softWrap: true,
+                    overflow: TextOverflow.visible,
+                  ),
+                ],
               ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 10),
-            Text(
-              description,
-              style: TextStyle(
-                fontSize: 14,
-                color: isDarkMode
-                    ? Colors.white.withValues(alpha: 0.7)
-                    : Colors.black.withValues(alpha: 0.6),
-              ),
-              textAlign: TextAlign.center,
-              softWrap: true,
             ),
           ],
         ),

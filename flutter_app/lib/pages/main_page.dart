@@ -75,18 +75,23 @@ class _MainPageState extends State<MainPage> {
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final isLargeScreen = screenWidth > 768; // 定义大屏幕阈值
-    final isExtraLargeScreen = screenWidth > 1024; // 定义超大屏幕阈值
 
     return Scaffold(
       body: isLargeScreen
-          ? Row(
+          ? Column(
               children: [
-                // 左侧导航栏
-                _buildLeftSideNavBar(isExtraLargeScreen, screenWidth),
+                // 顶部导航栏
+                _buildTopNavBar(),
                 // 主内容区域
                 Expanded(
                   child: SafeArea(
-                    child: _getCurrentPage(),
+                    child: Center(
+                      child: Container(
+                        width: MediaQuery.of(context).size.width * 0.8,
+                        constraints: const BoxConstraints(maxWidth: 1200),
+                        child: _getCurrentPage(),
+                      ),
+                    ),
                   ),
                 ),
               ],
@@ -109,27 +114,21 @@ class _MainPageState extends State<MainPage> {
     );
   }
   
-  // 构建左侧导航栏（大屏幕）
-  Widget _buildLeftSideNavBar(bool isExtraLargeScreen, double screenWidth) {
+  // 构建顶部导航栏（大屏幕）
+  Widget _buildTopNavBar() {
     final brightness = Theme.of(context).brightness;
     final isDarkMode = brightness == Brightness.dark;
     
-    // 计算导航栏宽度，至少占用屏幕15%的宽度
-    final minNavBarWidth = screenWidth * 0.15;
-    final navBarWidth = isExtraLargeScreen 
-        ? (200 > minNavBarWidth ? 200 : minNavBarWidth) 
-        : (80 > minNavBarWidth ? 80 : minNavBarWidth);
-    
-    return Container(
-      width: navBarWidth.toDouble(),
-      margin: const EdgeInsets.all(16),
-      decoration: _getGlassmorphismDecoration(),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.start, // 按钮组不再居中显示
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          SizedBox(height: 32), // 顶部留白
-          ...List.generate(_pages.length, (index) {
+    return Align(
+      alignment: Alignment.topCenter,
+      child: Container(
+        margin: const EdgeInsets.all(16),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+        decoration: _getGlassmorphismDecoration(),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: List.generate(_pages.length, (index) {
             bool isSelected = _currentIndex == index;
             return Material(
               color: Colors.transparent,
@@ -145,10 +144,7 @@ class _MainPageState extends State<MainPage> {
                 },
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 300),
-                  padding: isExtraLargeScreen 
-                      ? const EdgeInsets.symmetric(vertical: 20, horizontal: 24)
-                      : const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
-                  margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+                  padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
                   decoration: isSelected
                       ? BoxDecoration(
                           color: isDarkMode 
@@ -166,57 +162,23 @@ class _MainPageState extends State<MainPage> {
                           ],
                         )
                       : const BoxDecoration(),
-                  child: isExtraLargeScreen
-                      ? Row(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: [
-                            Icon(
-                              isSelected ? _activeIcons[index] : _icons[index],
-                              size: 32,
-                              color: isSelected
-                                  ? Theme.of(context).colorScheme.primary
-                                  : isDarkMode
-                                      ? Colors.white.withValues(alpha: 0.8)
-                                      : Colors.black.withValues(alpha: 0.7),
-                            ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: Text(
-                                _titles[index],
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: isSelected
-                                      ? Theme.of(context).colorScheme.primary
-                                      : isDarkMode
-                                          ? Colors.white.withValues(alpha: 0.8)
-                                          : Colors.black.withValues(alpha: 0.7),
-                                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                                ),
-                                overflow: TextOverflow.ellipsis,
-                                maxLines: 1,
-                              ),
-                            ),
-                          ],
-                        )
-                      : Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              isSelected ? _activeIcons[index] : _icons[index],
-                              size: 32,
-                              color: isSelected
-                                  ? Theme.of(context).colorScheme.primary
-                                  : isDarkMode
-                                      ? Colors.white.withValues(alpha: 0.8)
-                                      : Colors.black.withValues(alpha: 0.7),
-                            ),
-                          ],
-                        ),
+                  child: Text(
+                    _titles[index],
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: isSelected
+                          ? Theme.of(context).colorScheme.primary
+                          : isDarkMode
+                              ? Colors.white.withValues(alpha: 0.8)
+                              : Colors.black.withValues(alpha: 0.7),
+                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                    ),
+                  ),
                 ),
               ),
             );
           }),
-        ],
+        ),
       ),
     );
   }

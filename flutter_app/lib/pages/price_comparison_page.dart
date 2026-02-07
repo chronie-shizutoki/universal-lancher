@@ -102,7 +102,7 @@ class DropdownItem<T> {
   DropdownItem.group(this.groupName) : type = DropdownItemType.group, value = null;
 }
 
-// 液态玻璃下拉选择框组件（带动画效果）
+// 液态玻璃下拉选择框组件（完全自定义实现）
 class GlassDropdown<T> extends StatefulWidget {
   final T value;
   final List<DropdownItem<T>> items;
@@ -112,14 +112,14 @@ class GlassDropdown<T> extends StatefulWidget {
   final double width;
 
   const GlassDropdown({
-    Key? key,
+    super.key,
     required this.value,
     required this.items,
     required this.label,
     required this.itemBuilder,
     required this.onChanged,
     this.width = double.infinity,
-  }) : super(key: key);
+  });
 
   @override
   State<GlassDropdown<T>> createState() => _GlassDropdownState<T>();
@@ -130,6 +130,11 @@ class _GlassDropdownState<T> extends State<GlassDropdown<T>> with SingleTickerPr
   late AnimationController _animationController;
   late Animation<double> _scaleAnimation;
   late Animation<double> _opacityAnimation;
+  
+  // 用于定位下拉菜单
+  final GlobalKey _buttonKey = GlobalKey();
+  OverlayEntry? _overlayEntry;
+  late AnimationStatusListener _animationStatusListener;
 
   @override
   void initState() {
@@ -152,11 +157,21 @@ class _GlassDropdownState<T> extends State<GlassDropdown<T>> with SingleTickerPr
       parent: _animationController,
       curve: Curves.easeOut,
     ));
+    
+    // 监听动画状态，在动画完成时移除Overlay
+    _animationStatusListener = (status) {
+      if (status == AnimationStatus.dismissed && !_isExpanded) {
+        _removeOverlay();
+      }
+    };
+    _animationController.addStatusListener(_animationStatusListener);
   }
 
   @override
   void dispose() {
+    _animationController.removeStatusListener(_animationStatusListener);
     _animationController.dispose();
+    _removeOverlay();
     super.dispose();
   }
 
@@ -165,10 +180,171 @@ class _GlassDropdownState<T> extends State<GlassDropdown<T>> with SingleTickerPr
       _isExpanded = !_isExpanded;
       if (_isExpanded) {
         _animationController.forward();
+        _showOverlay();
       } else {
         _animationController.reverse();
+        // 不在这里立即移除Overlay，等待动画完成后再移除
       }
     });
+  }
+
+  void _selectItem(T? value) {
+    widget.onChanged(value);
+    _toggleExpanded();
+  }
+
+  void _showOverlay() {
+    if (_overlayEntry != null) return;
+
+    final renderBox = _buttonKey.currentContext!.findRenderObject() as RenderBox;
+    final position = renderBox.localToGlobal(Offset.zero);
+    final size = renderBox.size;
+
+    _overlayEntry = OverlayEntry(
+      builder: (context) {
+        final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+        
+        return GestureDetector(
+          onTap: _toggleExpanded,
+          child: Stack(
+            children: [
+              // 背景遮罩
+              GestureDetector(
+                onTap: _toggleExpanded,
+                child: Container(
+                  color: Colors.transparent,
+                  width: MediaQuery.of(context).size.width,
+                  height: MediaQuery.of(context).size.height,
+                ),
+              ),
+              // 下拉菜单
+              Positioned(
+                left: position.dx,
+                top: position.dy + size.height + 8,
+                width: size.width,
+                child: AnimatedBuilder(
+                  animation: _animationController,
+                  builder: (context, child) {
+                    return Opacity(
+                      opacity: _opacityAnimation.value,
+                      child: Transform.scale(
+                        scale: _scaleAnimation.value,
+                        origin: const Offset(0, 0),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(15),
+                            gradient: LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: isDarkMode
+                                  ? [
+                                      Colors.white.withValues(alpha: 0.25),
+                                      Colors.white.withValues(alpha: 0.15),
+                                    ]
+                                  : [
+                                      Colors.white.withValues(alpha: 0.8),
+                                      Colors.white.withValues(alpha: 0.6),
+                                    ],
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.2),
+                                blurRadius: 15,
+                                offset: const Offset(0, 8),
+                              ),
+                              BoxShadow(
+                                color: isDarkMode
+                                  ? Colors.white.withValues(alpha: 0.05)
+                                  : Colors.white.withValues(alpha: 0.5),
+                                blurRadius: 10,
+                                offset: const Offset(0, -2),
+                              ),
+                            ],
+                            border: Border.all(
+                              color: isDarkMode
+                                ? Colors.white.withValues(alpha: 0.3)
+                                : Colors.black.withValues(alpha: 0.1),
+                              width: 1,
+                            ),
+                          ),
+                          child: ConstrainedBox(
+                            constraints: const BoxConstraints(maxHeight: 300),
+                            child: SingleChildScrollView(
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: widget.items.map((dropdownItem) {
+                                  if (dropdownItem.type == DropdownItemType.group) {
+                                    return Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                                      child: widget.itemBuilder(dropdownItem),
+                                    );
+                                  } else {
+                                    final isSelected = dropdownItem.value == widget.value;
+                                    return GestureDetector(
+                                      onTap: () {
+                                        _selectItem(dropdownItem.value);
+                                      },
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                                        decoration: BoxDecoration(
+                                          border: Border(
+                                            bottom: BorderSide(
+                                              color: isDarkMode
+                                                ? Colors.white.withValues(alpha: 0.1)
+                                                : Colors.black.withValues(alpha: 0.05),
+                                              width: 1,
+                                            ),
+                                          ),
+                                        ),
+                                        child: Row(
+                                          children: [
+                                            Expanded(
+                                              child: DefaultTextStyle(
+                                                style: TextStyle(
+                                                  fontSize: 14,
+                                                  color: isSelected
+                                                    ? Theme.of(context).colorScheme.primary
+                                                    : (isDarkMode ? Colors.white70 : Colors.black87),
+                                                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                                                ),
+                                                child: widget.itemBuilder(dropdownItem),
+                                              ),
+                                            ),
+                                            if (isSelected)
+                                              Icon(
+                                                Icons.check,
+                                                size: 18,
+                                                color: Theme.of(context).colorScheme.primary,
+                                              ),
+                                          ],
+                                        ),
+                                      ),
+                                    );
+                                  }
+                                }).toList(),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+
+    Overlay.of(context).insert(_overlayEntry!);
+  }
+
+  void _removeOverlay() {
+    if (_overlayEntry != null) {
+      _overlayEntry!.remove();
+      _overlayEntry = null;
+    }
   }
 
   @override
@@ -177,79 +353,62 @@ class _GlassDropdownState<T> extends State<GlassDropdown<T>> with SingleTickerPr
 
     return SizedBox(
       width: widget.width,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // 下拉按钮
-          Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(15),
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: isDarkMode
-                    ? [
-                        Colors.white.withValues(alpha: 0.2),
-                        Colors.white.withValues(alpha: 0.1),
-                      ]
-                    : [
-                        Colors.white.withValues(alpha: 0.7),
-                        Colors.white.withValues(alpha: 0.5),
-                      ],
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.1),
-                  blurRadius: 5,
-                  offset: const Offset(0, 2),
-                ),
-              ],
+      child: GestureDetector(
+        key: _buttonKey,
+        onTap: _toggleExpanded,
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(15),
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: isDarkMode
+                  ? [
+                      Colors.white.withValues(alpha: 0.2),
+                      Colors.white.withValues(alpha: 0.1),
+                    ]
+                  : [
+                      Colors.white.withValues(alpha: 0.7),
+                      Colors.white.withValues(alpha: 0.5),
+                    ],
             ),
-            child: DropdownButtonFormField<T>(
-              initialValue: widget.value,
-              items: widget.items
-                  .map((dropdownItem) {
-                    if (dropdownItem.type == DropdownItemType.group) {
-                      return DropdownMenuItem<T>(
-                        value: null,
-                        enabled: false,
-                        child: widget.itemBuilder(dropdownItem),
-                      );
-                    } else {
-                      return DropdownMenuItem<T>(
-                        value: dropdownItem.value,
-                        child: widget.itemBuilder(dropdownItem),
-                      );
-                    }
-                  })
-                  .toList(),
-              onChanged: (value) {
-                _toggleExpanded();
-                widget.onChanged(value);
-              },
-              onTap: _toggleExpanded,
-              decoration: InputDecoration(
-                labelText: widget.label,
-                labelStyle: TextStyle(
-                  color: isDarkMode ? Colors.grey.shade400 : Colors.grey.shade600,
-                ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(15),
-                  borderSide: BorderSide.none,
-                ),
-                filled: true,
-                fillColor: Colors.transparent,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.1),
+                blurRadius: 5,
+                offset: const Offset(0, 2),
               ),
-              dropdownColor: Colors.transparent,
-              style: TextStyle(
-                color: isDarkMode ? Colors.white70 : Colors.black87,
-                fontSize: 16,
-              ),
-              menuMaxHeight: 300,
-            ),
+            ],
           ),
-        ],
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              if (widget.label.isNotEmpty)
+                Text(
+                  widget.label,
+                  style: TextStyle(
+                    color: isDarkMode ? Colors.grey.shade400 : Colors.grey.shade600,
+                    fontSize: 14,
+                  ),
+                ),
+              Expanded(
+                child: widget.itemBuilder(
+                  DropdownItem<T>.item(widget.value)
+                ),
+              ),
+              RotationTransition(
+                turns: Tween<double>(begin: 0, end: _isExpanded ? 0.5 : 0).animate(
+                  CurvedAnimation(parent: _animationController, curve: Curves.easeOut)
+                ),
+                child: Icon(
+                  Icons.keyboard_arrow_down,
+                  color: isDarkMode ? Colors.white70 : Colors.black87,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -330,7 +489,7 @@ class _PriceComparisonPageState extends State<PriceComparisonPage> {
   bool _showResults = false;
 
   // 为每个产品字段创建的控制器映射
-  Map<int, Map<String, TextEditingController>> _controllers = {};
+  final Map<int, Map<String, TextEditingController>> _controllers = {};
 
   @override
   void initState() {
@@ -371,13 +530,6 @@ class _PriceComparisonPageState extends State<PriceComparisonPage> {
         'unitValue': TextEditingController(text: product.unitValue.toString()),
         'quantity': TextEditingController(text: product.quantity.toString()),
       };
-    }
-  }
-  
-  // 更新控制器文本
-  void _updateControllerText(int productId, String field, String value) {
-    if (_controllers.containsKey(productId) && _controllers[productId]!.containsKey(field)) {
-      _controllers[productId]![field]!.text = value;
     }
   }
 
@@ -606,7 +758,7 @@ class _PriceComparisonPageState extends State<PriceComparisonPage> {
     void Function(String)? onChanged,
   }) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    final controller = _controllers[productId]![field]!;
+    final controller = _controllers[productId]![field];
 
     return Container(
       decoration: BoxDecoration(
@@ -656,8 +808,6 @@ class _PriceComparisonPageState extends State<PriceComparisonPage> {
 
   // 创建商品卡片
   Widget _buildProductCard(Product product) {
-    final unitCategory = getUnitCategory(product.unit);
-    final unitsInCategory = unitCategories[unitCategory] ?? unitCategories['数量']!;
     final currencies = currencyRates.keys.toList();
     
     // 构建货币下拉选项（未分组）
@@ -680,6 +830,7 @@ class _PriceComparisonPageState extends State<PriceComparisonPage> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Expanded(
+                flex: 3,
                 child: _buildGlassTextField(
                     productId: product.id,
                     field: 'name',
@@ -714,6 +865,7 @@ class _PriceComparisonPageState extends State<PriceComparisonPage> {
           Row(
             children: [
               Expanded(
+                flex: 2,
                 child: _buildGlassTextField(
                   productId: product.id,
                   field: 'price',
@@ -725,7 +877,7 @@ class _PriceComparisonPageState extends State<PriceComparisonPage> {
                   },
                 ),
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 12),
               GlassDropdown<String>(
                 value: product.currency,
                 items: currencyItems,
@@ -734,7 +886,10 @@ class _PriceComparisonPageState extends State<PriceComparisonPage> {
                   if (dropdownItem.type == DropdownItemType.group) {
                     return Container();
                   } else {
-                    return Text(currencyNames[dropdownItem.value!] ?? dropdownItem.value!);
+                    return Text(
+                      currencyNames[dropdownItem.value!] ?? dropdownItem.value!,
+                      style: const TextStyle(fontSize: 14),
+                    );
                   }
                 },
                 onChanged: (value) {
@@ -742,7 +897,7 @@ class _PriceComparisonPageState extends State<PriceComparisonPage> {
                     _updateProduct(product.copyWith(currency: value));
                   }
                 },
-                width: 100,
+                width: 120,
               ),
             ],
           ),
@@ -750,6 +905,7 @@ class _PriceComparisonPageState extends State<PriceComparisonPage> {
           Row(
             children: [
               Expanded(
+                flex: 2,
                 child: _buildGlassTextField(
                   productId: product.id,
                   field: 'unitValue',
@@ -761,7 +917,7 @@ class _PriceComparisonPageState extends State<PriceComparisonPage> {
                   },
                 ),
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 12),
               GlassDropdown<String>(
                 value: product.unit,
                 items: unitItems,
@@ -775,13 +931,14 @@ class _PriceComparisonPageState extends State<PriceComparisonPage> {
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           color: Theme.of(context).colorScheme.primary,
+                          fontSize: 12,
                         ),
                       ),
                     );
                   } else {
-                    return Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
-                      child: Text(dropdownItem.value!),
+                    return Text(
+                      dropdownItem.value!,
+                      style: const TextStyle(fontSize: 14),
                     );
                   }
                 },
@@ -790,7 +947,7 @@ class _PriceComparisonPageState extends State<PriceComparisonPage> {
                     _updateProduct(product.copyWith(unit: value));
                   }
                 },
-                width: 100,
+                width: 120,
               ),
             ],
           ),
@@ -1088,6 +1245,8 @@ class _PriceComparisonPageState extends State<PriceComparisonPage> {
   @override
   Widget build(BuildContext context) {
     final currencies = currencyRates.keys.toList();
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isLargeScreen = screenWidth > 768;
 
     return Scaffold(
       appBar: AppBar(
@@ -1107,184 +1266,190 @@ class _PriceComparisonPageState extends State<PriceComparisonPage> {
           },
         ),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // 页面标题
-            Center(
-              child: Text(
-                '复杂商品价格比较计算器',
-                style: TextStyle(
-                  fontSize: 32,
-                  fontWeight: FontWeight.bold,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ),
-            const SizedBox(height: 10),
-            Center(
-              child: Text(
-                '输入不同规格的多种商品信息，获取详细的单位价格比较结果',
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ),
-            const SizedBox(height: 30),
-
-            // 基准货币选择
-            _buildGlassContainer(
-              padding: const EdgeInsets.all(20),
-              child: Row(
-                children: [
-                  const Text('基准货币：', style: TextStyle(fontSize: 18)),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: GlassDropdown<String>(
-                    value: _baseCurrency,
-                    items: currencies.map((currency) => DropdownItem<String>.item(currency)).toList(),
-                    label: '',
-                    itemBuilder: (dropdownItem) {
-                      if (dropdownItem.type == DropdownItemType.group) {
-                        return Container();
-                      } else {
-                        return Text(
-                          currencyNames[dropdownItem.value!] ?? dropdownItem.value!,
-                          style: const TextStyle(fontSize: 18),
-                        );
-                      }
-                    },
-                    onChanged: (value) {
-                      if (value != null) {
-                        setState(() {
-                          _baseCurrency = value;
-                          if (_showResults) {
-                            _calculateComparison();
-                          }
-                        });
-                      }
-                    },
-                  ),
-                  ),
-                ],
-              ),
-            ),
-
-            // 商品输入区域
-            Text(
-              '商品信息输入',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Theme.of(context).colorScheme.primary,
-              ),
-            ),
-            const SizedBox(height: 20),
-
-            // 商品卡片列表
-            Column(
-              children: _products.map(_buildProductCard).toList(),
-            ),
-
-            // 所有操作按钮
-            Center(
-              child: Wrap(
-                alignment: WrapAlignment.center,
-                spacing: 20,
-                runSpacing: 20,
-                children: [
-                _buildGlassButton(
-                  onPressed: _addProduct,
-                  text: '添加更多商品',
-                  icon: Icons.add,
-                  buttonColor: Theme.of(context).colorScheme.secondary,
-                ),
-                _buildGlassButton(
-                  onPressed: _calculateComparison,
-                  text: '计算比较结果',
-                  icon: Icons.calculate,
-                ),
-                _buildGlassButton(
-                  onPressed: _resetData,
-                  text: '重置所有数据',
-                  icon: Icons.refresh,
-                  buttonColor: Theme.of(context).colorScheme.error,
-                ),
-              ],
-            ),
-          ),
-            const SizedBox(height: 40),
-
-            // 结果区域
-            if (_showResults)
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    '价格比较结果',
+      body: Center(
+        child: Container(
+          width: isLargeScreen ? screenWidth * 0.8 : screenWidth,
+          constraints: const BoxConstraints(maxWidth: 1200),
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // 页面标题
+                Center(
+                  child: Text(
+                    '复杂商品价格比较计算器',
                     style: TextStyle(
                       fontSize: 32,
                       fontWeight: FontWeight.bold,
                       color: Theme.of(context).colorScheme.primary,
                     ),
+                    textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 30),
-
-                  // 推荐结果
-                  _buildRecommendation(),
-
-                  // 详细比较方法
-                  Text(
-                    '详细比较方法',
+                ),
+                const SizedBox(height: 10),
+                Center(
+                  child: Text(
+                    '输入不同规格的多种商品信息，获取详细的单位价格比较结果',
                     style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: Theme.of(context).colorScheme.primary,
+                      fontSize: 16,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
+                    textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 20),
-                  _buildComparisonMethods(),
-                  const SizedBox(height: 30),
+                ),
+                const SizedBox(height: 30),
 
-                  // 单位价格对比表
-                  Text(
-                    '单位价格对比表',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
+                // 基准货币选择
+                _buildGlassContainer(
+                  padding: const EdgeInsets.all(20),
+                  child: Row(
+                    children: [
+                      const Text('基准货币：', style: TextStyle(fontSize: 18)),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: GlassDropdown<String>(
+                        value: _baseCurrency,
+                        items: currencies.map((currency) => DropdownItem<String>.item(currency)).toList(),
+                        label: '',
+                        itemBuilder: (dropdownItem) {
+                          if (dropdownItem.type == DropdownItemType.group) {
+                            return Container();
+                          } else {
+                            return Text(
+                              currencyNames[dropdownItem.value!] ?? dropdownItem.value!,
+                              style: const TextStyle(fontSize: 18),
+                            );
+                          }
+                        },
+                        onChanged: (value) {
+                          if (value != null) {
+                            setState(() {
+                              _baseCurrency = value;
+                              if (_showResults) {
+                                _calculateComparison();
+                              }
+                            });
+                          }
+                        },
+                      ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 20),
-                  _buildUnitTable(),
-                  const SizedBox(height: 30),
+                ),
 
-                  // 注意事项
-                  _buildGlassContainer(
-                    child: Row(
-                      children: [
-                        const Icon(Icons.warning, color: Colors.amber, size: 30),
-                        const SizedBox(width: 15),
-                        Expanded(
-                          child: Text(
-                            '注意：此计算结果基于您输入的数据和选择的单位/货币转换。实际购买时还需考虑品牌、质量、个人偏好等因素。',
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: Theme.of(context).colorScheme.onSurface,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
+                // 商品输入区域
+                Text(
+                  '商品信息输入',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).colorScheme.primary,
                   ),
-                ],
+                ),
+                const SizedBox(height: 20),
+
+                // 商品卡片列表
+                Column(
+                  children: _products.map(_buildProductCard).toList(),
+                ),
+
+                // 所有操作按钮
+                Center(
+                  child: Wrap(
+                    alignment: WrapAlignment.center,
+                    spacing: 20,
+                    runSpacing: 20,
+                    children: [
+                    _buildGlassButton(
+                      onPressed: _addProduct,
+                      text: '添加更多商品',
+                      icon: Icons.add,
+                      buttonColor: Theme.of(context).colorScheme.secondary,
+                    ),
+                    _buildGlassButton(
+                      onPressed: _calculateComparison,
+                      text: '计算比较结果',
+                      icon: Icons.calculate,
+                    ),
+                    _buildGlassButton(
+                      onPressed: _resetData,
+                      text: '重置所有数据',
+                      icon: Icons.refresh,
+                      buttonColor: Theme.of(context).colorScheme.error,
+                    ),
+                  ],
+                ),
               ),
-          ],
+                const SizedBox(height: 40),
+
+                // 结果区域
+                if (_showResults)
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '价格比较结果',
+                        style: TextStyle(
+                          fontSize: 32,
+                          fontWeight: FontWeight.bold,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                      ),
+                      const SizedBox(height: 30),
+
+                      // 推荐结果
+                      _buildRecommendation(),
+
+                      // 详细比较方法
+                      Text(
+                        '详细比较方法',
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      _buildComparisonMethods(),
+                      const SizedBox(height: 30),
+
+                      // 单位价格对比表
+                      Text(
+                        '单位价格对比表',
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      _buildUnitTable(),
+                      const SizedBox(height: 30),
+
+                      // 注意事项
+                      _buildGlassContainer(
+                        child: Row(
+                          children: [
+                            const Icon(Icons.warning, color: Colors.amber, size: 30),
+                            const SizedBox(width: 15),
+                            Expanded(
+                              child: Text(
+                                '注意：此计算结果基于您输入的数据和选择的单位/货币转换。实际购买时还需考虑品牌、质量、个人偏好等因素。',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: Theme.of(context).colorScheme.onSurface,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+              ],
+            ),
+          ),
         ),
       ),
     );

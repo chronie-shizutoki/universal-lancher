@@ -25,7 +25,6 @@ class _SettingsPageState extends State<SettingsPage> {
   
   String _version = _loadingText;
   String _buildTime = _loadingText;
-  bool _isThemeSelectorOpen = false;
   
   @override
   void initState() {
@@ -77,71 +76,51 @@ class _SettingsPageState extends State<SettingsPage> {
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
     
-    return Consumer<ThemeProvider>(
-      builder: (context, _, __) {
-        return GestureDetector(
-          onTap: () {
-            if (_isThemeSelectorOpen) {
-              setState(() {
-                _isThemeSelectorOpen = false;
-              });
-            }
-          },
-          child: ListView(
-            padding: const EdgeInsets.all(16.0),
-            children: [
-              // 外观设置卡片
-              _buildGlassCard(
-                context,
-                '外观设置',
-                [
-                  _buildThemeModeTile(themeProvider),
-                ],
-              ),
-              
-              const SizedBox(height: 16),
-              
-              // 应用信息卡片
-              _buildGlassCard(
-                context,
-                '应用信息',
-                [
-                  _buildGlassInfoTile(
-                    context,
-                    '版本信息',
-                    _version,
-                    Icons.apps_outage,
-                  ),
-                  const Divider(height: 1),
-                  _buildGlassInfoTile(
-                    context,
-                    '构建时间',
-                    _buildTime,
-                    Icons.access_time,
-                  ),
-                  const Divider(height: 1),
-                  _buildGlassInfoTile(
-                    context,
-                    '应用商店',
-                    '前往应用商店',
-                    Icons.store,
-                    onTap: () {
-                      _launchAppStore();
-                    },
-                  ),
-                ],
-              ),
-              
-              const SizedBox(height: 16),
-              
-              // 操作按钮
-              _buildActionButtons(themeProvider),
-              // 底部安全占位区域，确保内容不被底部导航栏遮挡
-              const SizedBox(height: 60),
-            ],
-          ),
-        );
-      },
+    return ListView(
+      padding: const EdgeInsets.all(16.0),
+      children: [
+        _buildGlassCard(
+          context,
+          '外观设置',
+          [
+            _buildThemeModeTile(themeProvider),
+          ],
+        ),
+        
+        const SizedBox(height: 16),
+        
+        _buildGlassCard(
+          context,
+          '应用信息',
+          [
+            _buildGlassInfoTile(
+              context,
+              '版本信息',
+              _version,
+              Icons.apps_outage,
+            ),
+            const Divider(height: 1),
+            _buildGlassInfoTile(
+              context,
+              '构建时间',
+              _buildTime,
+              Icons.access_time,
+            ),
+            const Divider(height: 1),
+            _buildGlassInfoTile(
+              context,
+              '应用商店',
+              '前往应用商店',
+              Icons.store,
+              onTap: () {
+                _launchAppStore();
+              },
+            ),
+          ],
+        ),
+        
+        const SizedBox(height: 60),
+      ],
     );
   }
 
@@ -186,74 +165,100 @@ class _SettingsPageState extends State<SettingsPage> {
 
   /// 构建主题模式选择项
   Widget _buildThemeModeTile(ThemeProvider themeProvider) {
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          _isThemeSelectorOpen = !_isThemeSelectorOpen;
-        });
-      },
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
+      child: InkWell(
+        onTap: () {
+          _showThemeBottomSheet(context, themeProvider);
+        },
+        borderRadius: BorderRadius.circular(12),
+        child: Row(
           children: [
-            Row(
-              children: [
-                Icon(
-                  themeProvider.themeModeIcon,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        '主题模式',
-                        style: TextStyle(
-                          color: Theme.of(context).colorScheme.onSurface,
-                          fontSize: 16,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        themeProvider.themeModeText,
-                        style: TextStyle(
-                          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
-                          fontSize: 14,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Icon(
-                  _isThemeSelectorOpen ? Icons.arrow_drop_up : Icons.arrow_drop_down,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-              ],
+            Icon(
+              themeProvider.themeModeIcon,
+              color: Theme.of(context).colorScheme.primary,
             ),
-            
-            // 自定义下拉菜单
-            if (_isThemeSelectorOpen)
-              Container(
-                margin: const EdgeInsets.only(top: 8),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(16),
-                  color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.95),
-                  border: Border.all(
-                    color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.4),
-                    width: 1,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.2),
-                      blurRadius: 12,
-                      spreadRadius: 4,
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '主题模式',
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurface,
+                      fontSize: 16,
                     ),
-                  ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    themeProvider.themeModeText,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(
+              Icons.arrow_forward_ios,
+              size: 16,
+              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showThemeBottomSheet(BuildContext context, ThemeProvider themeProvider) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (BuildContext context) {
+        return Container(
+          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(24),
+            color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.85),
+            border: Border.all(
+              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
+              width: 1,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.15),
+                blurRadius: 20,
+                spreadRadius: 8,
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                margin: const EdgeInsets.only(top: 12),
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(2),
+                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3),
                 ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(20),
                 child: Column(
                   children: [
+                    Text(
+                      '选择主题模式',
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
                     _buildThemeOption(
                       context,
                       AppThemeModeType.light,
@@ -261,6 +266,7 @@ class _SettingsPageState extends State<SettingsPage> {
                       Icons.light_mode,
                       themeProvider,
                     ),
+                    const SizedBox(height: 8),
                     _buildThemeOption(
                       context,
                       AppThemeModeType.dark,
@@ -268,6 +274,7 @@ class _SettingsPageState extends State<SettingsPage> {
                       Icons.dark_mode,
                       themeProvider,
                     ),
+                    const SizedBox(height: 8),
                     _buildThemeOption(
                       context,
                       AppThemeModeType.system,
@@ -278,13 +285,13 @@ class _SettingsPageState extends State<SettingsPage> {
                   ],
                 ),
               ),
-          ],
-        ),
-      ),
+            ],
+          ),
+        );
+      },
     );
   }
 
-  /// 构建主题选项
   Widget _buildThemeOption(
     BuildContext context,
     AppThemeModeType mode,
@@ -297,35 +304,33 @@ class _SettingsPageState extends State<SettingsPage> {
     return GestureDetector(
       onTap: () {
         themeProvider.setThemeMode(mode);
-        setState(() {
-          _isThemeSelectorOpen = false;
-        });
+        Navigator.of(context).pop();
       },
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(14),
           color: isSelected 
-              ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.1) 
+              ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.12) 
               : Colors.transparent,
         ),
         child: Row(
           children: [
             Icon(
               icon,
-              size: 18,
+              size: 22,
               color: isSelected 
                   ? Theme.of(context).colorScheme.primary 
                   : Theme.of(context).colorScheme.onSurface,
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 14),
             Text(
               label,
               style: TextStyle(
                 color: isSelected 
                     ? Theme.of(context).colorScheme.primary 
                     : Theme.of(context).colorScheme.onSurface,
-                fontSize: 14,
+                fontSize: 16,
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
               ),
             ),
@@ -333,7 +338,7 @@ class _SettingsPageState extends State<SettingsPage> {
             if (isSelected)
               Icon(
                 Icons.check,
-                size: 16,
+                size: 20,
                 color: Theme.of(context).colorScheme.primary,
               ),
           ],
@@ -402,50 +407,6 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
-  /// 构建操作按钮区域
-  Widget _buildActionButtons(ThemeProvider themeProvider) {
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 8.0),
-      padding: const EdgeInsets.all(20.0),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20),
-        color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.7),
-        border: Border.all(
-          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
-          width: 1,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
-            blurRadius: 15,
-            spreadRadius: 5,
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          ElevatedButton.icon(
-            onPressed: () {
-              _showResetDialog();
-            },
-            icon: Icon(Icons.restore, color: Theme.of(context).colorScheme.onPrimary),
-            label: Text('恢复默认设置', style: TextStyle(color: Theme.of(context).colorScheme.onPrimary)),
-            style: ElevatedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              backgroundColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.9),
-              shadowColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
-              elevation: 4,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   /// 打开应用商店
   Future<void> _launchAppStore() async {
     try {
@@ -471,42 +432,5 @@ class _SettingsPageState extends State<SettingsPage> {
         );
       }
     }
-  }
-
-  /// 显示重置确认对话框
-  void _showResetDialog() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('恢复默认设置'),
-          content: const Text('确定要恢复默认设置吗？此操作无法撤销。'),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text('取消'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                // 重置为主题模式为系统默认
-                final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
-                themeProvider.setThemeMode(AppThemeModeType.system);
-                Navigator.of(context).pop();
-                
-                // 检查widget是否仍然挂载
-                if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('已恢复默认设置')),
-                  );
-                }
-              },
-              child: const Text('确定'),
-            ),
-          ],
-        );
-      },
-    );
   }
 }
