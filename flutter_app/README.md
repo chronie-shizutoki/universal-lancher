@@ -171,7 +171,7 @@ List<ServiceItem> _getDefaultServices() {
 
 ```bash
 # 构建 Release APK
-flutter build apk --release --no-tree-shake-icons
+flutter build apk --release
 
 # APK 输出位置
 # build/app/outputs/flutter-apk/app-release.apk
@@ -181,7 +181,7 @@ flutter build apk --release --no-tree-shake-icons
 
 ```bash
 # 构建 Release AAB（用于 Google Play）
-flutter build appbundle --release --no-tree-shake-icons
+flutter build appbundle --release
 
 # AAB 输出位置
 # build/app/outputs/bundle/release/app-release.aab
@@ -191,7 +191,7 @@ flutter build appbundle --release --no-tree-shake-icons
 
 ```bash
 # 构建 Web Release
-flutter build web --release --no-tree-shake-icons
+flutter build web --release
 
 # 输出位置
 # build/web/
@@ -207,7 +207,7 @@ flutter build web --release --no-tree-shake-icons
 
 ### 2. 图标不显示
 
-- 确保构建时使用了 `--no-tree-shake-icons` 参数
+- 尝试使用 `--no-tree-shake-icons` 参数构建
 - 清除构建缓存：`flutter clean && flutter pub get`
 
 ### 3. 服务列表不保存

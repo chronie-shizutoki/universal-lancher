@@ -28,7 +28,7 @@ jobs:
         run: sed -i 's|distributionUrl=.*|distributionUrl=https://services.gradle.org/distributions/gradle-8.14.1-all.zip|' android/gradle/wrapper/gradle-wrapper.properties
         working-directory: flutter_app
       - name: Build release APK
-        run: flutter build apk --release --no-tree-shake-icons
+        run: flutter build apk --release
         working-directory: flutter_app
       - name: Upload APK artifact
         uses: actions/upload-artifact@v6
