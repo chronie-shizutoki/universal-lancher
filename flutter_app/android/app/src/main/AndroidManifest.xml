@@ -3,38 +3,11 @@
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
-    <!-- 必要的权限用于应用自更新 -->
-    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES"/>
-    <!-- 向后兼容权限，Android 10+推荐使用MediaStore API -->
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="28"/>
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="28"/>
     <application
         android:label="统一启动器"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
         android:usesCleartextTraffic="true">
-        <!-- Flutter Downloader 所需配置 -->
-        <provider
-            android:name="vn.hunghd.flutterdownloader.DownloadedFileProvider"
-            android:authorities="${applicationId}.flutter_downloader.provider"
-            android:exported="false"
-            android:grantUriPermissions="true">
-            <meta-data
-                android:name="android.support.FILE_PROVIDER_PATHS"
-                android:resource="@xml/provider_paths" />
-        </provider>
-        <!-- Flutter Downloader 下载服务 -->
-        <service
-            android:name="vn.hunghd.flutterdownloader.DownloadService"
-            android:exported="false" />
-        <!-- Flutter Downloader 接收器 -->
-        <receiver
-            android:name="vn.hunghd.flutterdownloader.DownloadReceiver"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.DOWNLOAD_COMPLETE" />
-            </intent-filter>
-        </receiver>
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -57,11 +30,6 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
-        <!-- Flutter Downloader 相关配置已在插件内部处理 -->
-        <!-- 允许从存储访问文件 -->
-        <meta-data
-            android:name="flutter_downloader.notification.icon"
-            android:resource="@mipmap/ic_launcher" />
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
         <meta-data
@@ -77,15 +45,6 @@
         <intent>
             <action android:name="android.intent.action.PROCESS_TEXT"/>
             <data android:mimeType="text/plain"/>
-        </intent>
-        <!-- 允许应用查询安装包管理器 -->
-        <intent>
-            <action android:name="android.intent.action.INSTALL_PACKAGE"/>
-        </intent>
-        <!-- 允许应用查询可打开APK的活动 -->
-        <intent>
-            <action android:name="android.intent.action.VIEW"/>
-            <data android:scheme="content" android:mimeType="application/vnd.android.package-archive"/>
         </intent>
     </queries>
 </manifest>
