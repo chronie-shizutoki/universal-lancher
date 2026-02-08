@@ -250,6 +250,12 @@ class _CheckServicePageState extends State<CheckServicePage> {
                     ),
                   ),
                 ],
+                const SizedBox(height: 16),
+                _GlassButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  isLoading: false,
+                  text: '返回',
+                ),
                 const SizedBox(height: 60),
               ],
             ),
