@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'home_page.dart';
-import 'check_service_page.dart';
 import 'calculator_selection_page.dart';
 import 'food_page.dart';
 import 'settings_page.dart';
@@ -20,10 +19,8 @@ class _MainPageState extends State<MainPage> {
   @override
   void initState() {
     super.initState();
-    // 初始化页面列表
     _pages = [
       const HomePage(),
-      const CheckServicePage(),
       CalculatorSelectionPage(onCalculatorSelected: _setCalculatorPage),
       const FoodPage(),
       const SettingsPage(),
@@ -39,15 +36,14 @@ class _MainPageState extends State<MainPage> {
 
   // 获取当前要显示的页面
   Widget _getCurrentPage() {
-    if (_currentIndex == 2) {
-      return _calculatorPage ?? _pages[2];
+    if (_currentIndex == 1) {
+      return _calculatorPage ?? _pages[1];
     }
     return _pages[_currentIndex];
   }
 
   final List<String> _titles = [
     '首页',
-    '服务状态监控',
     '计算器',
     '今天吃什么',
     '设置',
@@ -56,16 +52,13 @@ class _MainPageState extends State<MainPage> {
   // 导航项图标
   final List<IconData> _icons = [
     Icons.home_outlined,
-    Icons.health_and_safety_outlined,
     Icons.calculate_outlined,
     Icons.restaurant_outlined,
     Icons.settings_outlined,
   ];
   
-  // 选中状态图标
   final List<IconData> _activeIcons = [
     Icons.home,
-    Icons.health_and_safety,
     Icons.calculate,
     Icons.restaurant,
     Icons.settings,

@@ -130,7 +130,7 @@ class _GlassButton extends StatelessWidget {
 }
 
 class _CheckServicePageState extends State<CheckServicePage> {
-  // 固定的三个服务列表
+  // 固定的服务列表
   final List<ServiceInfo> _services = [
     ServiceInfo(
       id: '1',
@@ -146,6 +146,11 @@ class _CheckServicePageState extends State<CheckServicePage> {
       id: '3',
       name: '金流',
       url: 'http://192.168.0.197:3100',
+    ),
+    ServiceInfo(
+      id: '4',
+      name: '限时福利活动',
+      url: 'http://192.168.0.197:3001',
     ),
   ];
 
@@ -206,42 +211,49 @@ class _CheckServicePageState extends State<CheckServicePage> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isLargeScreen = screenWidth > 768;
+
     return Scaffold(
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            Expanded(
-              child: ListView.separated(
-                itemCount: _services.length,
-                separatorBuilder: (_, __) => const SizedBox(height: 12),
-                itemBuilder: (context, index) {
-                  final service = _services[index];
-                  final status = _statusMap[service.id]!;
-                  return _buildServiceRow(service, status);
-                },
-              ),
-            ),
-            // 减少底部间距，让按钮和文字向上偏移
-            const SizedBox(height: 4),
-            _GlassButton(
-              onPressed: _checkingAll ? null : _checkAllServices,
-              isLoading: _checkingAll,
-              text: _checkingAll ? '检查中...' : '立即检查',
-            ),
-            if (_lastUpdate != null) ...[
-              const SizedBox(height: 4),
-              Text(
-                '最后检查时间：${_formatDateTime(_lastUpdate!)}',
-                style: TextStyle(
-                  color: Theme.of(context).hintColor,
-                  fontSize: 14,
+      body: Center(
+        child: Container(
+          width: isLargeScreen ? screenWidth * 0.8 : null,
+          constraints: const BoxConstraints(maxWidth: 1200),
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              children: [
+                Expanded(
+                  child: ListView.separated(
+                    itemCount: _services.length,
+                    separatorBuilder: (_, __) => const SizedBox(height: 12),
+                    itemBuilder: (context, index) {
+                      final service = _services[index];
+                      final status = _statusMap[service.id]!;
+                      return _buildServiceRow(service, status);
+                    },
+                  ),
                 ),
-              ),
-            ],
-            // 增加底部安全间距，确保内容不被底部导航栏遮挡
-            const SizedBox(height: 60),
-          ],
+                const SizedBox(height: 4),
+                _GlassButton(
+                  onPressed: _checkingAll ? null : _checkAllServices,
+                  isLoading: _checkingAll,
+                  text: _checkingAll ? '检查中...' : '立即检查',
+                ),
+                if (_lastUpdate != null) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    '最后检查时间：${_formatDateTime(_lastUpdate!)}',
+                    style: TextStyle(
+                      color: Theme.of(context).hintColor,
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
+                const SizedBox(height: 60),
+              ],
+            ),
+          ),
         ),
       ),
     );

@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:network_info_plus/network_info_plus.dart';
 import 'package:permission_handler/permission_handler.dart';
 import './webview_page.dart';
+import './check_service_page.dart';
 import '../providers/theme_provider.dart';
 
 // 网络常量
@@ -253,6 +254,27 @@ class _HomePageState extends State<HomePage> {
                             ),
                           ],
                         ),
+                        // 服务状态监控按钮（web平台不可见）
+                        if (!kIsWeb)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 16.0),
+                            child: _buildButton(
+                              text: '服务状态监控',
+                              isPrimary: false,
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => const CheckServicePage(),
+                                  ),
+                                );
+                              },
+                              buttonGradientStart: buttonGradientStart,
+                              buttonGradientEnd: buttonGradientEnd,
+                              textPrimary: textPrimary,
+                              isDarkMode: isDarkMode,
+                            ),
+                          ),
                       ],
                     ),
                   ),
