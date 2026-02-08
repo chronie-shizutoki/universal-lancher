@@ -240,18 +240,7 @@ class _HomePageState extends State<HomePage> {
                               buttonGradientEnd: buttonGradientEnd,
                               textPrimary: textPrimary,
                               isDarkMode: isDarkMode,
-                            ),
-                            _buildButton(
-                              text: '限时福利活动',
-                              isPrimary: true,
-                              onPressed: () {
-                                _navigateToUrl('http://192.168.0.197:3001');
-                              },
-                              buttonGradientStart: buttonGradientStart,
-                              buttonGradientEnd: buttonGradientEnd,
-                              textPrimary: textPrimary,
-                              isDarkMode: isDarkMode,
-                            ),
+                            )
                           ],
                         ),
                         // 服务状态监控按钮（web平台不可见）

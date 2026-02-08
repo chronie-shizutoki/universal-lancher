@@ -146,12 +146,7 @@ class _CheckServicePageState extends State<CheckServicePage> {
       id: '3',
       name: '金流',
       url: 'http://192.168.0.197:3100',
-    ),
-    ServiceInfo(
-      id: '4',
-      name: '限时福利活动',
-      url: 'http://192.168.0.197:3001',
-    ),
+    )
   ];
 
   final Map<String, ServiceStatus> _statusMap = {};
