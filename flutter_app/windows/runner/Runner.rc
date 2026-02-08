@@ -14,10 +14,10 @@
 #undef APSTUDIO_READONLY_SYMBOLS
 
 /////////////////////////////////////////////////////////////////////////////
-// English (United States) resources
+// 中文 (中国) resources
 
-#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
-LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_CHS)
+LANGUAGE LANG_CHINESE, SUBLANG_CHINESE_SIMPLIFIED
 
 #ifdef APSTUDIO_INVOKED
 /////////////////////////////////////////////////////////////////////////////
@@ -89,13 +89,13 @@ BEGIN
     BEGIN
         BLOCK "040904e4"
         BEGIN
-            VALUE "CompanyName", "com.example" "\0"
-            VALUE "FileDescription", "flutter_app" "\0"
+            VALUE "CompanyName", "com.chronie" "\0"
+            VALUE "FileDescription", "统一启动器" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "flutter_app" "\0"
-            VALUE "LegalCopyright", "Copyright (C) 2025 com.example. All rights reserved." "\0"
-            VALUE "OriginalFilename", "flutter_app.exe" "\0"
-            VALUE "ProductName", "flutter_app" "\0"
+            VALUE "InternalName", "统一启动器" "\0"
+            VALUE "LegalCopyright", "Copyright (C) 2026 Chronie. All rights reserved." "\0"
+            VALUE "OriginalFilename", "统一启动器.exe" "\0"
+            VALUE "ProductName", "统一启动器" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END
@@ -105,7 +105,7 @@ BEGIN
     END
 END
 
-#endif    // English (United States) resources
+#endif    // 中文（中国） resources
 /////////////////////////////////////////////////////////////////////////////
 
 
