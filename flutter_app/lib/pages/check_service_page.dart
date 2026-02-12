@@ -139,11 +139,6 @@ class _CheckServicePageState extends State<CheckServicePage> {
     ),
     ServiceInfo(
       id: '2',
-      name: '库存管理',
-      url: 'http://192.168.0.197:5000/api/health',
-    ),
-    ServiceInfo(
-      id: '3',
       name: '金流',
       url: 'http://192.168.0.197:3100',
     )

@@ -229,17 +229,6 @@ class _HomePageState extends State<HomePage> {
                               buttonGradientEnd: buttonGradientEnd,
                               textPrimary: textPrimary,
                               isDarkMode: isDarkMode,
-                            ),
-                            _buildButton(
-                              text: '智能家居库存管理系统',
-                              isPrimary: true,
-                              onPressed: () {
-                                _navigateToUrl('http://192.168.0.197:5000');
-                              },
-                              buttonGradientStart: buttonGradientStart,
-                              buttonGradientEnd: buttonGradientEnd,
-                              textPrimary: textPrimary,
-                              isDarkMode: isDarkMode,
                             )
                           ],
                         ),
