@@ -216,21 +216,8 @@ class _HomePageState extends State<HomePage> {
                               buttonGradientEnd: buttonGradientEnd,
                               textPrimary: textPrimary,
                               isDarkMode: isDarkMode,
-                            ),
-                            _buildButton(
-                              text: '金流',
-                              isPrimary: true,
-                              onPressed: () {
-                                setState(() {
-                                  _navigateToUrl('http://192.168.0.197:3100');
-                                });
-                              },
-                              buttonGradientStart: buttonGradientStart,
-                              buttonGradientEnd: buttonGradientEnd,
-                              textPrimary: textPrimary,
-                              isDarkMode: isDarkMode,
                             )
-                          ],
+                          ]
                         ),
                         // 服务状态监控按钮（web平台不可见）
                         if (!kIsWeb)

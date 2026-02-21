@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'price_comparison_page.dart';
-import 'rate_calculator_page.dart';
 
 class CalculatorSelectionPage extends StatelessWidget {
   final void Function(Widget page)? onCalculatorSelected;
@@ -24,7 +23,7 @@ class CalculatorSelectionPage extends StatelessWidget {
             children: [
               Expanded(
                 child: ListView.builder(
-                  itemCount: 2,
+                  itemCount: 1,
                   itemBuilder: (context, index) {
                     if (index == 0) {
                       return Center(
@@ -44,25 +43,7 @@ class CalculatorSelectionPage extends StatelessWidget {
                           ),
                         ),
                       );
-                    } else {
-                      return Center(
-                        child: SizedBox(
-                          width: MediaQuery.of(context).size.width > 600 ? 500 : double.infinity,
-                          child: _buildCalculatorCard(
-                            context,
-                            title: '汇率计算器',
-                            description: '进行不同货币之间的汇率转换',
-                            icon: Icons.currency_exchange_outlined,
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(builder: (context) => RateCalculatorPage()),
-                              );
-                            },
-                          ),
-                        ),
-                      );
-                    }
+                    } 
                   },
                   padding: const EdgeInsets.only(bottom: 20),
                 ),
