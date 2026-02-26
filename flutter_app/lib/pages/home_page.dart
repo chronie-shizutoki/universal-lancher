@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:intl/date_symbol_data_file.dart';
 import 'package:provider/provider.dart';
-import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'dart:async';
 import 'package:universal_launcher/providers/theme_provider.dart';
 import 'package:geolocator/geolocator.dart';
 
@@ -28,43 +27,58 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    _initializeLocale();
-  }
-
-  Future<void> _initializeLocale() async {
-    await initializeDateFormatting('zh_CN', '');
-    if (mounted) {
-      setState(() {
-        _isInitialized = true;
-      });
-      _fetchWeather();
-    }
+    _isInitialized = true;
+    _fetchWeather();
   }
 
   Future<Position?> _getCurrentPosition() async {
-    bool serviceEnabled;
-    LocationPermission permission;
+    try {
+      bool serviceEnabled;
+      LocationPermission permission;
 
-    serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) {
-      return null;
-    }
-
-    permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.denied) {
+      serviceEnabled = await Geolocator.isLocationServiceEnabled().timeout(
+        const Duration(seconds: 3),
+        onTimeout: () {
+          throw TimeoutException('Location service check timeout');
+        },
+      );
+      if (!serviceEnabled) {
         return null;
       }
-    }
 
-    if (permission == LocationPermission.deniedForever) {
+      permission = await Geolocator.checkPermission().timeout(
+        const Duration(seconds: 3),
+        onTimeout: () {
+          throw TimeoutException('Permission check timeout');
+        },
+      );
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission().timeout(
+          const Duration(seconds: 5),
+          onTimeout: () {
+            throw TimeoutException('Permission request timeout');
+          },
+        );
+        if (permission == LocationPermission.denied) {
+          return null;
+        }
+      }
+
+      if (permission == LocationPermission.deniedForever) {
+        return null;
+      }
+
+      return await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+      ).timeout(
+        const Duration(seconds: 5),
+        onTimeout: () {
+          throw TimeoutException('Get position timeout');
+        },
+      );
+    } catch (e) {
       return null;
     }
-
-    return await Geolocator.getCurrentPosition(
-      desiredAccuracy: LocationAccuracy.high,
-    );
   }
 
   Future<void> _fetchWeather() async {
@@ -79,7 +93,12 @@ class _HomePageState extends State<HomePage> {
       final longitude = position?.longitude ?? 116.4074;
 
       final response = await http.get(
-        Uri.parse('https://api.open-meteo.com/v1/forecast?latitude=$latitude&longitude=$longitude&current=temperature_2m,weather_code,wind_speed_10m&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=auto'),
+        Uri.parse('https://api.open-meteo.com/v1/forecast?latitude=$latitude&longitude=$longitude&current=temperature_2m,weather_code,wind_speed_10m,relative_humidity_2m,apparent_temperature,pressure_msl,is_day&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,uv_index_max,precipitation_sum,wind_speed_10m_max&timezone=auto'),
+      ).timeout(
+        const Duration(seconds: 10),
+        onTimeout: () {
+          throw TimeoutException('Weather request timeout');
+        },
       );
 
       if (response.statusCode == 200) {
@@ -89,19 +108,24 @@ class _HomePageState extends State<HomePage> {
         });
       } else {
         setState(() {
-          _weatherError = 'Failed to load weather';
+          _weatherError = 'Failed to load weather (Status: ${response.statusCode})';
           _isLoadingWeather = false;
         });
       }
+    } on TimeoutException catch (e) {
+      setState(() {
+        _weatherError = 'Request timeout: ${e.message ?? 'Please check your connection'}';
+        _isLoadingWeather = false;
+      });
     } catch (e) {
       setState(() {
-        _weatherError = 'Error: $e';
+        _weatherError = 'Error: ${e.toString()}';
         _isLoadingWeather = false;
       });
     }
   }
 
-  String _getWeatherDescription(int code) {
+  String _getWeatherDescription(dynamic code) {
     final Map<int, String> weatherCodes = {
       0: '晴朗',
       1: '多云',
@@ -125,16 +149,18 @@ class _HomePageState extends State<HomePage> {
       96: '雷雨伴有冰雹',
       99: '雷雨伴有冰雹',
     };
-    return weatherCodes[code] ?? '未知';
+    final int codeInt = code is int ? code : (code is double ? code.toInt() : 0);
+    return weatherCodes[codeInt] ?? '未知';
   }
 
-  IconData _getWeatherIcon(int code) {
-    if (code == 0) return Icons.wb_sunny;
-    if (code <= 3) return Icons.cloud;
-    if (code <= 48) return Icons.foggy;
-    if (code <= 67) return Icons.water_drop;
-    if (code <= 77) return Icons.ac_unit;
-    if (code <= 82) return Icons.grain;
+  IconData _getWeatherIcon(dynamic code) {
+    final int codeInt = code is int ? code : (code is double ? code.toInt() : 0);
+    if (codeInt == 0) return Icons.wb_sunny;
+    if (codeInt <= 3) return Icons.cloud;
+    if (codeInt <= 48) return Icons.foggy;
+    if (codeInt <= 67) return Icons.water_drop;
+    if (codeInt <= 77) return Icons.ac_unit;
+    if (codeInt <= 82) return Icons.grain;
     return Icons.thunderstorm;
   }
 
@@ -156,8 +182,9 @@ class _HomePageState extends State<HomePage> {
     }
 
     final now = DateTime.now();
-    final dateFormatter = DateFormat('yyyy年MM月dd日');
-    final weekdayFormatter = DateFormat('EEEE', 'zh_CN');
+    final date = '${now.year}年${now.month.toString().padLeft(2, '0')}月${now.day.toString().padLeft(2, '0')}日';
+    final weekdays = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
+    final weekday = weekdays[now.weekday % 7];
 
     return SafeArea(
       child: SingleChildScrollView(
@@ -167,14 +194,20 @@ class _HomePageState extends State<HomePage> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               _buildDateCard(
-                date: dateFormatter.format(now),
-                weekday: weekdayFormatter.format(now),
+                date: date,
+                weekday: weekday,
                 textPrimary: textPrimary,
                 textSecondary: textSecondary,
                 isDarkMode: isDarkMode,
               ),
               const SizedBox(height: 16.0),
               _buildWeatherCard(
+                textPrimary: textPrimary,
+                textSecondary: textSecondary,
+                isDarkMode: isDarkMode,
+              ),
+              const SizedBox(height: 16.0),
+              _buildForecastCard(
                 textPrimary: textPrimary,
                 textSecondary: textSecondary,
                 isDarkMode: isDarkMode,
@@ -204,12 +237,12 @@ class _HomePageState extends State<HomePage> {
       decoration: BoxDecoration(
         color: isDarkMode 
             ? Colors.black.withValues(alpha: 0.3)
-            : Colors.white.withValues(alpha: 0.2),
+            : Colors.white,
         borderRadius: BorderRadius.circular(16.0),
         border: Border.all(
           color: isDarkMode 
               ? Colors.white.withValues(alpha: 0.1)
-              : Colors.white.withValues(alpha: 0.3),
+              : Colors.grey.withValues(alpha: 0.3),
           width: 1.0,
         ),
         boxShadow: [
@@ -255,12 +288,12 @@ class _HomePageState extends State<HomePage> {
       decoration: BoxDecoration(
         color: isDarkMode 
             ? Colors.black.withValues(alpha: 0.3)
-            : Colors.white.withValues(alpha: 0.2),
+            : Colors.white,
         borderRadius: BorderRadius.circular(16.0),
         border: Border.all(
           color: isDarkMode 
               ? Colors.white.withValues(alpha: 0.1)
-              : Colors.white.withValues(alpha: 0.3),
+              : Colors.grey.withValues(alpha: 0.3),
           width: 1.0,
         ),
         boxShadow: [
@@ -311,17 +344,30 @@ class _HomePageState extends State<HomePage> {
               ),
             )
           else if (_weatherData != null)
-            _buildWeatherContent(textPrimary, textSecondary),
+            _buildWeatherContent(textPrimary, textSecondary, isDarkMode),
         ],
       ),
     );
   }
 
-  Widget _buildWeatherContent(Color textPrimary, Color textSecondary) {
+  Widget _buildWeatherContent(Color textPrimary, Color textSecondary, bool isDarkMode) {
     final current = _weatherData!['current'];
-    final temp = current['temperature_2m'];
+    final daily = _weatherData!['daily'];
+    final temp = double.tryParse(current['temperature_2m'].toString()) ?? 0.0;
     final code = current['weather_code'];
-    final windSpeed = current['wind_speed_10m'];
+    final windSpeed = double.tryParse(current['wind_speed_10m'].toString()) ?? 0.0;
+    final humidity = double.tryParse(current['relative_humidity_2m'].toString()) ?? 0;
+    final apparentTemp = double.tryParse(current['apparent_temperature'].toString()) ?? temp;
+    final pressure = double.tryParse(current['pressure_msl'].toString()) ?? 0;
+    final isDay = current['is_day'] == 1;
+    
+    final sunriseList = daily['sunrise'] as List?;
+    final sunsetList = daily['sunset'] as List?;
+    final uvIndexList = daily['uv_index_max'] as List?;
+    final precipitationList = daily['precipitation_sum'] as List?;
+    
+    final uvIndex = uvIndexList != null && uvIndexList.isNotEmpty ? double.tryParse(uvIndexList[0].toString()) ?? 0.0 : 0.0;
+    final precipitation = precipitationList != null && precipitationList.isNotEmpty ? double.tryParse(precipitationList[0].toString()) ?? 0.0 : 0.0;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -334,33 +380,254 @@ class _HomePageState extends State<HomePage> {
               color: textPrimary,
             ),
             const SizedBox(width: 16.0),
-            Text(
-              '${temp.toStringAsFixed(1)}°C',
-              style: TextStyle(
-                fontSize: 36.0,
-                fontWeight: FontWeight.bold,
-                color: textPrimary,
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '${temp.toStringAsFixed(1)}°C',
+                    style: TextStyle(
+                      fontSize: 36.0,
+                      fontWeight: FontWeight.bold,
+                      color: textPrimary,
+                    ),
+                  ),
+                  Text(
+                    _getWeatherDescription(code),
+                    style: TextStyle(
+                      fontSize: 16.0,
+                      color: textSecondary,
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
         ),
-        const SizedBox(height: 8.0),
-        Text(
-          _getWeatherDescription(code),
-          style: TextStyle(
-            fontSize: 18.0,
-            color: textSecondary,
-          ),
+        const SizedBox(height: 16.0),
+        _buildWeatherDetailRow(
+          icon: Icons.thermostat,
+          label: '体感温度',
+          value: '${apparentTemp.toStringAsFixed(1)}°C',
+          textSecondary: textSecondary,
         ),
-        const SizedBox(height: 8.0),
+        const SizedBox(height: 12.0),
+        _buildWeatherDetailRow(
+          icon: Icons.water_drop,
+          label: '湿度',
+          value: '${humidity.toStringAsFixed(0)}%',
+          textSecondary: textSecondary,
+        ),
+        const SizedBox(height: 12.0),
+        _buildWeatherDetailRow(
+          icon: Icons.air,
+          label: '风速',
+          value: '${windSpeed.toStringAsFixed(1)} km/h',
+          textSecondary: textSecondary,
+        ),
+        const SizedBox(height: 12.0),
+        _buildWeatherDetailRow(
+          icon: Icons.compress,
+          label: '气压',
+          value: '${pressure.toStringAsFixed(0)} hPa',
+          textSecondary: textSecondary,
+        ),
+        const SizedBox(height: 12.0),
+        _buildWeatherDetailRow(
+          icon: Icons.wb_sunny,
+          label: '紫外线指数',
+          value: _getUVIndexDescription(uvIndex),
+          textSecondary: textSecondary,
+        ),
+        const SizedBox(height: 12.0),
+        _buildWeatherDetailRow(
+          icon: Icons.grain,
+          label: '降水量',
+          value: '${precipitation.toStringAsFixed(1)} mm',
+          textSecondary: textSecondary,
+        ),
+        const SizedBox(height: 12.0),
+        _buildWeatherDetailRow(
+          icon: isDay ? Icons.light_mode : Icons.nightlight_round,
+          label: isDay ? '白天' : '夜晚',
+          value: '',
+          textSecondary: textSecondary,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildWeatherDetailRow({
+    required IconData icon,
+    required String label,
+    required String value,
+    required Color textSecondary,
+  }) {
+    return Row(
+      children: [
+        Icon(
+          icon,
+          size: 20.0,
+          color: textSecondary,
+        ),
+        const SizedBox(width: 12.0),
         Text(
-          '风速: ${windSpeed.toStringAsFixed(1)} km/h',
+          label,
           style: TextStyle(
             fontSize: 14.0,
             color: textSecondary,
           ),
         ),
+        const Spacer(),
+        if (value.isNotEmpty)
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 14.0,
+              fontWeight: FontWeight.w500,
+              color: textSecondary,
+            ),
+          ),
       ],
+    );
+  }
+
+  String _getUVIndexDescription(double uvIndex) {
+    if (uvIndex <= 2) return '${uvIndex.toStringAsFixed(1)} (低)';
+    if (uvIndex <= 5) return '${uvIndex.toStringAsFixed(1)} (中等)';
+    if (uvIndex <= 7) return '${uvIndex.toStringAsFixed(1)} (高)';
+    if (uvIndex <= 10) return '${uvIndex.toStringAsFixed(1)} (很高)';
+    return '${uvIndex.toStringAsFixed(1)} (极高)';
+  }
+
+  Widget _buildForecastCard({
+    required Color textPrimary,
+    required Color textSecondary,
+    required bool isDarkMode,
+  }) {
+    if (_weatherData == null) return const SizedBox.shrink();
+
+    final daily = _weatherData!['daily'];
+    final times = daily['time'] as List?;
+    final maxTemps = daily['temperature_2m_max'] as List?;
+    final minTemps = daily['temperature_2m_min'] as List?;
+    final weatherCodes = daily['weather_code'] as List?;
+    final precipitationSums = daily['precipitation_sum'] as List?;
+
+    if (times == null || maxTemps == null || minTemps == null || weatherCodes == null || precipitationSums == null) {
+      return const SizedBox.shrink();
+    }
+
+    final forecastDays = 5;
+    final startIndex = 1;
+
+    return Container(
+      padding: const EdgeInsets.all(24.0),
+      decoration: BoxDecoration(
+        color: isDarkMode 
+            ? Colors.black.withValues(alpha: 0.3)
+            : Colors.white,
+        borderRadius: BorderRadius.circular(16.0),
+        border: Border.all(
+          color: isDarkMode 
+              ? Colors.white.withValues(alpha: 0.1)
+              : Colors.grey.withValues(alpha: 0.3),
+          width: 1.0,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: isDarkMode 
+                ? Colors.black.withValues(alpha: 0.3)
+                : Colors.black.withValues(alpha: 0.1),
+            blurRadius: 32.0,
+            spreadRadius: 8.0,
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '未来5天',
+            style: TextStyle(
+              fontSize: 20.0,
+              fontWeight: FontWeight.bold,
+              color: textPrimary,
+            ),
+          ),
+          const SizedBox(height: 16.0),
+          ...List.generate(forecastDays, (index) {
+            final dataIndex = startIndex + index;
+            if (dataIndex >= times.length || dataIndex >= maxTemps.length || 
+                dataIndex >= minTemps.length || dataIndex >= weatherCodes.length ||
+                dataIndex >= precipitationSums.length) {
+              return const SizedBox.shrink();
+            }
+            
+            final dateStr = times[dataIndex];
+            if (dateStr == null) return const SizedBox.shrink();
+            
+            final date = DateTime.parse(dateStr);
+            final maxTemp = double.tryParse(maxTemps[dataIndex].toString()) ?? 0;
+            final minTemp = double.tryParse(minTemps[dataIndex].toString()) ?? 0;
+            final code = weatherCodes[dataIndex] ?? 0;
+            final precipitation = double.tryParse(precipitationSums[dataIndex].toString()) ?? 0;
+            
+            final weekdays = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
+            final weekday = weekdays[date.weekday - 1];
+
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 12.0),
+              child: Row(
+                children: [
+                  SizedBox(
+                    width: 60.0,
+                    child: Text(
+                      weekday,
+                      style: TextStyle(
+                        fontSize: 14.0,
+                        color: textPrimary,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                  Icon(
+                    _getWeatherIcon(code),
+                    size: 24.0,
+                    color: textPrimary,
+                  ),
+                  const SizedBox(width: 12.0),
+                  Text(
+                    _getWeatherDescription(code),
+                    style: TextStyle(
+                      fontSize: 14.0,
+                      color: textSecondary,
+                    ),
+                  ),
+                  const Spacer(),
+                  if (precipitation > 0)
+                    Padding(
+                      padding: const EdgeInsets.only(right: 8.0),
+                      child: Icon(
+                        Icons.grain,
+                        size: 16.0,
+                        color: textSecondary,
+                      ),
+                    ),
+                  Text(
+                    '${maxTemp.toStringAsFixed(0)}° / ${minTemp.toStringAsFixed(0)}°',
+                    style: TextStyle(
+                      fontSize: 14.0,
+                      color: textPrimary,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }),
+        ],
+      ),
     );
   }
 
@@ -379,12 +646,12 @@ class _HomePageState extends State<HomePage> {
       decoration: BoxDecoration(
         color: isDarkMode 
             ? Colors.black.withValues(alpha: 0.3)
-            : Colors.white.withValues(alpha: 0.2),
+            : Colors.white,
         borderRadius: BorderRadius.circular(16.0),
         border: Border.all(
           color: isDarkMode 
               ? Colors.white.withValues(alpha: 0.1)
-              : Colors.white.withValues(alpha: 0.3),
+              : Colors.grey.withValues(alpha: 0.3),
           width: 1.0,
         ),
         boxShadow: [
