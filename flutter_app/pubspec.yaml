@@ -75,6 +75,9 @@ dependencies:
   
   # 国际化和日期格式化
   intl: ^0.19.0
+  
+  # 农历支持
+  lunar: ^1.7.7
 
 dev_dependencies:
   flutter_test:

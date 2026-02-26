@@ -5,6 +5,7 @@ import 'dart:convert';
 import 'dart:async';
 import 'package:universal_launcher/providers/theme_provider.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:lunar/lunar.dart';
 
 const Color _lightTextPrimary = Color(0xFF333333);
 const Color _lightTextSecondary = Color(0xFF555555);
@@ -182,9 +183,15 @@ class _HomePageState extends State<HomePage> {
     }
 
     final now = DateTime.now();
-    final date = '${now.year}年${now.month.toString().padLeft(2, '0')}月${now.day.toString().padLeft(2, '0')}日';
-    final weekdays = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
+    final date = '${now.month.toString().padLeft(2, '0')}月${now.day.toString().padLeft(2, '0')}日';
+    final weekdays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
     final weekday = weekdays[now.weekday % 7];
+    
+    final lunarDate = Lunar.fromDate(now);
+    final lunarMonth = '${lunarDate.getMonthInChinese()}月';
+    final lunarDay = lunarDate.getDayInChinese();
+    final lunarGanZhiYear = lunarDate.getYearInGanZhi();
+    final lunarFullString = '$lunarGanZhiYear年$lunarMonth$lunarDay';
 
     return SafeArea(
       child: SingleChildScrollView(
@@ -196,6 +203,7 @@ class _HomePageState extends State<HomePage> {
               _buildDateCard(
                 date: date,
                 weekday: weekday,
+                lunarDate: lunarFullString,
                 textPrimary: textPrimary,
                 textSecondary: textSecondary,
                 isDarkMode: isDarkMode,
@@ -228,10 +236,14 @@ class _HomePageState extends State<HomePage> {
   Widget _buildDateCard({
     required String date,
     required String weekday,
+    required String lunarDate,
     required Color textPrimary,
     required Color textSecondary,
     required bool isDarkMode,
   }) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isLargeScreen = screenWidth > 768;
+
     return Container(
       padding: const EdgeInsets.all(24.0),
       decoration: BoxDecoration(
@@ -255,26 +267,59 @@ class _HomePageState extends State<HomePage> {
           ),
         ],
       ),
-      child: Column(
-        children: [
-          Text(
-            date,
-            style: TextStyle(
-              fontSize: 32.0,
-              fontWeight: FontWeight.bold,
-              color: textPrimary,
+      child: isLargeScreen
+          ? Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  '$date$weekday',
+                  style: TextStyle(
+                    fontSize: 28.0,
+                    fontWeight: FontWeight.bold,
+                    color: textPrimary,
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: Text(
+                    '·',
+                    style: TextStyle(
+                      fontSize: 28.0,
+                      color: textSecondary,
+                    ),
+                  ),
+                ),
+                Text(
+                  lunarDate,
+                  style: TextStyle(
+                    fontSize: 28.0,
+                    fontWeight: FontWeight.bold,
+                    color: textPrimary,
+                  ),
+                ),
+              ],
+            )
+          : Column(
+              children: [
+                Text(
+                  '$date$weekday',
+                  style: TextStyle(
+                    fontSize: 32.0,
+                    fontWeight: FontWeight.bold,
+                    color: textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 16.0),
+                Text(
+                  lunarDate,
+                  style: TextStyle(
+                    fontSize: 24.0,
+                    fontWeight: FontWeight.bold,
+                    color: textPrimary,
+                  ),
+                ),
+              ],
             ),
-          ),
-          const SizedBox(height: 8.0),
-          Text(
-            weekday,
-            style: TextStyle(
-              fontSize: 20.0,
-              color: textSecondary,
-            ),
-          ),
-        ],
-      ),
     );
   }
 
@@ -361,8 +406,6 @@ class _HomePageState extends State<HomePage> {
     final pressure = double.tryParse(current['pressure_msl'].toString()) ?? 0;
     final isDay = current['is_day'] == 1;
     
-    final sunriseList = daily['sunrise'] as List?;
-    final sunsetList = daily['sunset'] as List?;
     final uvIndexList = daily['uv_index_max'] as List?;
     final precipitationList = daily['precipitation_sum'] as List?;
     
@@ -640,9 +683,20 @@ class _HomePageState extends State<HomePage> {
     final firstDayOfMonth = DateTime(now.year, now.month, 1);
     final lastDayOfMonth = DateTime(now.year, now.month + 1, 0);
     final startWeekday = firstDayOfMonth.weekday;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isLargeScreen = screenWidth > 768;
+    
+    final daysInMonth = lastDayOfMonth.day;
+    final Map<int, String> lunarMap = {};
+    for (var day = 1; day <= daysInMonth; day++) {
+      final date = DateTime(now.year, now.month, day);
+      final lunar = Lunar.fromDate(date);
+      final lunarDay = lunar.getDayInChinese();
+      lunarMap[day] = lunarDay;
+    }
 
     return Container(
-      padding: const EdgeInsets.all(24.0),
+      padding: EdgeInsets.all(isLargeScreen ? 32.0 : 24.0),
       decoration: BoxDecoration(
         color: isDarkMode 
             ? Colors.black.withValues(alpha: 0.3)
@@ -668,21 +722,23 @@ class _HomePageState extends State<HomePage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            '${now.year}年${now.month}月',
+            '${now.month}月',
             style: TextStyle(
-              fontSize: 20.0,
+              fontSize: isLargeScreen ? 24.0 : 20.0,
               fontWeight: FontWeight.bold,
               color: textPrimary,
             ),
           ),
-          const SizedBox(height: 16.0),
-          _buildWeekdayHeader(textSecondary),
-          const SizedBox(height: 8.0),
+          SizedBox(height: isLargeScreen ? 20.0 : 16.0),
+          _buildWeekdayHeader(textSecondary, isLargeScreen),
+          SizedBox(height: isLargeScreen ? 12.0 : 8.0),
           _buildCalendarGrid(
             firstDayOfMonth: firstDayOfMonth,
             lastDayOfMonth: lastDayOfMonth,
             startWeekday: startWeekday,
             currentDay: now.day,
+            lunarMap: lunarMap,
+            isLargeScreen: isLargeScreen,
             textPrimary: textPrimary,
             textSecondary: textSecondary,
             isDarkMode: isDarkMode,
@@ -692,18 +748,18 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildWeekdayHeader(Color textSecondary) {
+  Widget _buildWeekdayHeader(Color textSecondary, bool isLargeScreen) {
     final weekdays = ['日', '一', '二', '三', '四', '五', '六'];
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceAround,
       children: weekdays.map((day) {
         return SizedBox(
-          width: 32.0,
+          width: isLargeScreen ? 48.0 : 32.0,
           child: Center(
             child: Text(
               day,
               style: TextStyle(
-                fontSize: 14.0,
+                fontSize: isLargeScreen ? 16.0 : 14.0,
                 color: textSecondary,
                 fontWeight: FontWeight.w500,
               ),
@@ -719,6 +775,8 @@ class _HomePageState extends State<HomePage> {
     required DateTime lastDayOfMonth,
     required int startWeekday,
     required int currentDay,
+    required Map<int, String> lunarMap,
+    required bool isLargeScreen,
     required Color textPrimary,
     required Color textSecondary,
     required bool isDarkMode,
@@ -729,7 +787,7 @@ class _HomePageState extends State<HomePage> {
     return Column(
       children: List.generate(totalCells ~/ 7, (weekIndex) {
         return Padding(
-          padding: const EdgeInsets.only(bottom: 8.0),
+          padding: EdgeInsets.only(bottom: isLargeScreen ? 12.0 : 8.0),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: List.generate(7, (dayIndex) {
@@ -737,34 +795,70 @@ class _HomePageState extends State<HomePage> {
               final dayNumber = cellIndex - (startWeekday - 1) + 1;
               final isValidDay = dayNumber > 0 && dayNumber <= daysInMonth;
               final isToday = isValidDay && dayNumber == currentDay;
+              final lunarDay = isValidDay ? lunarMap[dayNumber] : '';
 
               return SizedBox(
-                width: 32.0,
-                height: 32.0,
+                width: isLargeScreen ? 48.0 : 32.0,
+                height: isLargeScreen ? 48.0 : 32.0,
                 child: Center(
                   child: isValidDay
                       ? Container(
+                          padding: isToday
+                              ? EdgeInsets.symmetric(horizontal: isLargeScreen ? 10.0 : 5.0)
+                              : EdgeInsets.zero,
                           decoration: BoxDecoration(
                             color: isToday
                                 ? (isDarkMode 
-                                    ? Colors.blue.withValues(alpha: 0.6)
-                                    : Colors.blue.withValues(alpha: 0.8))
+                                    ? Colors.blue.withValues(alpha: 0.8)
+                                    : Colors.blue.withValues(alpha: 1.0))
                                 : Colors.transparent,
-                            borderRadius: BorderRadius.circular(8.0),
+                            borderRadius: BorderRadius.circular(isLargeScreen ? 12.0 : 8.0),
+                            border: isToday
+                                ? Border.all(
+                                    color: isDarkMode 
+                                        ? Colors.white.withValues(alpha: 0.3)
+                                        : Colors.blue.withValues(alpha: 0.3),
+                                    width: 2.0,
+                                  )
+                                : null,
+                            boxShadow: isToday
+                                ? [
+                                    BoxShadow(
+                                      color: isDarkMode 
+                                          ? Colors.blue.withValues(alpha: 0.4)
+                                          : Colors.blue.withValues(alpha: 0.2),
+                                      blurRadius: 8.0,
+                                      offset: const Offset(0, 2),
+                                    ),
+                                  ]
+                                : null,
                           ),
-                          child: Center(
-                            child: Text(
-                              '$dayNumber',
-                              style: TextStyle(
-                                fontSize: 14.0,
-                                color: isToday
-                                    ? Colors.white
-                                    : textPrimary,
-                                fontWeight: isToday
-                                    ? FontWeight.bold
-                                    : FontWeight.normal,
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                '$dayNumber',
+                                style: TextStyle(
+                                  fontSize: isLargeScreen ? 14.0 : 12.0,
+                                  color: isToday
+                                      ? Colors.white
+                                      : textPrimary,
+                                  fontWeight: isToday
+                                      ? FontWeight.bold
+                                      : FontWeight.normal,
+                                ),
                               ),
-                            ),
+                              if (lunarDay != null && lunarDay!.isNotEmpty)
+                                Text(
+                                  lunarDay!,
+                                  style: TextStyle(
+                                    fontSize: isLargeScreen ? 10.0 : 8.0,
+                                    color: isToday
+                                        ? Colors.white.withValues(alpha: 0.9)
+                                        : textSecondary,
+                                  ),
+                                ),
+                            ],
                           ),
                         )
                       : const SizedBox.shrink(),
