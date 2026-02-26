@@ -1,33 +1,17 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
+import 'package:intl/date_symbol_data_file.dart';
 import 'package:provider/provider.dart';
-import 'package:network_info_plus/network_info_plus.dart';
-import 'package:permission_handler/permission_handler.dart';
-import './webview_page.dart';
-import './check_service_page.dart';
-import '../providers/theme_provider.dart';
-
-// 网络常量
-const List<String> _allowedNetworks = [
-  'Tenda_794FC0_5G',
-  'Tenda_794FC0',
-];
-const String _networkWarningMessage = '您当前环境可能无法访问服务，请检查您的地理位置或尝试连接指定网络并关闭移动数据';
-
-// 颜色常量
-const Color _lightButtonGradientStart = Color(0xFFb8e0ff);
-const Color _lightButtonGradientEnd = Color(0xFF7f5af0);
-const Color _darkButtonGradientStart = Color(0xFF4a5568);
-const Color _darkButtonGradientEnd = Color(0xFF2d3748);
+import 'package:intl/intl.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'package:universal_launcher/providers/theme_provider.dart';
+import 'package:geolocator/geolocator.dart';
 
 const Color _lightTextPrimary = Color(0xFF333333);
 const Color _lightTextSecondary = Color(0xFF555555);
 const Color _darkTextPrimary = Color(0xFFe2e8f0);
 const Color _darkTextSecondary = Color(0xFFa0aec0);
 
-/// 主页面
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -36,508 +20,493 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  bool _isModalVisible = false;
-  bool _showNetworkWarning = false;
-  String? _currentWifiName;
-  final NetworkInfo _networkInfo = NetworkInfo();
+  Map<String, dynamic>? _weatherData;
+  bool _isLoadingWeather = false;
+  String? _weatherError;
+  bool _isInitialized = false;
 
   @override
   void initState() {
     super.initState();
-    _checkNetwork();
+    _initializeLocale();
   }
 
-  Future<void> _checkNetwork() async {
-    // 检查是否为web平台，如果是则跳过网络检查
-    if (kIsWeb) {
+  Future<void> _initializeLocale() async {
+    await initializeDateFormatting('zh_CN', '');
+    if (mounted) {
       setState(() {
-        _showNetworkWarning = false;
+        _isInitialized = true;
       });
-      return;
-    }
-    
-    try {
-      // 先请求位置权限
-      final locationPermission = await Permission.location.status;
-      if (locationPermission != PermissionStatus.granted) {
-        // 如果没有权限，请求权限
-        final result = await Permission.location.request();
-        if (result != PermissionStatus.granted) {
-          // 如果用户拒绝了权限，尝试检查IP地址
-          await _checkIpAddress();
-          return;
-        }
-      }
-      
-      // 权限已授予，获取WiFi名称
-      final wifiName = await _networkInfo.getWifiName();
-      // 清理WiFi名称，移除可能的引号和空格
-      final cleanedWifiName = wifiName?.trim().replaceAll('"', '');
-      
-      setState(() {
-        _currentWifiName = cleanedWifiName;
-        // 只有当WiFi名称为空或不在允许列表中时才显示警告
-        _showNetworkWarning = cleanedWifiName == null || !_allowedNetworks.contains(cleanedWifiName);
-      });
-    } catch (e) {
-      // 如果获取WiFi名称失败，尝试检查IP地址作为备选方案
-      await _checkIpAddress();
+      _fetchWeather();
     }
   }
-  
-  Future<void> _checkIpAddress() async {
-    // 检查是否为web平台，如果是则跳过网络检查
-    if (kIsWeb) {
-      setState(() {
-        _showNetworkWarning = false;
-      });
-      return;
+
+  Future<Position?> _getCurrentPosition() async {
+    bool serviceEnabled;
+    LocationPermission permission;
+
+    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      return null;
     }
-    
+
+    permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        return null;
+      }
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      return null;
+    }
+
+    return await Geolocator.getCurrentPosition(
+      desiredAccuracy: LocationAccuracy.high,
+    );
+  }
+
+  Future<void> _fetchWeather() async {
+    setState(() {
+      _isLoadingWeather = true;
+      _weatherError = null;
+    });
+
     try {
-      final ip = await _networkInfo.getWifiIP();
+      final position = await _getCurrentPosition();
+      final latitude = position?.latitude ?? 39.9042;
+      final longitude = position?.longitude ?? 116.4074;
+
+      final response = await http.get(
+        Uri.parse('https://api.open-meteo.com/v1/forecast?latitude=$latitude&longitude=$longitude&current=temperature_2m,weather_code,wind_speed_10m&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=auto'),
+      );
+
+      if (response.statusCode == 200) {
+        setState(() {
+          _weatherData = json.decode(response.body);
+          _isLoadingWeather = false;
+        });
+      } else {
+        setState(() {
+          _weatherError = 'Failed to load weather';
+          _isLoadingWeather = false;
+        });
+      }
+    } catch (e) {
       setState(() {
-        // 如果IP地址是内部网络地址(192.168.x.x)，则不显示警告
-        _showNetworkWarning = ip == null || !ip.startsWith('192.168.');
-      });
-    } catch (ipError) {
-      // 如果都失败，默认显示警告
-      setState(() {
-        _showNetworkWarning = true;
+        _weatherError = 'Error: $e';
+        _isLoadingWeather = false;
       });
     }
+  }
+
+  String _getWeatherDescription(int code) {
+    final Map<int, String> weatherCodes = {
+      0: '晴朗',
+      1: '多云',
+      2: '多云',
+      3: '阴天',
+      45: '雾',
+      48: '雾凇',
+      51: '毛毛雨',
+      53: '毛毛雨',
+      55: '毛毛雨',
+      61: '小雨',
+      63: '中雨',
+      65: '大雨',
+      71: '小雪',
+      73: '中雪',
+      75: '大雪',
+      80: '阵雨',
+      81: '阵雨',
+      82: '暴雨',
+      95: '雷雨',
+      96: '雷雨伴有冰雹',
+      99: '雷雨伴有冰雹',
+    };
+    return weatherCodes[code] ?? '未知';
+  }
+
+  IconData _getWeatherIcon(int code) {
+    if (code == 0) return Icons.wb_sunny;
+    if (code <= 3) return Icons.cloud;
+    if (code <= 48) return Icons.foggy;
+    if (code <= 67) return Icons.water_drop;
+    if (code <= 77) return Icons.ac_unit;
+    if (code <= 82) return Icons.grain;
+    return Icons.thunderstorm;
   }
 
   @override
   Widget build(BuildContext context) {
-    // 获取主题Provider
     final themeProvider = Provider.of<ThemeProvider>(context);
-    // 根据主题Provider确定是否是深色模式
     final bool isDarkMode = themeProvider.isDarkMode;
-    
-    // 根据主题模式选择颜色
-    final Color buttonGradientStart = isDarkMode ? _darkButtonGradientStart : _lightButtonGradientStart;
-    final Color buttonGradientEnd = isDarkMode ? _darkButtonGradientEnd : _lightButtonGradientEnd;
     final Color textPrimary = isDarkMode ? _darkTextPrimary : _lightTextPrimary;
     final Color textSecondary = isDarkMode ? _darkTextSecondary : _lightTextSecondary;
-    
-    return SafeArea(
-      child: Stack(
-        children: [
-          // 主要内容
-          Center(
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  // 普通容器
-                  Container(
-                    margin: const EdgeInsets.all(16.0),
-                    padding: const EdgeInsets.all(32.0),
-                    decoration: BoxDecoration(
-                      color: isDarkMode 
-                          ? Colors.black.withValues(alpha: 0.3)
-                          : Colors.white.withValues(alpha: 0.2),
-                      borderRadius: BorderRadius.circular(16.0),
-                      border: Border.all(
-                        color: isDarkMode 
-                            ? Colors.white.withValues(alpha: 0.1)
-                            : Colors.white.withValues(alpha: 0.3),
-                        width: 1.0,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: isDarkMode 
-                              ? Colors.black.withValues(alpha: 0.3)
-                              : Colors.black.withValues(alpha: 0.1),
-                          blurRadius: 32.0,
-                          spreadRadius: 8.0,
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      children: [
-                        // 网络警告信息
-                        if (_showNetworkWarning)
-                          Container(
-                            margin: const EdgeInsets.only(bottom: 16.0),
-                            padding: const EdgeInsets.all(16.0),
-                            decoration: BoxDecoration(
-                              color: isDarkMode
-                                  ? Colors.orange.withValues(alpha: 0.2)
-                                  : Colors.orange.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(12.0),
-                              border: Border.all(
-                                color: isDarkMode
-                                    ? Colors.orange.withValues(alpha: 0.5)
-                                    : Colors.orange.withValues(alpha: 0.3),
-                                width: 1.0,
-                              ),
-                            ),
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Icon(
-                                  Icons.warning,
-                                  color: isDarkMode
-                                      ? Colors.orangeAccent
-                                      : Colors.orange,
-                                  size: 20.0,
-                                ),
-                                const SizedBox(width: 12.0),
-                                Expanded(
-                                  child: Text(
-                                    _networkWarningMessage,
-                                    style: TextStyle(
-                                      color: isDarkMode
-                                          ? Colors.orangeAccent
-                                          : Colors.orange,
-                                      fontSize: 14.0,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        // 按钮组
-                        Wrap(
-                          alignment: WrapAlignment.center,
-                          spacing: 16.0,
-                          runSpacing: 16.0,
-                          children: [
-                            _buildButton(
-                              text: '家庭记账本',
-                              isPrimary: true,
-                              onPressed: () {
-                                _navigateToUrl('http://192.168.0.197:3010');
-                              },
-                              buttonGradientStart: buttonGradientStart,
-                              buttonGradientEnd: buttonGradientEnd,
-                              textPrimary: textPrimary,
-                              isDarkMode: isDarkMode,
-                            )
-                          ]
-                        ),
-                        // 服务状态监控按钮（web平台不可见）
-                        if (!kIsWeb)
-                          Padding(
-                            padding: const EdgeInsets.only(top: 16.0),
-                            child: _buildButton(
-                              text: '服务状态监控',
-                              isPrimary: false,
-                              onPressed: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => const CheckServicePage(),
-                                  ),
-                                );
-                              },
-                              buttonGradientStart: buttonGradientStart,
-                              buttonGradientEnd: buttonGradientEnd,
-                              textPrimary: textPrimary,
-                              isDarkMode: isDarkMode,
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          // 模态框
-          AnimatedOpacity(
-            opacity: _isModalVisible ? 1.0 : 0.0,
-            duration: const Duration(milliseconds: 300),
-            curve: Curves.easeInOut,
-            child: AnimatedScale(
-              scale: _isModalVisible ? 1.0 : 0.9,
-              duration: const Duration(milliseconds: 300),
-              curve: Curves.easeInOut,
-              child: IgnorePointer(
-                ignoring: !_isModalVisible,
-                child: _buildModal(
-                  buttonGradientStart: buttonGradientStart,
-                  buttonGradientEnd: buttonGradientEnd,
-                  textPrimary: textPrimary,
-                  textSecondary: textSecondary,
-                  isDarkMode: isDarkMode,
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-  
-  // 构建按钮
-  Widget _buildButton({
-    required String text,
-    required bool isPrimary,
-    required VoidCallback onPressed,
-    required Color buttonGradientStart,
-    required Color buttonGradientEnd,
-    required Color textPrimary,
-    required bool isDarkMode,
-  }) {
-    if (isPrimary) {
-      return Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              buttonGradientStart,
-              buttonGradientEnd,
-            ],
-          ),
-          borderRadius: BorderRadius.circular(12.0),
-          boxShadow: [
-            BoxShadow(
-              color: isDarkMode 
-                  ? Colors.black.withValues(alpha: 0.3)
-                  : Colors.black.withValues(alpha: 0.15),
-              blurRadius: 10.0,
-              spreadRadius: 2.0,
-            ),
-          ],
-        ),
-        child: ElevatedButton(
-          onPressed: onPressed,
-          style: ElevatedButton.styleFrom(
-            padding: const EdgeInsets.symmetric(horizontal: 32.0, vertical: 16.0),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12.0),
-            ),
-            backgroundColor: Colors.transparent,
-            foregroundColor: Colors.white,
-            elevation: 0,
-            shadowColor: Colors.transparent,
-            surfaceTintColor: Colors.transparent,
-            side: BorderSide(
-              color: Colors.white.withValues(alpha: isDarkMode ? 0.1 : 0.2),
-              width: 1.0,
-            ),
-          ),
-          child: Text(
-            text,
-            style: TextStyle(
-              fontWeight: FontWeight.w600,
-              fontSize: 16.0,
-              color: Colors.white,
-            ),
+
+    if (!_isInitialized) {
+      return SafeArea(
+        child: Center(
+          child: CircularProgressIndicator(
+            valueColor: AlwaysStoppedAnimation<Color>(textSecondary),
           ),
         ),
       );
     }
-    return ElevatedButton(
-      onPressed: onPressed,
-      style: ElevatedButton.styleFrom(
-        padding: const EdgeInsets.symmetric(horizontal: 32.0, vertical: 16.0),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12.0),
-        ),
-        backgroundColor: isDarkMode 
-            ? Colors.black.withValues(alpha: 0.4)
-            : Colors.white.withValues(alpha: 0.3),
-        foregroundColor: textPrimary,
-        elevation: 0,
-        shadowColor: Colors.transparent,
-        surfaceTintColor: Colors.transparent,
-        side: BorderSide(
-          color: Colors.white.withValues(alpha: isDarkMode ? 0.1 : 0.2),
-          width: 1.0,
-        ),
-      ),
-      child: Text(
-        text,
-        style: TextStyle(
-          fontWeight: FontWeight.w600,
-          fontSize: 16.0,
+
+    final now = DateTime.now();
+    final dateFormatter = DateFormat('yyyy年MM月dd日');
+    final weekdayFormatter = DateFormat('EEEE', 'zh_CN');
+
+    return SafeArea(
+      child: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _buildDateCard(
+                date: dateFormatter.format(now),
+                weekday: weekdayFormatter.format(now),
+                textPrimary: textPrimary,
+                textSecondary: textSecondary,
+                isDarkMode: isDarkMode,
+              ),
+              const SizedBox(height: 16.0),
+              _buildWeatherCard(
+                textPrimary: textPrimary,
+                textSecondary: textSecondary,
+                isDarkMode: isDarkMode,
+              ),
+              const SizedBox(height: 16.0),
+              _buildCalendarCard(
+                textPrimary: textPrimary,
+                textSecondary: textSecondary,
+                isDarkMode: isDarkMode,
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
-  
-  // 构建模态框
-  Widget _buildModal({
-    required Color buttonGradientStart,
-    required Color buttonGradientEnd,
+
+  Widget _buildDateCard({
+    required String date,
+    required String weekday,
     required Color textPrimary,
     required Color textSecondary,
     required bool isDarkMode,
   }) {
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          _isModalVisible = false;
-        });
-      },
-      child: Container(
-        width: double.infinity,
-        height: double.infinity,
+    return Container(
+      padding: const EdgeInsets.all(24.0),
+      decoration: BoxDecoration(
         color: isDarkMode 
             ? Colors.black.withValues(alpha: 0.3)
             : Colors.white.withValues(alpha: 0.2),
-        child: Center(
-          child: Container(
-            margin: const EdgeInsets.all(16.0),
-            padding: const EdgeInsets.all(32.0),
-            decoration: BoxDecoration(
-              color: isDarkMode 
-                  ? Colors.black.withValues(alpha: 0.3)
-                  : Colors.white.withValues(alpha: 0.2),
-              borderRadius: BorderRadius.circular(16.0),
-              border: Border.all(
-                color: isDarkMode 
-                    ? Colors.white.withValues(alpha: 0.1)
-                    : Colors.white.withValues(alpha: 0.3),
-                width: 1.0,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: isDarkMode 
-                      ? Colors.black.withValues(alpha: 0.3)
-                      : Colors.black.withValues(alpha: 0.1),
-                  blurRadius: 32.0,
-                  spreadRadius: 8.0,
-                ),
-              ],
-            ),
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 20.0, sigmaY: 20.0),
-              child: GestureDetector(
-                  onTap: () {
-                    // 阻止点击事件传递到父容器
-                  },
-                  behavior: HitTestBehavior.opaque, // 添加这个属性来确保内部点击不触发外部关闭
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      '金流版本选择',
-                      style: TextStyle(
-                        fontSize: 20.0,
-                        fontWeight: FontWeight.w600,
-                        color: textPrimary,
-                      ),
-                    ),
-                    const SizedBox(height: 8.0),
-                    Text(
-                      '点击空白处以关闭',
-                      style: TextStyle(
-                        fontSize: 14.0,
-                        color: textSecondary,
-                      ),
-                    ),
-                    const SizedBox(height: 24.0),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        _buildModalButton(
-                          text: '标准',
-                          onPressed: () {
-                            _navigateToUrl('http://192.168.0.197:3100');
-                            setState(() {
-                              _isModalVisible = false;
-                            });
-                          },
-                          buttonGradientStart: buttonGradientStart,
-                          buttonGradientEnd: buttonGradientEnd,
-                          isDarkMode: isDarkMode,
-                        ),
-                        const SizedBox(width: 16.0),
-                        _buildModalButton(
-                          text: '兼容',
-                          onPressed: () {
-                            _navigateToUrl('http://192.168.0.197:4173');
-                            setState(() {
-                              _isModalVisible = false;
-                            });
-                          },
-                          buttonGradientStart: buttonGradientStart,
-                          buttonGradientEnd: buttonGradientEnd,
-                          isDarkMode: isDarkMode,
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
+        borderRadius: BorderRadius.circular(16.0),
+        border: Border.all(
+          color: isDarkMode 
+              ? Colors.white.withValues(alpha: 0.1)
+              : Colors.white.withValues(alpha: 0.3),
+          width: 1.0,
         ),
-      ),
-    );
-  }
-  
-  // 构建模态框按钮
-  Widget _buildModalButton({
-    required String text,
-    required VoidCallback onPressed,
-    required Color buttonGradientStart,
-    required Color buttonGradientEnd,
-    required bool isDarkMode,
-  }) {
-    return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            buttonGradientStart,
-            buttonGradientEnd,
-          ],
-        ),
-        borderRadius: BorderRadius.circular(12.0),
         boxShadow: [
           BoxShadow(
             color: isDarkMode 
                 ? Colors.black.withValues(alpha: 0.3)
-                : Colors.black.withValues(alpha: 0.15),
-            blurRadius: 10.0,
-            spreadRadius: 2.0,
+                : Colors.black.withValues(alpha: 0.1),
+            blurRadius: 32.0,
+            spreadRadius: 8.0,
           ),
         ],
       ),
-      child: ElevatedButton(
-        onPressed: onPressed,
-        style: ElevatedButton.styleFrom(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12.0),
+      child: Column(
+        children: [
+          Text(
+            date,
+            style: TextStyle(
+              fontSize: 32.0,
+              fontWeight: FontWeight.bold,
+              color: textPrimary,
+            ),
           ),
-          backgroundColor: Colors.transparent,
-          foregroundColor: Colors.white,
-          elevation: 0,
-          shadowColor: Colors.transparent,
-          surfaceTintColor: Colors.transparent,
-        ),
-        child: Text(
-          text,
-          style: TextStyle(
-            fontWeight: FontWeight.w600,
-            fontSize: 16.0,
-            color: Colors.white,
+          const SizedBox(height: 8.0),
+          Text(
+            weekday,
+            style: TextStyle(
+              fontSize: 20.0,
+              color: textSecondary,
+            ),
           ),
-        ),
+        ],
       ),
     );
   }
-  
-  // 导航到URL
-  void _navigateToUrl(String url) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => WebViewPage(
-          title: '外部链接',
-          url: url,
+
+  Widget _buildWeatherCard({
+    required Color textPrimary,
+    required Color textSecondary,
+    required bool isDarkMode,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(24.0),
+      decoration: BoxDecoration(
+        color: isDarkMode 
+            ? Colors.black.withValues(alpha: 0.3)
+            : Colors.white.withValues(alpha: 0.2),
+        borderRadius: BorderRadius.circular(16.0),
+        border: Border.all(
+          color: isDarkMode 
+              ? Colors.white.withValues(alpha: 0.1)
+              : Colors.white.withValues(alpha: 0.3),
+          width: 1.0,
         ),
+        boxShadow: [
+          BoxShadow(
+            color: isDarkMode 
+                ? Colors.black.withValues(alpha: 0.3)
+                : Colors.black.withValues(alpha: 0.1),
+            blurRadius: 32.0,
+            spreadRadius: 8.0,
+          ),
+        ],
       ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                '天气',
+                style: TextStyle(
+                  fontSize: 20.0,
+                  fontWeight: FontWeight.bold,
+                  color: textPrimary,
+                ),
+              ),
+              IconButton(
+                icon: Icon(Icons.refresh, color: textSecondary),
+                onPressed: _fetchWeather,
+              ),
+            ],
+          ),
+          const SizedBox(height: 16.0),
+          if (_isLoadingWeather)
+            Center(
+              child: CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(textSecondary),
+              ),
+            )
+          else if (_weatherError != null)
+            Center(
+              child: Text(
+                _weatherError!,
+                style: TextStyle(
+                  color: isDarkMode ? Colors.redAccent : Colors.red,
+                  fontSize: 14.0,
+                ),
+              ),
+            )
+          else if (_weatherData != null)
+            _buildWeatherContent(textPrimary, textSecondary),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildWeatherContent(Color textPrimary, Color textSecondary) {
+    final current = _weatherData!['current'];
+    final temp = current['temperature_2m'];
+    final code = current['weather_code'];
+    final windSpeed = current['wind_speed_10m'];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(
+              _getWeatherIcon(code),
+              size: 48.0,
+              color: textPrimary,
+            ),
+            const SizedBox(width: 16.0),
+            Text(
+              '${temp.toStringAsFixed(1)}°C',
+              style: TextStyle(
+                fontSize: 36.0,
+                fontWeight: FontWeight.bold,
+                color: textPrimary,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8.0),
+        Text(
+          _getWeatherDescription(code),
+          style: TextStyle(
+            fontSize: 18.0,
+            color: textSecondary,
+          ),
+        ),
+        const SizedBox(height: 8.0),
+        Text(
+          '风速: ${windSpeed.toStringAsFixed(1)} km/h',
+          style: TextStyle(
+            fontSize: 14.0,
+            color: textSecondary,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCalendarCard({
+    required Color textPrimary,
+    required Color textSecondary,
+    required bool isDarkMode,
+  }) {
+    final now = DateTime.now();
+    final firstDayOfMonth = DateTime(now.year, now.month, 1);
+    final lastDayOfMonth = DateTime(now.year, now.month + 1, 0);
+    final startWeekday = firstDayOfMonth.weekday;
+
+    return Container(
+      padding: const EdgeInsets.all(24.0),
+      decoration: BoxDecoration(
+        color: isDarkMode 
+            ? Colors.black.withValues(alpha: 0.3)
+            : Colors.white.withValues(alpha: 0.2),
+        borderRadius: BorderRadius.circular(16.0),
+        border: Border.all(
+          color: isDarkMode 
+              ? Colors.white.withValues(alpha: 0.1)
+              : Colors.white.withValues(alpha: 0.3),
+          width: 1.0,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: isDarkMode 
+                ? Colors.black.withValues(alpha: 0.3)
+                : Colors.black.withValues(alpha: 0.1),
+            blurRadius: 32.0,
+            spreadRadius: 8.0,
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '${now.year}年${now.month}月',
+            style: TextStyle(
+              fontSize: 20.0,
+              fontWeight: FontWeight.bold,
+              color: textPrimary,
+            ),
+          ),
+          const SizedBox(height: 16.0),
+          _buildWeekdayHeader(textSecondary),
+          const SizedBox(height: 8.0),
+          _buildCalendarGrid(
+            firstDayOfMonth: firstDayOfMonth,
+            lastDayOfMonth: lastDayOfMonth,
+            startWeekday: startWeekday,
+            currentDay: now.day,
+            textPrimary: textPrimary,
+            textSecondary: textSecondary,
+            isDarkMode: isDarkMode,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildWeekdayHeader(Color textSecondary) {
+    final weekdays = ['日', '一', '二', '三', '四', '五', '六'];
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceAround,
+      children: weekdays.map((day) {
+        return SizedBox(
+          width: 32.0,
+          child: Center(
+            child: Text(
+              day,
+              style: TextStyle(
+                fontSize: 14.0,
+                color: textSecondary,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        );
+      }).toList(),
+    );
+  }
+
+  Widget _buildCalendarGrid({
+    required DateTime firstDayOfMonth,
+    required DateTime lastDayOfMonth,
+    required int startWeekday,
+    required int currentDay,
+    required Color textPrimary,
+    required Color textSecondary,
+    required bool isDarkMode,
+  }) {
+    final daysInMonth = lastDayOfMonth.day;
+    final totalCells = ((startWeekday - 1 + daysInMonth) / 7).ceil() * 7;
+
+    return Column(
+      children: List.generate(totalCells ~/ 7, (weekIndex) {
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 8.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: List.generate(7, (dayIndex) {
+              final cellIndex = weekIndex * 7 + dayIndex;
+              final dayNumber = cellIndex - (startWeekday - 1) + 1;
+              final isValidDay = dayNumber > 0 && dayNumber <= daysInMonth;
+              final isToday = isValidDay && dayNumber == currentDay;
+
+              return SizedBox(
+                width: 32.0,
+                height: 32.0,
+                child: Center(
+                  child: isValidDay
+                      ? Container(
+                          decoration: BoxDecoration(
+                            color: isToday
+                                ? (isDarkMode 
+                                    ? Colors.blue.withValues(alpha: 0.6)
+                                    : Colors.blue.withValues(alpha: 0.8))
+                                : Colors.transparent,
+                            borderRadius: BorderRadius.circular(8.0),
+                          ),
+                          child: Center(
+                            child: Text(
+                              '$dayNumber',
+                              style: TextStyle(
+                                fontSize: 14.0,
+                                color: isToday
+                                    ? Colors.white
+                                    : textPrimary,
+                                fontWeight: isToday
+                                    ? FontWeight.bold
+                                    : FontWeight.normal,
+                              ),
+                            ),
+                          ),
+                        )
+                      : const SizedBox.shrink(),
+                ),
+              );
+            }),
+          ),
+        );
+      }),
     );
   }
 }
